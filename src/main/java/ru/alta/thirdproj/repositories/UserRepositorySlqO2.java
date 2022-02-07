@@ -1,6 +1,8 @@
 package ru.alta.thirdproj.repositories;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
@@ -11,7 +13,9 @@ import ru.alta.thirdproj.entites.UserLogin;
 import java.util.List;
 
 @Component
-public class UserRepositorySlqO2 {
+public class UserRepositorySlqO2
+       // extends JpaRepository<User, Long>, JpaSpecificationExecutor<User>
+{
 
     private final Sql2o sql2o;
 

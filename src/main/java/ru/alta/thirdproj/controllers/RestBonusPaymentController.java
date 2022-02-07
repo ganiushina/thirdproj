@@ -2,7 +2,7 @@ package ru.alta.thirdproj.controllers;
 
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.UserBonus;
 import ru.alta.thirdproj.entites.UserLogin;
+import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
@@ -22,7 +23,7 @@ import java.time.LocalDate;
 @RestController
 @CrossOrigin("*")
 @RequestMapping("*") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
-@Api("Set of endpoints for CRUD operations for UserBonus")
+@Tag(name="RestBonusPaymentController", description="Выплаты по бонусам")
 public class RestBonusPaymentController {
 
     private UserPaymentBonusServiceImpl paymentBonusService;
@@ -36,10 +37,10 @@ public class RestBonusPaymentController {
     }
 
     @GetMapping("/allpayment") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
-    @ApiOperation("Returns list of all products data transfer objects")
-    public ResponseEntity<UserBonus> getAllUserBonus(@RequestParam(value = "date1")
+//    @ApiOperation("Returns list of all products data transfer objects")
+    public ResponseEntity<UserPaymentBonus> getAllUserBonus(@RequestParam(value = "date1")
                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                           @RequestParam(value = "date2")
+                                                            @RequestParam(value = "date2")
                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
 
     ) {

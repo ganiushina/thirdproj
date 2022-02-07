@@ -3,7 +3,9 @@ package ru.alta.thirdproj.controllers;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +20,19 @@ import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
 import ru.alta.thirdproj.repositories.UserRepositorySlqO2;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
+import ru.alta.thirdproj.specification.UserSpecification;
+import ru.alta.thirdproj.specification.UserSpecificationsBuilder;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @CrossOrigin("*")
 @RequestMapping("*") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
-@Api("Set of endpoints for CRUD operations for UserBonus")
+//@Api("Set of endpoints for CRUD operations for UserBonus")
+@Tag(name="RestBonusController", description="Заработанные бонусы")
 public class RestBonusController {
 
     private UserBonusServiceImpl bonusService;
@@ -37,19 +44,40 @@ public class RestBonusController {
     public RestBonusController(UserBonusServiceImpl bonusService) {
         this.bonusService = bonusService;
     }
-
     @GetMapping("/all") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
-    @ApiOperation("Returns list of all products data transfer objects")
+   // @ApiOperation("Returns list of all products data transfer objects")
     public ResponseEntity<UserBonus> getAllUserBonus(@RequestParam(value = "date1")
                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                            @RequestParam(value = "date2")
                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
+//                                           ,@RequestParam(value = "userId", required = false) String userName,
+//                                           @RequestParam(value = "depId", required = false) Integer departmentId
 
     ) {
 
+        UserSpecificationsBuilder builder = new UserSpecificationsBuilder();
+        Pattern pattern = Pattern.compile("(\\w+?)(:|<|>)(\\w+?),");
+//      //  Matcher matcher = pattern.matcher(search + ",");
+//        while (matcher.find()) {
+//            builder.with(matcher.group(1), matcher.group(2), matcher.group(3));
+        //}
+
+
+
+//
+     //   Specification<UserBonus> spec = builder.build();
+                //Specification.where(null);
+//
+//        StringBuilder filters = new StringBuilder();
+//        if (userName != null) {
+//            spec = spec.and(UserSpecification.userNameEquals(userName));
+//            filters.append("&userName=" + userName);
+//        }
+
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
-        return new ResponseEntity(bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment()), HttpStatus.OK);
+   //     return new ResponseEntity(bonusService.findAll(spec, HttpStatus.OK);
+       return new ResponseEntity(bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment()), HttpStatus.OK);
     }
 
 //    @GetMapping(produces = "application/json")

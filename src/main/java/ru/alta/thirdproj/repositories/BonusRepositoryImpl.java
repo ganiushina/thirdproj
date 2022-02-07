@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class BonusRepositoryImpl {
+public class BonusRepositoryImpl implements iUserBonusRepository {
 
     private final Sql2o sql2o;
 
@@ -38,4 +38,28 @@ public class BonusRepositoryImpl {
     }
 
 
+//    @Override
+//    public Optional<UserBonus> findOne(Specification<UserBonus> spec) {
+//        return Optional.empty();
+//    }
+//
+//    @Override
+//    public List<UserBonus> findAll(Specification<UserBonus> spec) {
+//        return null;
+//    }
+//
+//    @Override
+//    public Page<UserBonus> findAll(Specification<UserBonus> spec, Pageable pageable) {
+//        return null;
+//    }
+//
+//    @Override
+//    public List<UserBonus> findAll(Specification<UserBonus> spec, Sort sort) {
+//        return null;
+//    }
+//
+//    @Override
+//    public long count(Specification<UserBonus> spec) {
+//        return 0;
+//    }
 }
