@@ -26,6 +26,12 @@ public class UserPaymentBonusServiceImpl {
         return userBonusPaymentRepository.getUserBonuses(date1, date2, userId, departmentId);
     }
 
+    public List<UserPaymentBonus> findByUserFIOAnfDepartment(String userName, String department){
+        return userBonusPaymentRepository.findByFioAndDepartment(userName,  department);
+    }
+
+
+
 //    public Page<UserBonus> findAll(Specification<UserBonus> spec, Integer page) {
 //        if (page < 1L) {
 //            page = 1;

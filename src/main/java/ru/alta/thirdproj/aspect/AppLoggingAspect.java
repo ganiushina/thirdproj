@@ -22,16 +22,16 @@ public class AppLoggingAspect {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @AfterReturning(
-            pointcut = "execution(public * ru.alta.thirdproj.services.UserLoginServiceImpl.findLoginUserByUserName(..))",
+            pointcut = "execution(public * ru.alta.thirdproj.services.UserLoginServiceImpl.loadUserByUsername(..))",
             returning = "result")
     public void afterGetUser(UserLogin result) {
         System.out.println("Залогинился user : "  + result.getUserName());
     }
 
-//    @Before("execution(public void com.geekbrains.aop.UserDAO.addUser())") // pointcut expression
-//    public void beforeAddUserInUserDAOClass() {
-//        System.out.println("AOP: Поймали добавление пользователя");
-//    }
+    @Before("execution(public void ru.alta.thirdproj.services.UserLoginServiceImpl.loadUserByUsername(..))") // pointcut expression
+    public void beforeAddUserInUserDAOClass() {
+        System.out.println("AOP: Поймали добавление пользователя");
+    }
 //
 //    @Before("execution(public void com.geekbrains.aop.UserDAO.*User())") // pointcut expression
 //    public void beforeUserModifyInUserDAOClass() {

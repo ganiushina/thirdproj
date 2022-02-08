@@ -19,6 +19,8 @@ import ru.alta.thirdproj.services.UserBonusServiceImpl;
 import ru.alta.thirdproj.services.UserPaymentBonusServiceImpl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @CrossOrigin("*")
@@ -39,14 +41,23 @@ public class RestBonusPaymentController {
     @GetMapping("/allpayment") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
 //    @ApiOperation("Returns list of all products data transfer objects")
     public ResponseEntity<UserPaymentBonus> getAllUserBonus(@RequestParam(value = "date1")
-                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                                             @RequestParam(value = "date2")
-                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
+                                            ,@RequestParam(value = "userName", required = false) String userName,
+                                             @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
-        return new ResponseEntity(paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment()), HttpStatus.OK);
+        List<UserPaymentBonus> userPaymentBonuses = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+
+        if (userName != null || departmentName != null)   {
+            List<UserPaymentBonus> userPaymentBonusesFilter =  paymentBonusService.findByUserFIOAnfDepartment(userName, departmentName);
+            return  new ResponseEntity(userPaymentBonusesFilter, HttpStatus.OK);
+        }
+        else
+        return new ResponseEntity(userPaymentBonuses, HttpStatus.OK);
     }
 
 //    @GetMapping(produces = "application/json")

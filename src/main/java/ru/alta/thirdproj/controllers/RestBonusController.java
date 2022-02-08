@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -20,11 +21,14 @@ import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
 import ru.alta.thirdproj.repositories.UserRepositorySlqO2;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
+import ru.alta.thirdproj.specification.UserBonusSpecification;
 import ru.alta.thirdproj.specification.UserSpecification;
 import ru.alta.thirdproj.specification.UserSpecificationsBuilder;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,38 +50,39 @@ public class RestBonusController {
     }
     @GetMapping("/all") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
    // @ApiOperation("Returns list of all products data transfer objects")
-    public ResponseEntity<UserBonus> getAllUserBonus(@RequestParam(value = "date1")
-                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                           @RequestParam(value = "date2")
-                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
-//                                           ,@RequestParam(value = "userId", required = false) String userName,
-//                                           @RequestParam(value = "depId", required = false) Integer departmentId
+    public ResponseEntity<UserBonus> getAllUserBonus(
+                                            @RequestParam(value = "page") Optional<Integer> page,
+                                            @RequestParam(value = "date1")
+                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                            @RequestParam(value = "date2")
+                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
+                                           ,@RequestParam(value = "userName", required = false) String userName,
+                                            @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
-
-        UserSpecificationsBuilder builder = new UserSpecificationsBuilder();
-        Pattern pattern = Pattern.compile("(\\w+?)(:|<|>)(\\w+?),");
-//      //  Matcher matcher = pattern.matcher(search + ",");
-//        while (matcher.find()) {
-//            builder.with(matcher.group(1), matcher.group(2), matcher.group(3));
-        //}
-
-
-
+//        final int currentPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() - 1;
 //
-     //   Specification<UserBonus> spec = builder.build();
-                //Specification.where(null);
-//
+//        Specification<UserBonus> spec = Specification.where(null);
 //        StringBuilder filters = new StringBuilder();
 //        if (userName != null) {
-//            spec = spec.and(UserSpecification.userNameEquals(userName));
-//            filters.append("&userName=" + userName);
+//            spec = spec.and(UserBonusSpecification.fioContains(userName));
+//            filters.append("&fio=" + userName);
+//        }
+//        if (departmentName != null) {
+//            spec = spec.and(UserBonusSpecification.departmentContains(departmentName));
+//            filters.append("&department=" + departmentName);
 //        }
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
-   //     return new ResponseEntity(bonusService.findAll(spec, HttpStatus.OK);
-       return new ResponseEntity(bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment()), HttpStatus.OK);
+        List<UserBonus> userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+        if (userName != null || departmentName != null)   {
+            List<UserBonus> userBonusesFilter = new ArrayList<>();
+            userBonusesFilter =  bonusService.findByFioAndDepartment(userName, departmentName);
+            return  new ResponseEntity(userBonusesFilter, HttpStatus.OK);
+        }
+        else
+        return new ResponseEntity(userBonuses, HttpStatus.OK);
     }
 
 //    @GetMapping(produces = "application/json")
