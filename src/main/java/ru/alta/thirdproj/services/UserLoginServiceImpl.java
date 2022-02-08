@@ -66,6 +66,7 @@ public class UserLoginServiceImpl implements UserLoginService {
     @Override
     // @Transactional
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+
         UserLogin user = userProvider.getUser(userName);
 
         user.setRoles(userProvider.getUserRole(user.getUserId()));
@@ -73,8 +74,7 @@ public class UserLoginServiceImpl implements UserLoginService {
             throw new UsernameNotFoundException("Invalid username or password.");
         }
         return new org.springframework.security.core.userdetails.User(user.getUserName(), user.getPassword(),
-                mapRolesToAuthorities(user.getRoles()));
-    }
+                mapRolesToAuthorities(user.getRoles()));    }
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
         return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());

@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
 import ru.alta.thirdproj.services.UserLoginServiceImpl;
 import ru.alta.thirdproj.services.UserServiceImpl;
@@ -22,30 +23,14 @@ import javax.sql.DataSource;
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private DataSource dataSource;
-    private UserBonusServiceImpl userBonusService;
-    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
-    private UserServiceImpl userService;
-
+   private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+  //  private CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
     private UserLoginServiceImpl userLoginService;
 
-//    private JwtAuthFilter jwtAuthFilter;
-//
-//    @Autowired
-//    private setJwtAuthFilter jwtAuthFilter;
-
-    @Autowired
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return new CustomAuthenticationFailureHandler();
     }
-
-    @Autowired
-    public void setUseBonusService(UserBonusServiceImpl userService) {
-        this.userBonusService = userService;
-    }
-
-    @Autowired
-    public void setUserService(@Lazy UserServiceImpl userService){ this.userService = userService;}
 
     @Autowired
     public  void setUserLoginService (@Lazy UserLoginServiceImpl userLoginService){this.userLoginService = userLoginService;}
@@ -62,41 +47,58 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                //.csrf()
-               // .disable()
-                .authorizeRequests()
-              //  .antMatchers("/registration").not().fullyAuthenticated()
-                //Доступ только для пользователей с ролью Администратор
-                .antMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
+        http.authorizeRequests()
+
                 .and()
-                //Настройка для входа в систему
                 .formLogin()
- //               .loginPage("/login")
-                //Перенарпавление на главную страницу после успешного входа
-                .defaultSuccessUrl("/user")
+
+                .loginProcessingUrl("/user")
+                .successHandler(customAuthenticationSuccessHandler)
+                .failureHandler(authenticationFailureHandler())
                 .permitAll()
                 .and()
                 .logout()
-                .permitAll()
-                .logoutSuccessUrl("/");
-//                .anyRequest().permitAll();
-//                .antMatchers("/register/**").permitAll()
+                .logoutSuccessUrl("/user")
+                .permitAll();
+//        http
+//                //.csrf()
+//               // .disable()
+//                .authorizeRequests()
+//              //  .antMatchers("/registration").not().fullyAuthenticated()
+//                //Доступ только для пользователей с ролью Администратор
 //                .antMatchers("/admin/**").hasRole("ADMIN")
-//                .antMatchers("/products/**").hasRole("ADMIN")
-//                .antMatchers("/shop/order/**").authenticated()
-//                .antMatchers("/all/**").authenticated()
+//                .anyRequest()
+//                .authenticated()
 //                .and()
+//                //Настройка для входа в систему
 //                .formLogin()
-//             //   .loginPage("/login")
-//                .loginProcessingUrl("/authenticateTheUser")
+//                .failureHandler(customAuthenticationFailureHandler)
+// //               .loginPage("/login")
+//                //Перенарпавление на главную страницу после успешного входа
 //                .successHandler(customAuthenticationSuccessHandler)
-//                .permitAll();
+//                .defaultSuccessUrl("/user")
+//
+//                .permitAll()
 //                .and()
 //                .logout()
-//                .logoutSuccessUrl("/")
-//                .permitAll();
+//                .permitAll()
+//                .logoutSuccessUrl("/");
+////                .anyRequest().permitAll();
+////                .antMatchers("/register/**").permitAll()
+////                .antMatchers("/admin/**").hasRole("ADMIN")
+////                .antMatchers("/products/**").hasRole("ADMIN")
+////                .antMatchers("/shop/order/**").authenticated()
+////                .antMatchers("/all/**").authenticated()
+////                .and()
+////                .formLogin()
+////             //   .loginPage("/login")
+////                .loginProcessingUrl("/authenticateTheUser")
+////                .successHandler(customAuthenticationSuccessHandler)
+////                .permitAll();
+////                .and()
+////                .logout()
+////                .logoutSuccessUrl("/")
+////                .permitAll();
     }
 
     @Bean
