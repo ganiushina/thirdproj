@@ -1,6 +1,8 @@
 package ru.alta.thirdproj.entites;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Date;
@@ -8,7 +10,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
-@Setter
+//@Builder
+@NoArgsConstructor
 @Data
 public class UserPaymentBonus {
 

@@ -1,6 +1,8 @@
 package ru.alta.thirdproj.entites;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
@@ -8,6 +10,8 @@ import java.io.Serializable;
 import java.util.*;
 
 @Data
+//@Builder
+@NoArgsConstructor
 public class UserLogin  {
 
    private Long userId;

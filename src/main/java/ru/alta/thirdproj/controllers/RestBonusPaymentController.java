@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin("*")
-@RequestMapping("*") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
+@RequestMapping("/payment") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 @Tag(name="RestBonusPaymentController", description="Выплаты по бонусам")
 public class RestBonusPaymentController {
 

@@ -19,7 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class BonusRepositoryImpl  {
+public class BonusRepositoryImpl {
 
     private final Sql2o sql2o;
 
@@ -48,18 +48,18 @@ public class BonusRepositoryImpl  {
     public List<UserBonus> findByFioAndDepartment(String fio, String department) {
         List<UserBonus> userBonusList = null;
         
-        if (fio != null)
+        if (!fio.equals(""))
             userBonusList = userBonusesList
                     .stream()
                     .filter(c -> (c.getFio().equals(fio)))
                     .collect(Collectors.toList());
-        if (department != null)
+        if (!department.equals(""))
             userBonusList = userBonusesList
                     .stream()
                     .filter(c -> c.getDepartment().equals(department))
                     .collect(Collectors.toList());
 
-        if (department != null && fio != null)
+        if (!department.equals("") && !fio.equals(""))
             userBonusList = userBonusesList
                     .stream()
                     .filter(c -> (c.getFio().equals(fio) && c.getDepartment().equals(department)))

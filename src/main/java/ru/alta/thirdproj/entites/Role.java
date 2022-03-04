@@ -1,11 +1,15 @@
 package ru.alta.thirdproj.entites;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+//@Builder
+@NoArgsConstructor
 public class Role {
 
 	private Long id;
@@ -19,7 +23,6 @@ public class Role {
 		COLUMN_MAPPINGS.put("name", "name");
 
 	}
-
 
 	public String toString() {
 		return "Role{" + "id=" + id + ", name='" + name + '\'' + '}';

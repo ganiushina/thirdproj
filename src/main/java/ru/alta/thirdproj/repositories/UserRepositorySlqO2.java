@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.entites.Role;
 import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.entites.UserLogin;
@@ -33,6 +34,21 @@ public class UserRepositorySlqO2
                     "     left JOIN dbo.depatment d ON d.id = ubm.user_department\n" +
                     "     where l.login_active = 1 and l.login_name = :user_login ";
 
+    private static final String SELECT_ALL_EMPLOYERS = "SELECT DISTINCT man_id \n" +
+            ",man_fio \n" +
+            "from man m \n" +
+            "JOIN login l ON l.login_user_id = m.man_id\n" +
+            "JOIN dbo.userplanByMonth ubm ON ubm.user_id = l.login_user_id AND ubm.userplan_month = DATEPART(mm, GETDATE()) AND ubm.userplan_year = DATEPART(yy, GETDATE())\n" +
+            "where l.login_active = 1";
+
+    private static final  String SELECT_EMPLOYER_BY_NAME = "" +
+            "SELECT DISTINCT man_id \n" +
+            ",man_fio \n" +
+            "from man m \n" +
+            "JOIN login l ON l.login_user_id = m.man_id\n" +
+            "JOIN dbo.userplanByMonth ubm ON ubm.user_id = l.login_user_id AND ubm.userplan_month = DATEPART(mm, GETDATE()) AND ubm.userplan_year = DATEPART(yy, GETDATE())\n" +
+            "where l.login_active = 1 AND man_fio = :manFIO";
+
     private String SELECT_USER_ROLE_QUERY =
             " SELECT r.id, r.name\n" +
                     "FROM dbo.Login_Role lr\n" +
@@ -53,11 +69,20 @@ public class UserRepositorySlqO2
         }
     }
 
-    public List<User> getUsers() {
+    public List<Employer> getEmployer() {
         try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_USER_QUERY, false)
-                    .setColumnMappings(User.COLUMN_MAPPINGS)
-                    .executeAndFetch(User.class);
+            return connection.createQuery(SELECT_ALL_EMPLOYERS, false)
+                    .setColumnMappings(Employer.COLUMN_MAPPINGS)
+                    .executeAndFetch(Employer.class);
+        }
+    }
+
+    public Employer getEmployerByName(String manFIO) {
+        try (Connection connection = sql2o.open()) {
+            return connection.createQuery(SELECT_EMPLOYER_BY_NAME, false)
+                    .addParameter("manFIO", manFIO)
+                    .setColumnMappings(Employer.COLUMN_MAPPINGS)
+                    .executeAndFetchFirst(Employer.class);
         }
     }
 
