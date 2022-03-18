@@ -38,7 +38,6 @@ public class User {
         COLUMN_MAPPINGS.put("user_department", "loginDepartment");
         COLUMN_MAPPINGS.put("login_hash_bcript", "password");
 
-
     }
 
 

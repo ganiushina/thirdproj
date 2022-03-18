@@ -5,11 +5,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,19 +27,20 @@ import ru.alta.thirdproj.entites.UserLogin;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
 import ru.alta.thirdproj.repositories.UserRepositorySlqO2;
+import ru.alta.thirdproj.response.ResponseHandler;
 import ru.alta.thirdproj.services.EmployerServiceImpl;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
 import ru.alta.thirdproj.specification.UserBonusSpecification;
 import ru.alta.thirdproj.specification.UserSpecification;
 import ru.alta.thirdproj.specification.UserSpecificationsBuilder;
 
+import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 //@RestController
 @Controller
@@ -64,8 +68,8 @@ public class RestBonusController {
     }
 
 
-  //  @GetMapping("/all") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
-    @GetMapping
+    @GetMapping("/all") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
+  //  @GetMapping
     @ApiOperation("Returns list of all products data transfer objects")
     public ResponseEntity<UserBonus> getAllUserBonus(
                                             @RequestParam(value = "page") Optional<Integer> page,
@@ -77,6 +81,7 @@ public class RestBonusController {
                                             @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
+
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
         List<UserBonus> userBonuses;
@@ -91,13 +96,110 @@ public class RestBonusController {
         if (userName != null || departmentName != null)   {
             List<UserBonus> userBonusesFilter;
             userBonusesFilter =  bonusService.findByFioAndDepartment(userName, departmentName);
-            return  new ResponseEntity(userBonusesFilter, HttpStatus.OK);
+            return new ResponseEntity(userBonusesFilter, HttpStatus.OK);
         }
         else
         return new ResponseEntity(userBonuses, HttpStatus.OK);
+
     }
 
+    @GetMapping("/all3") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
+   // @GetMapping
+    @ApiOperation("Returns list of all products data transfer objects")
+  //  @RequestMapping(value = "getAllUserBonusGson", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAllUserBonusGson(
+            @RequestParam(value = "page") Optional<Integer> page,
+            @RequestParam(value = "date1")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+            @RequestParam(value = "date2")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2,
+            @RequestParam(value = "userName", required = false) String userName,
+            @RequestParam(value = "departmentName", required = false) String departmentName
 
+    ) {
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserLogin user = userR.getUser(userDetails.getUsername());
+        List<UserBonus> userBonuses;
+
+//        if (date1 == null) {
+//            YearMonth month = YearMonth.now();
+//            userBonuses = bonusService.findAll(month.atDay(1), month.atEndOfMonth(), Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+//        }
+//        else {
+//            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+//        }
+
+        if (userName != null || departmentName != null)   {
+            userBonuses =  bonusService.findByFioAndDepartment(userName, departmentName);
+        }
+        else
+            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+
+
+        List<HashMap<String, Object>> entities = new ArrayList<>();
+
+        int i = 0;
+
+        for (UserBonus n : userBonuses) {
+
+            HashMap<String,Object> map = new HashMap<>();
+            ArrayList<Double> moneyByCandidate = new ArrayList<>();
+            ArrayList<Double> userSumList = new ArrayList<>();
+            ArrayList<String> candidateName = new ArrayList<>();
+            ArrayList<String> companyName = new ArrayList<>();
+            map.put("fio", n.getFio());
+            map.put("pos_name", n.getPosition());
+            map.put("department", n.getDepartment());
+
+            map.put("moneyAll", n.getMoneyAll());
+
+            map.put("summ_total", n.getSumTotal());
+            map.put("mon", n.getMonth());
+            map.put("ya", n.getYear());
+
+            if (entities.isEmpty()){
+                for (int j = 0; j < userBonuses.size() ; j++) {
+                    if (userBonuses.get(j).getFio().equals(n.getFio())){
+                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
+                        userSumList.add(userBonuses.get(j).getSumUser());
+                        candidateName.add(userBonuses.get(j).getCandidateName());
+                        companyName.add(userBonuses.get(j).getCompanyName());
+                    }
+                }
+                map.put("moneyByCandidate", moneyByCandidate);
+                map.put("sumUser", userSumList);
+                map.put("candidateName", candidateName);
+                map.put("companyName", companyName);
+
+                entities.add(map);
+            } else
+
+            if (!entities.get(i).get("fio").equals(n.getFio())) {
+
+                for (int j = 0; j < userBonuses.size() ; j++) {
+                    if (userBonuses.get(j).getFio().equals(n.getFio())){
+                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
+                        userSumList.add(userBonuses.get(j).getSumUser());
+                        candidateName.add(userBonuses.get(j).getCandidateName());
+                        companyName.add(userBonuses.get(j).getCompanyName());
+                    }
+                }
+                map.put("moneyByCandidate", moneyByCandidate);
+                map.put("sumUser", userSumList);
+                map.put("candidateName", candidateName);
+                map.put("companyName", companyName);
+
+                entities.add(map);
+                i++;
+
+            }
+
+        }
+         return new ResponseEntity<>(entities, HttpStatus.OK);
+
+
+    }
 
     @GetMapping("/all1") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
@@ -110,25 +212,111 @@ public class RestBonusController {
                                   @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
-        List<Employer> employers = employerService.getAll();
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
         List<UserBonus> userBonuses;
-        if (date1 == null || date1.equals("")) {
-            YearMonth month = YearMonth.now();
-            userBonuses = bonusService.findAll(month.atDay(1), month.atEndOfMonth(), Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+        if (!userName.equals("") || !departmentName.equals(""))   {
+            userBonuses =  bonusService.findByFioAndDepartment(userName, departmentName);
         }
-        else {
+        else
             userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+
+        List<HashMap<String, Object>> entities = new ArrayList<>();
+        List<String> employers = new ArrayList<>();
+        List<String> department = new ArrayList<>();
+
+        HashMap<String,Object> mapMoney = new HashMap<>();
+        HashMap<String,Object> mapSum = new HashMap<>();
+        HashMap<String,Object> mapCandidate = new HashMap<>();
+        HashMap<String,Object> mapCompany = new HashMap<>();
+
+        int i = 0;
+
+        for (UserBonus n : userBonuses) {
+
+            HashMap<String,Object> map = new HashMap<>();
+            ArrayList<Double> moneyByCandidate = new ArrayList<>();
+            ArrayList<Double> userSumList = new ArrayList<>();
+            ArrayList<String> candidateName = new ArrayList<>();
+            ArrayList<String> companyName = new ArrayList<>();
+            map.put("fio", n.getFio());
+            map.put("position", n.getPosition());
+            map.put("department", n.getDepartment());
+
+            map.put("moneyAll", n.getMoneyAll());
+
+            map.put("sumTotal", n.getSumTotal());
+            map.put("percent", n.getPercent());
+            map.put("month", n.getMonth());
+            map.put("year", n.getYear());
+
+            if (entities.isEmpty()){
+                for (int j = 0; j < userBonuses.size() ; j++) {
+                    if (userBonuses.get(j).getFio().equals(n.getFio())){
+                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
+                        userSumList.add(userBonuses.get(j).getSumUser());
+                        candidateName.add(userBonuses.get(j).getCandidateName());
+                        companyName.add(userBonuses.get(j).getCompanyName());
+
+                    }
+                }
+                map.put("moneyByCandidate", moneyByCandidate);
+                map.put("sumUser", userSumList);
+                map.put("candidateName", candidateName);
+                map.put("companyName", companyName);
+                mapMoney.put(n.getFio(), moneyByCandidate);
+                mapSum.put(n.getFio(), userSumList);
+                mapCandidate.put(n.getFio(), candidateName);
+                mapCompany.put(n.getFio(), companyName);
+                employers.add(n.getFio());
+                department.add(n.getDepartment());
+                entities.add(map);
+            } else
+
+            if (!entities.get(i).get("fio").equals(n.getFio())) {
+                for (int j = 0; j < userBonuses.size() ; j++) {
+                    if (userBonuses.get(j).getFio().equals(n.getFio())){
+                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
+                        userSumList.add(userBonuses.get(j).getSumUser());
+                        candidateName.add(userBonuses.get(j).getCandidateName());
+                        companyName.add(userBonuses.get(j).getCompanyName());
+                    }
+                }
+                map.put("moneyByCandidate", moneyByCandidate);
+                map.put("sumUser", userSumList);
+                map.put("candidateName", candidateName);
+                map.put("companyName", companyName);
+
+                mapMoney.put(n.getFio(), moneyByCandidate);
+                mapSum.put(n.getFio(), userSumList);
+                mapCandidate.put(n.getFio(), candidateName);
+                mapCompany.put(n.getFio(), companyName);
+
+                employers.add(n.getFio());
+
+                department.add(n.getDepartment());
+
+                entities.add(map);
+                i++;
+
+            }
+
         }
 
-        if (!userName.equals("") || !departmentName.equals("")) {
-            List<UserBonus> userBonusesFilter = new ArrayList<>();
-            userBonusesFilter = bonusService.findByFioAndDepartment(userName, departmentName);
-            model.addAttribute("userBonus", userBonusesFilter);
-        }   else
-        model.addAttribute("userBonus", userBonuses);
+        List<String> uniqueDepartment =
+                department
+                        .stream()
+                        .distinct()
+                        .collect(Collectors.toList());
+
+        model.addAttribute("userBonus", entities);
+        model.addAttribute("moneyByCandidate", mapMoney);
+        model.addAttribute("sumUser", mapSum);
+        model.addAttribute("candidateName", mapCandidate);
+        model.addAttribute("companyName", mapCompany);
         model.addAttribute("employers", employers);
+        model.addAttribute("department", uniqueDepartment);
+
         return "bonus";
     }
 
@@ -139,8 +327,6 @@ public class RestBonusController {
         model.addAttribute("employers", employers);
         return "bonusShow";
     }
-
-
 
 
     @ExceptionHandler

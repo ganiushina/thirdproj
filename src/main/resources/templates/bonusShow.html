@@ -1,0 +1,77 @@
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Бонусы
+            </div>
+
+            <h1 th:text="Фильтры" />
+
+            <form th:action="@{/bonus/all1}" method="get">
+<!--                <input hidden th:value="${page}" th:name="page">-->
+                <input th:value="${date1 != null} ? ${date1}" th:name="date1" type="text" placeholder="Дата от ">
+                <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="text" placeholder="Дата до">
+                <input th:value="${userName != null} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">
+                <input th:value="${departmentName != null} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">
+                <button type="submit" class="btn btn-primary">Фильтровать</button>
+            </form>
+
+            <div class="dropdown show">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                   aria-haspopup="true" aria-expanded="false">
+                    Фамилия
+                </a>
+
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <div th:each="employers :${employers}">
+                        <a class="dropdown-item" href="#" th:text="${employers.manFIO}">Action</a>
+                    </div>
+                </div>
+
+            <div class="panel-body">
+                <table class="table table-condensed table-striped">
+                    <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Должность</th>
+                        <th>Департамент</th>
+                        <th>Всего Бонус</th>
+                        <th>Бонус за кандидата</th>
+                        <th>Всего заработано</th>
+                        <th>Заработано за кандидата</th>
+                        <th>Имя кандидата</th>
+                        <th>Наименование компании</th>
+                        <th>Процент</th>
+                        <th>Месяц</th>
+                        <th>Год</th>
+                    </thead>
+
+                    <tbody>
+                    <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
+                        <td><button class="btn btn-default btn-xs"><span class="glyphicon glyphicon-eye-open"></span></button></td>
+
+
+                </tbody>
+            </table>
+
+        </div>
+    </td>
+</tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+</body>
+</html>

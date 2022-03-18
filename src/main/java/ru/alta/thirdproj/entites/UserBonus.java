@@ -4,11 +4,11 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
 public class UserBonus {
-
 
     private long id;
 
@@ -20,15 +20,24 @@ public class UserBonus {
 
     private String department;
 
-    private float moneyAll;
+    private Double moneyAll;
 
-    private float moneyByCandidate;
+    private Double moneyByCandidate;
 
-    private float percent;
+    private Double percent;
 
-    private float sumTotal;
+    private Double sumTotal;
 
-    private float sumUser;
+//    List<UserSum> userSumList;
+//
+//    List<Candidate> candidateName;
+//
+//    List<Company> companyName;
+//
+//    List<UserSumByCandidate> moneyByCandidate;
+
+
+    private Double sumUser;
 
     private String companyName;
 
@@ -37,6 +46,7 @@ public class UserBonus {
     private int month;
 
     private int year;
+
 
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();

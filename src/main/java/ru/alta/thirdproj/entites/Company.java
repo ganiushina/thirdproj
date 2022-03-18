@@ -4,8 +4,8 @@ import lombok.Data;
 
 
 @Data
-public class UserSum {
+public class Company {
 
-    private Double userSum;
+    private String company;
 
 }
