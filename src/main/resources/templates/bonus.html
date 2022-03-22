@@ -1,7 +1,6 @@
-
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"/>
 
 <div class="container" xmlns:th="http://www.w3.org/1999/xhtml">
     <div class="col-md-12">
@@ -10,18 +9,12 @@
                 Бонусы
             </div>
 
-            <h1 th:text="Фильтры" />
+            <h1 th:text="Фильтры"/>
 
             <form th:action="@{/bonus/all1}" method="get">
+
                 <input th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
                 <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
-
-<!--                <div>-->
-<!--                    <label for="date1">Date of birth:</label>-->
-<!--                    <input type="date" th:field="${#temporals.monthNameShort(date)}" id="date1"/>-->
-<!--                </div>-->
-<!--                <label for="date-started">Date started:</label>-->
-<!--                <input type="date" th:value="${date1}" th:field="${date1}" id="date-started"/>-->
 
 
                 <div class="col-lg-3" th:object="${employers}">
@@ -40,11 +33,9 @@
                                 th:text="${department}"></option>
                     </select>
                 </div>
-<!--                <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">-->
-<!--                <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
+                <!--                <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">-->
+                <!--                <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
                 <button type="submit" class="btn btn-primary">Фильтровать</button>
-
-
 
             </form>
 
@@ -78,49 +69,44 @@
                         <td th:text="${userBonus.moneyAll}"/>
                         <td>
                             <span th:each="moneyByCandidate : ${userBonus.moneyByCandidate}">
-                                <span th:text="${moneyByCandidate}" /></span>
+                                <span th:text="${moneyByCandidate}"/></span>
                         </td>
-<!--&lt;!&ndash;                        <td th:text="${userBonus.moneyByCandidate}"/>&ndash;&gt;-->
 
-<!--&lt;!&ndash;                        <td th:text="${userBonus.sumUser}"/>&ndash;&gt;-->
                         <td>
                             <span th:each="sumUser : ${userBonus.sumUser}">
-                                <span th:text="${sumUser}" /></span>
+                                <span th:text="${sumUser}"/></span>
                         </td>
-<!--&lt;!&ndash;                        <td th:text="${userBonus.candidateName}"/>&ndash;&gt;-->
+
                         <td>
                             <span th:each="candidateName : ${userBonus.candidateName}">
-                                <span th:text="${candidateName}" /></span>
+                                <span th:text="${candidateName}"/></span>
                         </td>
-<!--&lt;!&ndash;                        <td th:text="${userBonus.companyName}"/>&ndash;&gt;-->
+
                         <td>
                             <span th:each="companyName : ${userBonus.companyName}">
-                                <span th:text="${companyName}" /></span>
+                                <span th:text="${companyName}"/></span>
                         </td>
                         <td th:text="${userBonus.percent}"/>
                         <td th:text="${userBonus.month}"/>
                         <td th:text="${userBonus.year}"/>
 
-
                     </tr>
 
-
-
-                </tbody>
-
-            </table>
-
-        </div>
-    </td>
-</tr>
-
                     </tbody>
-                </table>
-            </div>
 
+                </table>
+
+            </div>
+            </td>
+            </tr>
+
+            </tbody>
+            </table>
         </div>
 
     </div>
+
+</div>
 </div>
 
 

@@ -37,18 +37,18 @@ public class BonusPaymentRepositoryImpl {
 
     public List<UserPaymentBonus> findByFioAndDepartment(String fio, String department) {
         List<UserPaymentBonus> userPaymentBonusList = null;
-        if (fio != null)
+        if (!fio.equals(""))
             userPaymentBonusList = userPaymentBonusesList
                     .stream()
                     .filter(c -> (c.getFio().equals(fio)))
                     .collect(Collectors.toList());
-        if (department != null)
+        if (!department.equals(""))
             userPaymentBonusList = userPaymentBonusesList
                     .stream()
                     .filter(c -> c.getDepartment().equals(department))
                     .collect(Collectors.toList());
 
-        if (department != null && fio != null)
+        if (!department.equals("") && !fio.equals(""))
             userPaymentBonusList = userPaymentBonusesList
                     .stream()
                     .filter(c -> (c.getFio().equals(fio) && c.getDepartment().equals(department)))

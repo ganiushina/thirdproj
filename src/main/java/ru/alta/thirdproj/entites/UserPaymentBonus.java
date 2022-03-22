@@ -29,11 +29,13 @@ public class UserPaymentBonus {
 
     private String candidateName;
 
-    private float bonus;
+    private String companyName;
 
-    private float percent;
+    private Double bonus;
 
-    private float allBonus;
+    private Double percent;
+
+    private Double allBonus;
 
     private int monthNumAct;
 
@@ -52,6 +54,7 @@ public class UserPaymentBonus {
         COLUMN_MAPPINGS.put("dep_name", "department");
         COLUMN_MAPPINGS.put("act_num", "actNum");
         COLUMN_MAPPINGS.put("cadidate", "candidateName");
+        COLUMN_MAPPINGS.put("company_name", "companyName");
         COLUMN_MAPPINGS.put("bonus", "bonus");
         COLUMN_MAPPINGS.put("persent", "percent");
         COLUMN_MAPPINGS.put("all_bonus", "allBonus");

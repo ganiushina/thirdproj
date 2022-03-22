@@ -84,7 +84,8 @@ public class RestBonusController {
 
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
-        List<UserBonus> userBonuses;
+        List<HashMap<String, Object>> userBonuses;
+       // List<UserBonus> userBonuses;
         if (date1 == null) {
             YearMonth month = YearMonth.now();
             userBonuses = bonusService.findAll(month.atDay(1), month.atEndOfMonth(), Math.toIntExact(user.getUserId()), user.getLoginDepartment());
@@ -93,12 +94,12 @@ public class RestBonusController {
              userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
         }
 
-        if (userName != null || departmentName != null)   {
-            List<UserBonus> userBonusesFilter;
-            userBonusesFilter =  bonusService.findByFioAndDepartment(userName, departmentName);
-            return new ResponseEntity(userBonusesFilter, HttpStatus.OK);
-        }
-        else
+//        if (userName != null || departmentName != null)   {
+//            List<UserBonus> userBonusesFilter;
+//            userBonusesFilter =  bonusService.findByFioAndDepartment(userName, departmentName);
+//            return new ResponseEntity(userBonusesFilter, HttpStatus.OK);
+//        }
+//        else
         return new ResponseEntity(userBonuses, HttpStatus.OK);
 
     }
@@ -118,86 +119,78 @@ public class RestBonusController {
 
     ) {
 
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserLogin user = userR.getUser(userDetails.getUsername());
-        List<UserBonus> userBonuses;
-
-//        if (date1 == null) {
-//            YearMonth month = YearMonth.now();
-//            userBonuses = bonusService.findAll(month.atDay(1), month.atEndOfMonth(), Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+//        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        UserLogin user = userR.getUser(userDetails.getUsername());
+//        List<UserBonus> userBonuses;
+//
+//        if (userName != null || departmentName != null)   {
+//            userBonuses =  bonusService.findByFioAndDepartment(userName, departmentName);
 //        }
-//        else {
+//        else
 //            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-//        }
-
-        if (userName != null || departmentName != null)   {
-            userBonuses =  bonusService.findByFioAndDepartment(userName, departmentName);
-        }
-        else
-            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-
-
+//
+//
         List<HashMap<String, Object>> entities = new ArrayList<>();
-
-        int i = 0;
-
-        for (UserBonus n : userBonuses) {
-
-            HashMap<String,Object> map = new HashMap<>();
-            ArrayList<Double> moneyByCandidate = new ArrayList<>();
-            ArrayList<Double> userSumList = new ArrayList<>();
-            ArrayList<String> candidateName = new ArrayList<>();
-            ArrayList<String> companyName = new ArrayList<>();
-            map.put("fio", n.getFio());
-            map.put("pos_name", n.getPosition());
-            map.put("department", n.getDepartment());
-
-            map.put("moneyAll", n.getMoneyAll());
-
-            map.put("summ_total", n.getSumTotal());
-            map.put("mon", n.getMonth());
-            map.put("ya", n.getYear());
-
-            if (entities.isEmpty()){
-                for (int j = 0; j < userBonuses.size() ; j++) {
-                    if (userBonuses.get(j).getFio().equals(n.getFio())){
-                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
-                        userSumList.add(userBonuses.get(j).getSumUser());
-                        candidateName.add(userBonuses.get(j).getCandidateName());
-                        companyName.add(userBonuses.get(j).getCompanyName());
-                    }
-                }
-                map.put("moneyByCandidate", moneyByCandidate);
-                map.put("sumUser", userSumList);
-                map.put("candidateName", candidateName);
-                map.put("companyName", companyName);
-
-                entities.add(map);
-            } else
-
-            if (!entities.get(i).get("fio").equals(n.getFio())) {
-
-                for (int j = 0; j < userBonuses.size() ; j++) {
-                    if (userBonuses.get(j).getFio().equals(n.getFio())){
-                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
-                        userSumList.add(userBonuses.get(j).getSumUser());
-                        candidateName.add(userBonuses.get(j).getCandidateName());
-                        companyName.add(userBonuses.get(j).getCompanyName());
-                    }
-                }
-                map.put("moneyByCandidate", moneyByCandidate);
-                map.put("sumUser", userSumList);
-                map.put("candidateName", candidateName);
-                map.put("companyName", companyName);
-
-                entities.add(map);
-                i++;
-
-            }
-
-        }
+//
+//        int i = 0;
+//
+//        for (UserBonus n : userBonuses) {
+//
+//            HashMap<String,Object> map = new HashMap<>();
+//            ArrayList<Double> moneyByCandidate = new ArrayList<>();
+//            ArrayList<Double> userSumList = new ArrayList<>();
+//            ArrayList<String> candidateName = new ArrayList<>();
+//            ArrayList<String> companyName = new ArrayList<>();
+//            map.put("fio", n.getFio());
+//            map.put("pos_name", n.getPosition());
+//            map.put("department", n.getDepartment());
+//
+//            map.put("moneyAll", n.getMoneyAll());
+//
+//            map.put("summ_total", n.getSumTotal());
+//            map.put("mon", n.getMonth());
+//            map.put("ya", n.getYear());
+//
+//            if (entities.isEmpty()){
+//                for (int j = 0; j < userBonuses.size() ; j++) {
+//                    if (userBonuses.get(j).getFio().equals(n.getFio())){
+//                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
+//                        userSumList.add(userBonuses.get(j).getSumUser());
+//                        candidateName.add(userBonuses.get(j).getCandidateName());
+//                        companyName.add(userBonuses.get(j).getCompanyName());
+//                    }
+//                }
+//                map.put("moneyByCandidate", moneyByCandidate);
+//                map.put("sumUser", userSumList);
+//                map.put("candidateName", candidateName);
+//                map.put("companyName", companyName);
+//
+//                entities.add(map);
+//            } else
+//
+//            if (!entities.get(i).get("fio").equals(n.getFio())) {
+//
+//                for (int j = 0; j < userBonuses.size() ; j++) {
+//                    if (userBonuses.get(j).getFio().equals(n.getFio())){
+//                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
+//                        userSumList.add(userBonuses.get(j).getSumUser());
+//                        candidateName.add(userBonuses.get(j).getCandidateName());
+//                        companyName.add(userBonuses.get(j).getCompanyName());
+//                    }
+//                }
+//                map.put("moneyByCandidate", moneyByCandidate);
+//                map.put("sumUser", userSumList);
+//                map.put("candidateName", candidateName);
+//                map.put("companyName", companyName);
+//
+//                entities.add(map);
+//                i++;
+//
+//            }
+//
+//        }
          return new ResponseEntity<>(entities, HttpStatus.OK);
-
+//
 
     }
 
@@ -214,108 +207,29 @@ public class RestBonusController {
     ) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
-        List<UserBonus> userBonuses;
+        List<HashMap<String, Object>> entities;
+
         if (!userName.equals("") || !departmentName.equals(""))   {
-            userBonuses =  bonusService.findByFioAndDepartment(userName, departmentName);
+            entities =  bonusService.findByFioAndDepartment(userName, departmentName);
         }
         else
-            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+            {
 
-        List<HashMap<String, Object>> entities = new ArrayList<>();
-        List<String> employers = new ArrayList<>();
-        List<String> department = new ArrayList<>();
-
-        HashMap<String,Object> mapMoney = new HashMap<>();
-        HashMap<String,Object> mapSum = new HashMap<>();
-        HashMap<String,Object> mapCandidate = new HashMap<>();
-        HashMap<String,Object> mapCompany = new HashMap<>();
-
-        int i = 0;
-
-        for (UserBonus n : userBonuses) {
-
-            HashMap<String,Object> map = new HashMap<>();
-            ArrayList<Double> moneyByCandidate = new ArrayList<>();
-            ArrayList<Double> userSumList = new ArrayList<>();
-            ArrayList<String> candidateName = new ArrayList<>();
-            ArrayList<String> companyName = new ArrayList<>();
-            map.put("fio", n.getFio());
-            map.put("position", n.getPosition());
-            map.put("department", n.getDepartment());
-
-            map.put("moneyAll", n.getMoneyAll());
-
-            map.put("sumTotal", n.getSumTotal());
-            map.put("percent", n.getPercent());
-            map.put("month", n.getMonth());
-            map.put("year", n.getYear());
-
-            if (entities.isEmpty()){
-                for (int j = 0; j < userBonuses.size() ; j++) {
-                    if (userBonuses.get(j).getFio().equals(n.getFio())){
-                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
-                        userSumList.add(userBonuses.get(j).getSumUser());
-                        candidateName.add(userBonuses.get(j).getCandidateName());
-                        companyName.add(userBonuses.get(j).getCompanyName());
-
-                    }
-                }
-                map.put("moneyByCandidate", moneyByCandidate);
-                map.put("sumUser", userSumList);
-                map.put("candidateName", candidateName);
-                map.put("companyName", companyName);
-                mapMoney.put(n.getFio(), moneyByCandidate);
-                mapSum.put(n.getFio(), userSumList);
-                mapCandidate.put(n.getFio(), candidateName);
-                mapCompany.put(n.getFio(), companyName);
-                employers.add(n.getFio());
-                department.add(n.getDepartment());
-                entities.add(map);
-            } else
-
-            if (!entities.get(i).get("fio").equals(n.getFio())) {
-                for (int j = 0; j < userBonuses.size() ; j++) {
-                    if (userBonuses.get(j).getFio().equals(n.getFio())){
-                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
-                        userSumList.add(userBonuses.get(j).getSumUser());
-                        candidateName.add(userBonuses.get(j).getCandidateName());
-                        companyName.add(userBonuses.get(j).getCompanyName());
-                    }
-                }
-                map.put("moneyByCandidate", moneyByCandidate);
-                map.put("sumUser", userSumList);
-                map.put("candidateName", candidateName);
-                map.put("companyName", companyName);
-
-                mapMoney.put(n.getFio(), moneyByCandidate);
-                mapSum.put(n.getFio(), userSumList);
-                mapCandidate.put(n.getFio(), candidateName);
-                mapCompany.put(n.getFio(), companyName);
-
-                employers.add(n.getFio());
-
-                department.add(n.getDepartment());
-
-                entities.add(map);
-                i++;
-
-            }
-
+                entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
         }
-
-        List<String> uniqueDepartment =
-                department
-                        .stream()
-                        .distinct()
-                        .collect(Collectors.toList());
-
+        HashMap<String,Object> mapMoney = bonusService.getMapMoney();
+        HashMap<String,Object> mapSum = bonusService.getMapSum();
+        HashMap<String,Object> mapCandidate = bonusService.getMapCandidate();
+        HashMap<String,Object> mapCompany = bonusService.getMapCompany();
+        List<String> employers = bonusService.getEmployers();
+        List<String> department = bonusService.getDepartment();
         model.addAttribute("userBonus", entities);
         model.addAttribute("moneyByCandidate", mapMoney);
         model.addAttribute("sumUser", mapSum);
         model.addAttribute("candidateName", mapCandidate);
         model.addAttribute("companyName", mapCompany);
         model.addAttribute("employers", employers);
-        model.addAttribute("department", uniqueDepartment);
+        model.addAttribute("department", department);
 
         return "bonus";
     }

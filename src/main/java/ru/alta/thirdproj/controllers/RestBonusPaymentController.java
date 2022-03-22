@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.UserBonus;
 import ru.alta.thirdproj.entites.UserLogin;
@@ -18,11 +20,15 @@ import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
 import ru.alta.thirdproj.services.UserPaymentBonusServiceImpl;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RestController
+//@RestController
+@Controller
 @CrossOrigin("*")
 @RequestMapping("/payment") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 @Tag(name="RestBonusPaymentController", description="Выплаты по бонусам")
@@ -50,64 +56,58 @@ public class RestBonusPaymentController {
     ) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserLogin user = userR.getUser(userDetails.getUsername());
-        List<UserPaymentBonus> userPaymentBonuses = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
 
-        if (userName != null || departmentName != null)   {
-            List<UserPaymentBonus> userPaymentBonusesFilter =  paymentBonusService.findByUserFIOAnfDepartment(userName, departmentName);
-            return  new ResponseEntity(userPaymentBonusesFilter, HttpStatus.OK);
+        List<HashMap<String, Object>> userPaymentBonuses;
+        if (!userName.equals("") || !departmentName.equals(""))   {
+            userPaymentBonuses =  paymentBonusService.findByUserFIOAnfDepartment(userName, departmentName);
+
         }
         else
+            userPaymentBonuses = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+
         return new ResponseEntity(userPaymentBonuses, HttpStatus.OK);
     }
 
-//    @GetMapping(produces = "application/json")
-//    @ApiOperation("Returns list of all products")
-//    public List<Product> getAllProducts() {
-//        return productsService.findAll();
-//    }
+    @GetMapping("/allpayment1") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
+//    @ApiOperation("Returns list of all products data transfer objects")
+    public String getAllUserBonus(Model model,
+                                  @RequestParam(value = "date1")
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                  @RequestParam(value = "date2")
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2,
+                                  @RequestParam(value = "userName", required = false) String userName,
+                                  @RequestParam(value = "departmentName", required = false) String departmentName
 
-//    @GetMapping(value = "/{id}", produces = "application/json")
-//    @ApiOperation("Returns one product by id")
-//    public ResponseEntity<?> getOneProduct(@PathVariable @ApiParam("Id of the product to be requested. Cannot be empty") Long id) {
-//        if (!bonusService.existsById(id)) {
-//            throw new ProductNotFoundException("Product not found, id: " + id);
-//        }
-//        return new ResponseEntity<>(productsService.findById(id), HttpStatus.OK);
-//    }
-//
-//    @DeleteMapping
-//    @ApiOperation("Removes all products")
-//    public void deleteAllProducts() {
-//        productsService.deleteAll();
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    @ApiOperation("Removes one product by id")
-//    public void deleteOneProducts(@PathVariable Long id) {
-//        productsService.deleteById(id);
-//    }
-//
-//    @PostMapping(consumes = "application/json", produces = "application/json")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    @ApiOperation("Creates a new product")
-//    public Product saveNewProduct(@RequestBody Product product) {
-//        if (product.getId() != null) {
-//            product.setId(null);
-//        }
-//        return productsService.saveOrUpdate(product);
-//    }
-//
-//    @PutMapping(consumes = "application/json", produces = "application/json")
-//    @ApiOperation("Modifies an existing product")
-//    public ResponseEntity<?> modifyProduct(@RequestBody Product product) {
-//        if (product.getId() == null || !productsService.existsById(product.getId())) {
-//            throw new ProductNotFoundException("Product not found, id: " + product.getId());
-//        }
-//        if (product.getPrice() < 0) {
-//            return new ResponseEntity<>("Product's price can not be negative", HttpStatus.BAD_REQUEST);
-//        }
-//        return new ResponseEntity<>(productsService.saveOrUpdate(product), HttpStatus.OK);
-//    }
+    ) {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserLogin user = userR.getUser(userDetails.getUsername());
+     //   List<UserPaymentBonus> userPaymentBonuses;// = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+        List<HashMap<String, Object>> userPaymentBonuses;
+        if (!userName.equals("") || !departmentName.equals(""))   {
+            userPaymentBonuses =  paymentBonusService.findByUserFIOAnfDepartment(userName, departmentName);
+
+        }
+        else
+            userPaymentBonuses = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+
+        HashMap<String,Object> mapActNum = paymentBonusService.getMapActNum();
+        HashMap<String,Object> mapBonus = paymentBonusService.getMapBonus();
+        HashMap<String,Object> mapCandidate =  paymentBonusService.getMapCandidate();
+        HashMap<String,Object> mapCompany =  paymentBonusService.getMapCompany();
+        List<String> employers = paymentBonusService.getEmployers();
+        List<String> department = paymentBonusService.getDepartment();
+
+        model.addAttribute("userPaymentBonuses", userPaymentBonuses);
+        model.addAttribute("actNum", mapActNum);
+        model.addAttribute("bonus", mapBonus);
+        model.addAttribute("candidateName", mapCandidate);
+        model.addAttribute("companyName", mapCompany);
+        model.addAttribute("employers", employers);
+        model.addAttribute("department", department);
+
+        return "payment";
+    }
+
 
     @ExceptionHandler
     public ResponseEntity<?> handleException(UserBonusNotFoundException exc) {
