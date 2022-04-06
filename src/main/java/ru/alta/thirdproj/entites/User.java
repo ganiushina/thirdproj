@@ -2,7 +2,6 @@ package ru.alta.thirdproj.entites;
 
 import lombok.Data;
 
-import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

@@ -3,10 +3,8 @@ package ru.alta.thirdproj.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.alta.thirdproj.entites.UserBonus;
 import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.repositories.BonusPaymentRepositoryImpl;
-import ru.alta.thirdproj.repositories.BonusRepositoryImpl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

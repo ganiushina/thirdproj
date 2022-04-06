@@ -2,9 +2,7 @@ package ru.alta.thirdproj.entites;
 
 import lombok.Data;
 
-import javax.persistence.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -35,6 +33,8 @@ public class UserBonus {
 //    List<Company> companyName;
 //
 //    List<UserSumByCandidate> moneyByCandidate;
+
+   // private User user;
 
 
     private Double sumUser;

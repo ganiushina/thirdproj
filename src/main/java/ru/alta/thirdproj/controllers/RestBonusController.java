@@ -1,46 +1,29 @@
 package ru.alta.thirdproj.controllers;
 
 
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.entites.UserBonus;
-import ru.alta.thirdproj.entites.UserLogin;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
-import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
-import ru.alta.thirdproj.repositories.UserRepositorySlqO2;
-import ru.alta.thirdproj.response.ResponseHandler;
 import ru.alta.thirdproj.services.EmployerServiceImpl;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
-import ru.alta.thirdproj.specification.UserBonusSpecification;
-import ru.alta.thirdproj.specification.UserSpecification;
-import ru.alta.thirdproj.specification.UserSpecificationsBuilder;
+import ru.alta.thirdproj.services.UserService;
 
-import java.sql.ResultSet;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 //@RestController
 @Controller
@@ -54,8 +37,12 @@ public class RestBonusController {
 
     private EmployerServiceImpl employerService;
 
+    private UserService userService;
+
     @Autowired
-    UserLoginRepositorySlqO2 userR;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     @Autowired
     public RestBonusController(UserBonusServiceImpl bonusService) {
@@ -72,7 +59,7 @@ public class RestBonusController {
   //  @GetMapping
     @ApiOperation("Returns list of all products data transfer objects")
     public ResponseEntity<UserBonus> getAllUserBonus(
-                                            @RequestParam(value = "page") Optional<Integer> page,
+                                            Principal principal,
                                             @RequestParam(value = "date1")
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                             @RequestParam(value = "date2")
@@ -82,8 +69,7 @@ public class RestBonusController {
 
     ) {
 
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserLogin user = userR.getUser(userDetails.getUsername());
+        User user = userService.findByUserName(principal.getName());
         List<HashMap<String, Object>> userBonuses;
        // List<UserBonus> userBonuses;
         if (date1 == null) {
@@ -109,6 +95,7 @@ public class RestBonusController {
     @ApiOperation("Returns list of all products data transfer objects")
   //  @RequestMapping(value = "getAllUserBonusGson", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllUserBonusGson(
+            Principal principal,
             @RequestParam(value = "page") Optional<Integer> page,
             @RequestParam(value = "date1")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
@@ -119,76 +106,24 @@ public class RestBonusController {
 
     ) {
 
-//        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        UserLogin user = userR.getUser(userDetails.getUsername());
-//        List<UserBonus> userBonuses;
-//
-//        if (userName != null || departmentName != null)   {
-//            userBonuses =  bonusService.findByFioAndDepartment(userName, departmentName);
+        User user = userService.findByUserName(principal.getName());
+        List<HashMap<String, Object>> entities;
+
+//        if (!userName.equals("") || !departmentName.equals(""))   {
+//            entities =  bonusService.findByFioAndDepartment(userName, departmentName);
 //        }
 //        else
-//            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-//
-//
-        List<HashMap<String, Object>> entities = new ArrayList<>();
-//
-//        int i = 0;
-//
-//        for (UserBonus n : userBonuses) {
-//
-//            HashMap<String,Object> map = new HashMap<>();
-//            ArrayList<Double> moneyByCandidate = new ArrayList<>();
-//            ArrayList<Double> userSumList = new ArrayList<>();
-//            ArrayList<String> candidateName = new ArrayList<>();
-//            ArrayList<String> companyName = new ArrayList<>();
-//            map.put("fio", n.getFio());
-//            map.put("pos_name", n.getPosition());
-//            map.put("department", n.getDepartment());
-//
-//            map.put("moneyAll", n.getMoneyAll());
-//
-//            map.put("summ_total", n.getSumTotal());
-//            map.put("mon", n.getMonth());
-//            map.put("ya", n.getYear());
-//
-//            if (entities.isEmpty()){
-//                for (int j = 0; j < userBonuses.size() ; j++) {
-//                    if (userBonuses.get(j).getFio().equals(n.getFio())){
-//                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
-//                        userSumList.add(userBonuses.get(j).getSumUser());
-//                        candidateName.add(userBonuses.get(j).getCandidateName());
-//                        companyName.add(userBonuses.get(j).getCompanyName());
-//                    }
-//                }
-//                map.put("moneyByCandidate", moneyByCandidate);
-//                map.put("sumUser", userSumList);
-//                map.put("candidateName", candidateName);
-//                map.put("companyName", companyName);
-//
-//                entities.add(map);
-//            } else
-//
-//            if (!entities.get(i).get("fio").equals(n.getFio())) {
-//
-//                for (int j = 0; j < userBonuses.size() ; j++) {
-//                    if (userBonuses.get(j).getFio().equals(n.getFio())){
-//                        moneyByCandidate.add(userBonuses.get(j).getMoneyByCandidate()) ;
-//                        userSumList.add(userBonuses.get(j).getSumUser());
-//                        candidateName.add(userBonuses.get(j).getCandidateName());
-//                        companyName.add(userBonuses.get(j).getCompanyName());
-//                    }
-//                }
-//                map.put("moneyByCandidate", moneyByCandidate);
-//                map.put("sumUser", userSumList);
-//                map.put("candidateName", candidateName);
-//                map.put("companyName", companyName);
-//
-//                entities.add(map);
-//                i++;
-//
-//            }
-//
-//        }
+//        {
+
+            entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+     //   }
+//        HashMap<String,Object> mapMoney = bonusService.getMapMoney();
+//        HashMap<String,Object> mapSum = bonusService.getMapSum();
+//        HashMap<String,Object> mapCandidate = bonusService.getMapCandidate();
+//        HashMap<String,Object> mapCompany = bonusService.getMapCompany();
+//        List<String> employers = bonusService.getEmployers();
+//        List<String> department = bonusService.getDepartment();
+
          return new ResponseEntity<>(entities, HttpStatus.OK);
 //
 
@@ -197,6 +132,7 @@ public class RestBonusController {
     @GetMapping("/all1") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
     public String getAllUserBonus(Model model,
+                                  Principal principal,
                                   @RequestParam(value = "date1")
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                   @RequestParam(value = "date2")
@@ -205,8 +141,7 @@ public class RestBonusController {
                                   @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserLogin user = userR.getUser(userDetails.getUsername());
+        User user = userService.findByUserName(principal.getName());
         List<HashMap<String, Object>> entities;
 
         if (!userName.equals("") || !departmentName.equals(""))   {
@@ -230,7 +165,6 @@ public class RestBonusController {
         model.addAttribute("companyName", mapCompany);
         model.addAttribute("employers", employers);
         model.addAttribute("department", department);
-
         return "bonus";
     }
 

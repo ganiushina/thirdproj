@@ -6,6 +6,8 @@
 <div class="container" xmlns:th="http://www.w3.org/1999/xhtml">
     <div class="col-md-12">
         <div class="panel panel-default">
+
+            <div th:replace="~{navigation :: navi(Home)}" />
             <div class="panel-heading">
                 Выплаты
             </div>
@@ -47,7 +49,8 @@
             </form>
 
             <div class="panel-body">
-                <table class="table table-condensed table-striped">
+<!--                <table class="table table-condensed table-striped">-->
+                <table class="table table-bordered border-primary">
                     <thead>
                     <tr>
                         <th>ФИО</th>

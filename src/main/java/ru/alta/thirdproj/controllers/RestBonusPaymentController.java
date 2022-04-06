@@ -1,7 +1,6 @@
 package ru.alta.thirdproj.controllers;
 
 
-import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,20 +11,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.alta.thirdproj.entites.UserBonus;
+import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.entites.UserLogin;
 import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
-import ru.alta.thirdproj.services.UserBonusServiceImpl;
 import ru.alta.thirdproj.services.UserPaymentBonusServiceImpl;
+import ru.alta.thirdproj.services.UserService;
 
-import java.sql.Date;
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 //@RestController
 @Controller
@@ -36,26 +35,30 @@ public class RestBonusPaymentController {
 
     private UserPaymentBonusServiceImpl paymentBonusService;
 
-    @Autowired
-    UserLoginRepositorySlqO2 userR;
+    private UserService userService;
 
     @Autowired
     public RestBonusPaymentController(UserPaymentBonusServiceImpl paymentBonusService) {
         this.paymentBonusService = paymentBonusService;
     }
 
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
     @GetMapping("/allpayment") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
 //    @ApiOperation("Returns list of all products data transfer objects")
-    public ResponseEntity<UserPaymentBonus> getAllUserBonus(@RequestParam(value = "date1")
+    public ResponseEntity<UserPaymentBonus> getAllUserBonus(Principal principal,
+                                            @RequestParam(value = "date1")
                                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                                            @RequestParam(value = "date2")
+                                             @RequestParam(value = "date2")
                                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date2
                                             ,@RequestParam(value = "userName", required = false) String userName,
                                              @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserLogin user = userR.getUser(userDetails.getUsername());
+        User user = userService.findByUserName(principal.getName());
 
         List<HashMap<String, Object>> userPaymentBonuses;
         if (!userName.equals("") || !departmentName.equals(""))   {
@@ -70,7 +73,7 @@ public class RestBonusPaymentController {
 
     @GetMapping("/allpayment1") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
 //    @ApiOperation("Returns list of all products data transfer objects")
-    public String getAllUserBonus(Model model,
+    public String getAllUserBonus(Model model, Principal principal,
                                   @RequestParam(value = "date1")
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                   @RequestParam(value = "date2")
@@ -79,8 +82,11 @@ public class RestBonusPaymentController {
                                   @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserLogin user = userR.getUser(userDetails.getUsername());
+//        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        UserLogin user = userR.getUser(userDetails.getUsername());
+
+        User user = userService.findByUserName(principal.getName());
+
      //   List<UserPaymentBonus> userPaymentBonuses;// = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
         List<HashMap<String, Object>> userPaymentBonuses;
         if (!userName.equals("") || !departmentName.equals(""))   {
@@ -106,6 +112,24 @@ public class RestBonusPaymentController {
         model.addAttribute("department", department);
 
         return "payment";
+    }
+
+    @PostMapping("/confirm")
+    public String paymentConfirm(Model model, HttpServletRequest httpServletRequest, //@ModelAttribute(name = "order") Order orderFromFrontend,
+                                 Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+        User user = userService.findByUserName(principal.getName());
+//        Order order = orderService.makeOrder(shoppingCartService.getCurrentCart(httpServletRequest.getSession()), user);
+//        order.setDeliveryAddress(orderFromFrontend.getDeliveryAddress());
+//        order.setPhoneNumber(orderFromFrontend.getPhoneNumber());
+//        order.setDeliveryDate(LocalDateTime.now().plusDays(7));
+//        order.setDeliveryPrice(0.0);
+//        order = orderService.saveOrder(order);
+//        mailService.sendOrderMail(order);
+//        model.addAttribute("order", order);
+        return "order-filler";
     }
 
 

@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class Candidate {
 
-    private Double candidate;
+    private String candidate;
 
 }

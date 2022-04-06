@@ -1,15 +1,12 @@
 package ru.alta.thirdproj.repositories;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.entites.Role;
 import ru.alta.thirdproj.entites.User;
-import ru.alta.thirdproj.entites.UserLogin;
 
 import java.util.List;
 
@@ -54,6 +51,18 @@ public class UserRepositorySlqO2
                     "FROM dbo.Login_Role lr\n" +
                     "JOIN dbo.Role r ON r.id = lr.role_Id\n" +
                     "WHERE login_Id = :user_Id";
+
+//    private static final String SELECT_EMPLOYER_QUERY =
+//                            "SELECT DISTINCT man_id ,man_fio, d.dep_name, isnull( p.pos_name , '') user_position, \n" +
+//        "                      isnull(d.dep_name, '') user_department \n" +
+//        "                      from man m \n" +
+//        "                         JOIN login l ON l.login_user_id = m.man_id\n" +
+//        "                         left JOIN dbo.userplanByMonth ubm ON ubm.user_id = l.login_user_id \n" +
+//        "                               AND ubm.userplan_month = DATEPART(mm, GETDATE()) AND ubm.userplan_year = DATEPART(yy, GETDATE())\n" +
+//        "                         left JOIN dbo.position p ON ubm.user_position = p.id\n" +
+//        "                         left JOIN dbo.depatment d ON d.id = ubm.user_department\n" +
+//        "                         where l.login_active = 1 and l.login_name = :user_login ";
+
 
     public UserRepositorySlqO2(@Autowired Sql2o sql2o) {
         this.sql2o = sql2o;
