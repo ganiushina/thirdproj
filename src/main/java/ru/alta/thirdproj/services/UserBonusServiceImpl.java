@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.UserBonus;
 import ru.alta.thirdproj.repositories.BonusRepositoryImpl;
+import ru.alta.thirdproj.repositories.iUserBonusRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class UserBonusServiceImpl  {
+public class UserBonusServiceImpl implements  iUserBonusRepository  {
 
     private BonusRepositoryImpl userBonusProvider;
 
@@ -170,5 +171,10 @@ public class UserBonusServiceImpl  {
                         .collect(Collectors.toList());
 
         return uniqueEmployers;
+    }
+
+    @Override
+    public List<UserBonus> getUserBonuses(LocalDate date1, LocalDate date12, Integer userId, Integer departmentId) {
+        return null;
     }
 }

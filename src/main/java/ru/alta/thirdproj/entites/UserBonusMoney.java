@@ -12,9 +12,9 @@ public class UserBonusMoney {
 
     private List<Double> userBonusByCandidate;
 
-    private String company;
+    private List<String> company;
 
-    private String candidate;
+    private List<String> candidate;
 
     private Double percent;
 

@@ -10,9 +10,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 public class ThirdprojApplication  {
 
     public static void main(String[] args) {
-//        new SpringApplicationBuilder(ThirdprojApplication.class)
-//                .web(WebApplicationType.NONE)
-//                .run(args);
+
         SpringApplication.run(ThirdprojApplication.class, args);
     }
 

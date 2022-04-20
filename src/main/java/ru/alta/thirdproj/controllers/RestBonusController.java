@@ -143,15 +143,12 @@ public class RestBonusController {
     ) {
         User user = userService.findByUserName(principal.getName());
         List<HashMap<String, Object>> entities;
+        entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
 
         if (!userName.equals("") || !departmentName.equals(""))   {
             entities =  bonusService.findByFioAndDepartment(userName, departmentName);
         }
-        else
-            {
 
-                entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-        }
         HashMap<String,Object> mapMoney = bonusService.getMapMoney();
         HashMap<String,Object> mapSum = bonusService.getMapSum();
         HashMap<String,Object> mapCandidate = bonusService.getMapCandidate();
