@@ -77,9 +77,9 @@ public class RestBonusPaymentController {
                                   @RequestParam(value = "date1")
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                   @RequestParam(value = "date2")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2,
-                                  @RequestParam(value = "userName", required = false) String userName,
-                                  @RequestParam(value = "departmentName", required = false) String departmentName
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+//                                  @RequestParam(value = "userName", required = false) String userName,
+//                                  @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
 //        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -89,11 +89,11 @@ public class RestBonusPaymentController {
 
      //   List<UserPaymentBonus> userPaymentBonuses;// = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
         List<HashMap<String, Object>> userPaymentBonuses;
-        if (!userName.equals("") || !departmentName.equals(""))   {
-            userPaymentBonuses =  paymentBonusService.findByUserFIOAnfDepartment(userName, departmentName);
-
-        }
-        else
+//        if (!userName.equals("") || !departmentName.equals(""))   {
+//            userPaymentBonuses =  paymentBonusService.findByUserFIOAnfDepartment(userName, departmentName);
+//
+//        }
+//        else
             userPaymentBonuses = paymentBonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
 
         HashMap<String,Object> mapActNum = paymentBonusService.getMapActNum();
@@ -110,7 +110,8 @@ public class RestBonusPaymentController {
         model.addAttribute("companyName", mapCompany);
         model.addAttribute("employers", employers);
         model.addAttribute("department", department);
-
+        model.addAttribute("date1", date1);
+        model.addAttribute("date2", date2);
         return "payment";
     }
 

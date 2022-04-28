@@ -136,18 +136,26 @@ public class RestBonusController {
                                   @RequestParam(value = "date1")
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                                   @RequestParam(value = "date2")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2,
-                                  @RequestParam(value = "userName", required = false) String userName,
-                                  @RequestParam(value = "departmentName", required = false) String departmentName
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+//                                  @RequestParam(value = "userName", required = false) String userName,
+//                                  @RequestParam(value = "departmentName", required = false) String departmentName
 
     ) {
         User user = userService.findByUserName(principal.getName());
         List<HashMap<String, Object>> entities;
+        if (date1 == null) {
+            YearMonth month = YearMonth.now();
+            date1 = month.atDay(1);
+            date2 = month.atEndOfMonth();
+         //  entities = bonusService.findAll(month.atDay(1), month.atEndOfMonth(), Math.toIntExact(user.getUserId()), user.getLoginDepartment());
+        }
+
+
         entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
 
-        if (!userName.equals("") || !departmentName.equals(""))   {
-            entities =  bonusService.findByFioAndDepartment(userName, departmentName);
-        }
+//        if (!userName.equals("") || !departmentName.equals(""))   {
+//            entities =  bonusService.findByFioAndDepartment(userName, departmentName);
+//        }
 
         HashMap<String,Object> mapMoney = bonusService.getMapMoney();
         HashMap<String,Object> mapSum = bonusService.getMapSum();
@@ -162,6 +170,8 @@ public class RestBonusController {
         model.addAttribute("companyName", mapCompany);
         model.addAttribute("employers", employers);
         model.addAttribute("department", department);
+        model.addAttribute("date1", date1);
+        model.addAttribute("date2", date2);
         return "bonus";
     }
 

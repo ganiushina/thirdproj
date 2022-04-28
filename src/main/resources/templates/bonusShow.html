@@ -16,8 +16,8 @@
 
             <form th:action="@{/bonus/all1}" method="get">
                 <!--                <input hidden th:value="${page}" th:name="page">-->
-                <input th:value="${date1 != null} ? ${date1}" th:name="date1" type="text" placeholder="Дата от ">
-                <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="text" placeholder="Дата до">
+                <input th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+                <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
                 <input th:value="${userName != null} ? ${userName}" th:name="userName" type="text"
                        placeholder="Фамилия">
                 <input th:value="${departmentName != null} ? ${departmentName}" th:name="departmentName" type="text"

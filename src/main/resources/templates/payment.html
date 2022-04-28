@@ -1,56 +1,81 @@
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>-->
+<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
+<!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />-->
+<!DOCTYPE html>
 
-<div class="container" xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #myTable {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+            font-size: 18px;
+        }
+
+        #myTable th, #myTable td {
+            text-align: left;
+            padding: 12px;
+        }
+
+        #myTable tr {
+            border-bottom: 1px solid #ddd;
+        }
+
+        #myTable tr.header, #myTable tr:hover {
+            background-color: #f1f1f1;
+        }
+        .container {
+            display: flex;
+        }
+
+    </style>
+    <meta charset="utf-8"/>
+
+    <title>Выплаты</title>
+
+    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body>
+
+<div th:replace="~{navigation :: navi(Cart)}"/>
+
+<div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">
     <div class="col-md-12">
-        <div class="panel panel-default">
 
-            <div th:replace="~{navigation :: navi(Home)}" />
-            <div class="panel-heading">
-                Выплаты
-            </div>
-
-            <h1 th:text="Фильтры" />
+            <h1 th:text="Выплаты" />
 
             <form th:action="@{/payment/allpayment1}" method="get">
-                <input th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
-                <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+                <input required th:value="${date1 != null} ? ${date1}" th:name="date1"  type="date"  placeholder="Дата от ">
+                <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">
 
-<!--                <div>-->
-<!--                    <label for="date1">Date of birth:</label>-->
-<!--                    <input type="date" th:field="${#temporals.monthNameShort(date)}" id="date1"/>-->
-<!--                </div>-->
-<!--                <label for="date-started">Date started:</label>-->
-<!--                <input type="date" th:value="${date1}" th:field="${date1}" id="date-started"/>-->
+                <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Type in a name">
+                <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Type in a department">
 
-
-                <div class="col-lg-3" th:object="${employers}">
-                    <select class="form-control" id="userName" name="userName">
-                        <option value="">Фамилия</option>
-                        <option th:each="employers :${employers}"
-                                th:value="${employers}"
-                                th:text="${employers}"></option>
-                    </select>
-                </div>
-                <div class="col-lg-3" th:object="${department}">
-                    <select class="form-control" id="departmentName" name="departmentName">
-                        <option value="">Отдел</option>
-                        <option th:each="department :${department}"
-                                th:value="${department}"
-                                th:text="${department}"></option>
-                    </select>
-                </div>
-<!--                <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">-->
-<!--                <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
                 <button type="submit" class="btn btn-primary">Фильтровать</button>
 
             </form>
 
             <div class="panel-body">
-<!--                <table class="table table-condensed table-striped">-->
-                <table class="table table-bordered border-primary">
+                    <table id="myTable" class="table table-bordered border-primary">
                     <thead>
                     <tr>
                         <th>ФИО</th>
@@ -64,8 +89,8 @@
                         <th>Процент</th>
                         <th>Месяц акта</th>
                         <th>Год акта</th>
-                        <th>Дата выплаты</th>
-                        <th>Дата оплаты</th>
+                        <th>Дата выплаты бонуса</th>
+                        <th>Дата оплаты клиентом</th>
                     </thead>
 
                     <tbody>
@@ -101,7 +126,6 @@
                         <td th:text="${userPaymentBonuses.dateForPay}"/>
                         <td th:text="${userPaymentBonuses.paymentDate}"/>
 
-
                     </tr>
 
 
@@ -122,6 +146,46 @@
 
     </div>
 </div>
+
+<script>
+    function myFunction() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputName");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchDep() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputDepartment");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
 
 
 </body>

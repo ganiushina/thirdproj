@@ -1,52 +1,89 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"/>
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #myTable {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+            font-size: 18px;
+
+        }
+
+        #myTable th, #myTable td {
+            text-align: left;
+            padding: 12px;
+
+        }
+
+        #myTable tr {
+            border-bottom: 1px solid #ddd;
+
+        }
+
+        #myTable tr.header, #myTable tr:hover {
+            background-color: #f1f1f1;
+        }
+        .container {
+            display: flex;
+        }
+
+    </style>
+    <meta charset="utf-8"/>
+
+    <title>Бонусы</title>
+
+    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 
 
+</head>
 
-<div class="container" xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+
+<div th:replace="~{navigation :: navi(Cart)}"/>
+
+<div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">
     <div class="col-md-12">
         <div class="panel panel-default">
 
-            <div th:replace="~{navigation :: navi(Home)}" />
-            <div class="panel-heading">
-                Бонусы
-            </div>
-
-            <h1 th:text="Фильтры"/>
+            <h1 th:text="Бонусы" />
 
             <form th:action="@{/bonus/all1}" method="get">
 
-                <input th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
-                <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+                <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+                <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
 
 
-                <div class="col-lg-3" th:object="${employers}">
-                    <select class="form-control" id="userName" name="userName">
-                        <option value="">Фамилия</option>
-                        <option th:each="employers :${employers}"
-                                th:value="${employers}"
-                                th:text="${employers}"></option>
-                    </select>
-                </div>
-                <div class="col-lg-3" th:object="${department}">
-                    <select class="form-control" id="departmentName" name="departmentName">
-                        <option value="">Отдел</option>
-                        <option th:each="department :${department}"
-                                th:value="${department}"
-                                th:text="${department}"></option>
-                    </select>
-                </div>
-                <!--                <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">-->
-                <!--                <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
+                <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Type in a name">
+                <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Type in a department">
+
                 <button type="submit" class="btn btn-primary">Фильтровать</button>
+
+
+<!--                <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">-->
+<!--                <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
 
             </form>
 
 
             <div class="panel-body">
-<!--                <table class="table table-condensed table-striped">-->
-                <table class="table table-bordered border-primary">
+                <!--                <table class="table table-condensed table-striped">-->
+                <table id="myTable"  class="table table-bordered border-primary">
                     <thead>
                     <tr>
                         <th>ФИО</th>
@@ -74,7 +111,7 @@
                         <td th:text="${userBonus.moneyAll}"/>
                         <td>
                             <span th:each="moneyByCandidate : ${userBonus.moneyByCandidate}">
-                                <span th:text="${moneyByCandidate}"/></span>
+                                <span th:text="${moneyByCandidate}" /></span>
                         </td>
 
                         <td>
@@ -114,6 +151,45 @@
 </div>
 </div>
 
+<script>
+    function myFunction() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputName");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchDep() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputDepartment");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
 
 </body>
 </html>

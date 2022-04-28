@@ -5,7 +5,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 
-    <title>GeekWinterMarket</title>
+    <title>AltaPersonnel</title>
 
     <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
 
@@ -14,7 +14,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 </head>
 
-<body>
+<div>
 
 <div th:replace="~{navigation :: navi(Home)}" />
 
@@ -24,6 +24,30 @@
     <!--<img src="images/1.bmp">-->
     Добро пожаловать в Альту!
     <div th:text="${firstName}" ></div>
+
+
+<form th:action="@{/bonus/all1}" method="get">
+    <!--                <input hidden th:value="${page}" th:name="page">-->
+    <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+    <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+
+<!--    <input th:name="userName" type="text" placeholder="Фамилия" >-->
+<!--    <input th:name="departmentName" type="text" placeholder="Направление">-->
+
+    <button type="submit" class="btn btn-primary">Бонусы</button>
+</form>
+
+<form th:action="@{/payment/allpayment1}" method="get">
+    <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+    <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+<!--    <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия" >-->
+<!--    <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
+
+
+    <button type="submit" class="btn btn-primary">Выплаты</button>
+
+</form>
 </div>
+
 </body>
 </html>
