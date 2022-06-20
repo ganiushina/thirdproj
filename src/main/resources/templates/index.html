@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 
 <html xmlns:th="http://www.thymeleaf.org">
-<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 
@@ -12,9 +11,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+
+
 </head>
 
-<div>
 
 <div th:replace="~{navigation :: navi(Home)}" />
 
@@ -37,7 +39,7 @@
     <button type="submit" class="btn btn-primary">Бонусы</button>
 </form>
 
-<form th:action="@{/payment/allpayment1}" method="get">
+<form th:action="@{/payment/allpayment3}" method="get">
     <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
     <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
 <!--    <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия" >-->

@@ -11,7 +11,7 @@ import java.util.Map;
 public class User {
 
 
-    private Long userId;
+    private int userId;
 
     private String userName;
 

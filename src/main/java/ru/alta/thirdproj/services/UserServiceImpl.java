@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         User user = userProvider.getUser(userName);
 
-        user.setRoles(userProvider.getUserRole(user.getUserId()));
+        user.setRoles(userProvider.getUserRole((long) user.getUserId()));
         if (user == null) {
             throw new UsernameNotFoundException("Invalid username or password.");
         }

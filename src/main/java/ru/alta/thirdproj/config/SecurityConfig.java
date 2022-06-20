@@ -61,27 +61,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                .antMatchers("/payment/confirm").hasRole("BUHADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
                 .loginProcessingUrl("/user")
-//                .successHandler(new AuthenticationSuccessHandler() {
-//
-//                    @Override
-//                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-//                                                        Authentication authentication) throws IOException, ServletException {
-//                        // run custom logics upon successful login
-//
-//                        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-//                        String username = userDetails.getUsername();
-//
-//                        System.out.println("The user " + username + " has logged in.");
-//
-//                        response.sendRedirect(request.getContextPath());
-//                    }
-//                })
-            //    .successHandler(customAuthenticationSuccessHandler)
-           //     .failureHandler(customAuthenticationFailureHandler)
+                .successHandler(customAuthenticationSuccessHandler)
+                .failureHandler(customAuthenticationFailureHandler)
                 .permitAll()
                 .and()
                 .logout()

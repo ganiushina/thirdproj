@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #inputName {
+            background-image: url('/css/searchicon.png');
+            background-position: 10px 10px;
+            background-repeat: no-repeat;
+            width: 100%;
+            font-size: 16px;
+            padding: 12px 20px 12px 40px;
+            border: 1px solid #ddd;
+            margin-bottom: 12px;
+        }
+
+        #inputDepartment {
+            background-image: url('/css/searchicon.png');
+            background-position: 10px 10px;
+            background-repeat: no-repeat;
+            width: 100%;
+            font-size: 16px;
+            padding: 12px 20px 12px 40px;
+            border: 1px solid #ddd;
+            margin-bottom: 12px;
+        }
+
+        #myTable {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+            font-size: 18px;
+        }
+
+        #myTable th, #myTable td {
+            text-align: left;
+            padding: 12px;
+        }
+
+        #myTable tr {
+            border-bottom: 1px solid #ddd;
+        }
+
+        #myTable tr.header, #myTable tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{navigation :: navi(Home)}"/>
+
+<div class="container" xmlns:th="http://www.w3.org/1999/xhtml">
+<h2>Бонусы</h2>
+
+<input type="text" id="inputName" onkeyup="myFunction()" placeholder="Search for names.." title="Find in a name">
+<input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Search for department.." title="Find in a department">
+<form id="rendered-form">
+    <div class="rendered-form">
+        <div class="formbuilder-date form-group field-date-1651048529827-0">
+            <label for="date-1651048529827-0" class="formbuilder-date-label">Date Field</label>
+            <input type="date" class="form-control" name="date-1651048529827-0" id="date-1651048529827-0">
+        </div>
+    </div>
+</form>
+
+<div class="panel-body">
+    <!--                <table class="table table-condensed table-striped">-->
+    <table id="myTable" class="table table-bordered border-primary">
+
+        <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Должность</th>
+            <th>Департамент</th>
+            <th>Всего заработано</th>
+            <th>Всего Бонус</th>
+            <th>Бонус за кандидата</th>
+            <th>Заработано за кандидата</th>
+            <th>Имя кандидата</th>
+            <th>Наименование компании</th>
+            <th>Процент</th>
+            <th>Месяц</th>
+            <th>Год</th>
+        </thead>
+
+        <tbody>
+
+
+        <tr th:each="userBonus,iterStat : ${userBonus}">
+            <td th:text="${userBonus.fio}"/>
+            <td th:text="${userBonus.position}"/>
+            <td th:text="${userBonus.department}"/>
+            <td th:text="${userBonus.sumTotal}"/>
+            <td th:text="${userBonus.moneyAll}"/>
+            <td>
+                            <span th:each="moneyByCandidate : ${userBonus.moneyByCandidate}">
+                                <span th:text="${moneyByCandidate}" /></span>
+            </td>
+
+            <td>
+                            <span th:each="sumUser : ${userBonus.sumUser}">
+                                <span th:text="${sumUser}"/></span>
+            </td>
+
+            <td>
+                            <span th:each="candidateName : ${userBonus.candidateName}">
+                                <span th:text="${candidateName}"/></span>
+            </td>
+
+            <td>
+                            <span th:each="companyName : ${userBonus.companyName}">
+                                <span th:text="${companyName}"/></span>
+            </td>
+            <td th:text="${userBonus.percent}"/>
+            <td th:text="${userBonus.month}"/>
+            <td th:text="${userBonus.year}"/>
+
+        </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+    function myFunction() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputName");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchDep() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputDepartment");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+</div>
+
+</body>
+</html>
+
+
+

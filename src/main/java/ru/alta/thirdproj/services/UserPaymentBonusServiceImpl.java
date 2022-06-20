@@ -3,6 +3,8 @@ package ru.alta.thirdproj.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.alta.thirdproj.entites.Employer;
+import ru.alta.thirdproj.entites.EmployerNew;
 import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.repositories.BonusPaymentRepositoryImpl;
 
@@ -48,21 +50,17 @@ public class UserPaymentBonusServiceImpl {
         this.userBonusPaymentRepository = userBonusPaymentRepository;
     }
 
-    public List<HashMap<String, Object>> findAll(LocalDate date1, LocalDate date2, Integer userId, Integer departmentId){
+    public List<HashMap<String, Object>> findAll(LocalDate date1, LocalDate date2){
 
-        userPaymentBonuses = userBonusPaymentRepository.getUserBonuses(date1, date2, userId, departmentId);
+        userPaymentBonuses = userBonusPaymentRepository.getUserBonuses(date1, date2);
         List<HashMap<String, Object>> entities = getHashMapsUserBonusPayment(userPaymentBonuses);
 
         return entities;
 
     }
 
-    public List<HashMap<String, Object>> findByUserFIOAnfDepartment(String userName, String department){
-
-        userPaymentBonuses = userBonusPaymentRepository.findByFioAndDepartment(userName,  department);
-
-        List<HashMap<String, Object>> entities = getHashMapsUserBonusPayment(userPaymentBonuses);
-        return entities;
+    public List<EmployerNew> getEmployerList (LocalDate date1, LocalDate date2){
+        return userBonusPaymentRepository.userBonusPaymentList(date1,date2);
     }
 
     private List<HashMap<String, Object>> getHashMapsUserBonusPayment(List<UserPaymentBonus> userPaymentBonuses){
@@ -78,14 +76,13 @@ public class UserPaymentBonusServiceImpl {
             ArrayList<String> candidateName = new ArrayList<>();
             ArrayList<String> companyName = new ArrayList<>();
             map.put("fio", n.getFio());
-            map.put("position", n.getPosition());
+
             map.put("department", n.getDepartment());
 
             map.put("allBonus", n.getAllBonus());
 
             map.put("percent", n.getPercent());
-            map.put("monthNumAct", n.getMonthNumAct());
-            map.put("yearAct", n.getYearAct());
+            map.put("dateAct", n.getDateAct());
 
             map.put("dateForPay", n.getDateForPay());
             map.put("paymentDate", n.getPaymentDate());
@@ -95,13 +92,13 @@ public class UserPaymentBonusServiceImpl {
                     if (userPaymentBonuses.get(j).getFio().equals(n.getFio())){
                         actNums.add(userPaymentBonuses.get(j).getActNum()) ;
                         bonus.add(userPaymentBonuses.get(j).getBonus());
-                        candidateName.add(userPaymentBonuses.get(j).getCandidateName());
+                        candidateName.add(userPaymentBonuses.get(j).getCandidateName()  + " - " + userPaymentBonuses.get(j).getBonus());
                         companyName.add(userPaymentBonuses.get(j).getCompanyName());
 
                     }
                 }
                 map.put("actNum", actNums);
-                map.put("bonus", bonus);
+                map.put("bonus", bonus );
                 map.put("candidateName", candidateName);
                 map.put("companyName", companyName);
 
@@ -118,13 +115,13 @@ public class UserPaymentBonusServiceImpl {
                     if (userPaymentBonuses.get(j).getFio().equals(n.getFio())){
                         actNums.add(userPaymentBonuses.get(j).getActNum()) ;
                         bonus.add(userPaymentBonuses.get(j).getBonus());
-                        candidateName.add(userPaymentBonuses.get(j).getCandidateName());
+                        candidateName.add(userPaymentBonuses.get(j).getCandidateName()  + " - " + userPaymentBonuses.get(j).getBonus());
                         companyName.add(userPaymentBonuses.get(j).getCompanyName());
 
                     }
                 }
                 map.put("actNum", actNums);
-                map.put("bonus", bonus);
+                map.put("bonus", bonus );
                 map.put("candidateName", candidateName);
                 map.put("companyName", companyName);
 

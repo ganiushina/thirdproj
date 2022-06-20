@@ -26,17 +26,6 @@ public class UserBonus {
 
     private Double sumTotal;
 
-//    List<UserSum> userSumList;
-//
-//    List<Candidate> candidateName;
-//
-//    List<Company> companyName;
-//
-//    List<UserSumByCandidate> moneyByCandidate;
-
-   // private User user;
-
-
     private Double sumUser;
 
     private String companyName;

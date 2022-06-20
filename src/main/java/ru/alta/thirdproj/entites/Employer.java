@@ -13,9 +13,11 @@ public class Employer {
 
     private String manFIO;
 
+    private String userDepartment;
+
     private String userPosition;
 
-    private String userDepartment;
+
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 

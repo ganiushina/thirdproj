@@ -18,7 +18,7 @@ import ru.alta.thirdproj.services.UserServiceImpl;
 
 import javax.servlet.http.HttpServletRequest;
 
-
+//@RestController
 @Controller
 @CrossOrigin("*")
 @RequestMapping("*") //http://localhost:8181/userbonus/api/v1/userbonus/all?date1=2021-12-01&date2=2021-12-31&userId=-1&departmentId=-1

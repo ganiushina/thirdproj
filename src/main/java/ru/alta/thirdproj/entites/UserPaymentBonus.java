@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,17 +15,19 @@ public class UserPaymentBonus {
 
     private long id;
 
-    private long userId;
+    private int userId;
 
     private String fio;
-
-    private String position;
 
     private String department;
 
     private String actNum;
 
+    private int actId;
+
     private String candidateName;
+
+    private int projectId;
 
     private String companyName;
 
@@ -34,9 +37,7 @@ public class UserPaymentBonus {
 
     private Double allBonus;
 
-    private int monthNumAct;
-
-    private int yearAct;
+    private Date dateAct;
 
     private Date dateForPay;
 
@@ -47,19 +48,18 @@ public class UserPaymentBonus {
     static {
         COLUMN_MAPPINGS.put("man_fio", "fio");
         COLUMN_MAPPINGS.put("man_id", "userId");
-        COLUMN_MAPPINGS.put("pos_name", "position");
         COLUMN_MAPPINGS.put("dep_name", "department");
         COLUMN_MAPPINGS.put("act_num", "actNum");
-        COLUMN_MAPPINGS.put("cadidate", "candidateName");
+        COLUMN_MAPPINGS.put("act_id", "actId");
+        COLUMN_MAPPINGS.put("candidate", "candidateName");
+        COLUMN_MAPPINGS.put("project_id", "projectId");
         COLUMN_MAPPINGS.put("company_name", "companyName");
         COLUMN_MAPPINGS.put("bonus", "bonus");
         COLUMN_MAPPINGS.put("persent", "percent");
         COLUMN_MAPPINGS.put("all_bonus", "allBonus");
-        COLUMN_MAPPINGS.put("mon_act", "monthNumAct");
-        COLUMN_MAPPINGS.put("ya_act", "yearAct");
+        COLUMN_MAPPINGS.put("date_act", "dateAct");
         COLUMN_MAPPINGS.put("date_for_pay", "dateForPay");
         COLUMN_MAPPINGS.put("payment_date", "paymentDate");
 
     }
-
 }
