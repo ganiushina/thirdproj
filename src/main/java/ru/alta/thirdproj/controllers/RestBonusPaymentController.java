@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.repositories.UserLoginRepositorySlqO2;
@@ -29,6 +30,8 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 //@RestController
 @Controller
@@ -140,23 +143,19 @@ public class RestBonusPaymentController {
         model.addAttribute("employerList", employerList);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
-
         return "paymentNew";
     }
 
 
     @PostMapping("/confirm")
-    public String paymentConfirm(
+    public String paymentConfirm (
             @RequestParam (value = "fio", required = false) String fio,
-            HttpServletRequest httpServletRequest,  Principal principal) {
-
+            HttpServletRequest httpServletRequest,  Principal principal)  {
         User user = userService.findByUserName(principal.getName());
         paymentSuccessService.findEmployer(fio, user.getUserId(), employerList);
         String referrer = httpServletRequest.getHeader("referer");
         return "redirect:" + referrer;
-
     }
-
 
     @ExceptionHandler
     public ResponseEntity<?> handleException(UserBonusNotFoundException exc) {

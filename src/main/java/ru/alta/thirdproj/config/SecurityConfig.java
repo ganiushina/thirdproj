@@ -30,14 +30,11 @@ import java.io.IOException;
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-   private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     private CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
     private UserLoginServiceImpl userLoginService;
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
 
-//    @Bean
-//    public AuthenticationFailureHandler authenticationFailureHandler() {
-//        return new CustomAuthenticationFailureHandler();
-//    }
 
     @Autowired
     public  void setUserLoginService (@Lazy UserLoginServiceImpl userLoginService){this.userLoginService = userLoginService;}
@@ -52,6 +49,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         this.customAuthenticationFailureHandler = customAuthenticationFailureHandler;
     }
 
+    @Autowired
+    public void setCustomAccessDeniedHandler(CustomAccessDeniedHandler customAccessDeniedHandler){
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
+    }
+
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -60,19 +62,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http
+//                .csrf()
+//                .disable()
+                .authorizeRequests()
                 .antMatchers("/payment/confirm").hasRole("BUHADMIN")
-                .anyRequest().authenticated()
+                .anyRequest()
+                .authenticated()
                 .and()
                 .formLogin()
-                .loginProcessingUrl("/user")
+                .loginProcessingUrl("/index")
                 .successHandler(customAuthenticationSuccessHandler)
                 .failureHandler(customAuthenticationFailureHandler)
                 .permitAll()
                 .and()
                 .logout()
-                .logoutSuccessUrl("/**")
-                .permitAll();
+                .logoutSuccessUrl("/**");
+//                .and()
+//                .exceptionHandling()
+//                .accessDeniedHandler(customAccessDeniedHandler);
+                //.accessDeniedPage("/error.html");
+      //          .permitAll();
 //        http
 //                //.csrf()
 //               // .disable()
