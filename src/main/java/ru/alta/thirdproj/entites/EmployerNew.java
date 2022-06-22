@@ -3,7 +3,6 @@ package ru.alta.thirdproj.entites;
 
 import lombok.Data;
 
-import java.util.Date;
 import java.util.List;
 
 @Data

@@ -82,7 +82,13 @@
 
             <h1 th:text="Выплаты" />
 
+        <p  th:text="Всего  + ' ' + к + ' ' + оплате + ': '  + ${allMoney}" >
+        <p  th:text="Оплачено  + ':  ' + ${allPaymentMoney}" >
+
+
             <form th:action="@{/payment/allpayment3}" method="get">
+
+
                 <input required th:value="${date1 != null} ? ${date1}" th:name="date1"  type="date"  placeholder="Дата от ">
                 <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">
 

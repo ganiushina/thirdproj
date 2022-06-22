@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -96,6 +97,7 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
                 map.put("candidateName", candidateName);
                 map.put("companyName", companyName);
 
+
                 mapMoney.put(n.getFio(), moneyByCandidate);
                 mapSum.put(n.getFio(), userSumList);
                 mapCandidate.put(n.getFio(), candidateName);
@@ -176,5 +178,59 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
     @Override
     public List<UserBonus> getUserBonuses(LocalDate date1, LocalDate date12, Integer userId, Integer departmentId) {
         return null;
+    }
+
+    public double getAllMoney(HashMap<String, Object> mapMoney) {
+
+        double allMoney;
+        ArrayList<Double> doubleArrayList = new ArrayList<>();
+//
+//        for (Object value : mapMoney.values()) {
+//            doubleArrayList.add();
+//        }
+
+
+
+        mapMoney.forEach((k, v) -> {
+            if (v instanceof ArrayList) {
+                ArrayList<Double> theV = (ArrayList<Double>) v;
+                for (int i = 0; i < theV.size(); i++) {
+                    doubleArrayList.add(theV.get(i).doubleValue());
+
+                }
+
+            }
+        });
+
+
+//
+//        for (Map.Entry<String, Object> entry : mapMoney.entrySet()) {
+//            String key = entry.getKey();
+//            Object value = entry.getValue();
+//            for (int i = 0; i < entry.getValue().size() ; i++) {
+//
+//            }
+//
+//
+//          //  doubleArrayList.add((Double) entry.getValue());
+//        }
+
+      //  double sum = mapMoney.values().stream().mapToDouble(Double::doubleValue).sum();
+
+
+
+//        for (int i = 0; i < employerNews.size(); i++) {
+//            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+//                doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+//            }
+//        }
+
+        double doublesSum = doubleArrayList.stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        return doublesSum;
+
+
+
     }
 }

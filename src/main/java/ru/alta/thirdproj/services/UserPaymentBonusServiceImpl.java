@@ -63,6 +63,38 @@ public class UserPaymentBonusServiceImpl {
         return userBonusPaymentRepository.userBonusPaymentList(date1,date2);
     }
 
+    public double getAllMoney(List<EmployerNew> employerNews) {
+        ArrayList<Double> doubleArrayList = new ArrayList<>();
+
+        for (int i = 0; i < employerNews.size(); i++) {
+            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+                doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+            }
+        }
+
+        double doublesSum = doubleArrayList.stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        return doublesSum;
+    }
+
+    public double getAllPaymentMoney(List<EmployerNew> employerNews) {
+        ArrayList<Double> doubleArrayList = new ArrayList<>();
+
+        for (int i = 0; i < employerNews.size(); i++) {
+            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+                if (employerNews.get(i).getActList().get(j).isPaid()) {
+                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+                }
+            }
+        }
+
+        double doublesSum = doubleArrayList.stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        return doublesSum;
+    }
+
     private List<HashMap<String, Object>> getHashMapsUserBonusPayment(List<UserPaymentBonus> userPaymentBonuses){
 
         List<HashMap<String, Object>> entities = new ArrayList<>();

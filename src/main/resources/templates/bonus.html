@@ -63,6 +63,8 @@
 
             <h1 th:text="Бонусы" />
 
+            <p th:text="Всего  + ' ' + заработано + ' ' + бонусов + ': '  + ${allMoney}" >
+
             <form th:action="@{/bonus/all1}" method="get">
 
                 <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
