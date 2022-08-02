@@ -3,6 +3,7 @@ package ru.alta.thirdproj.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.entites.UserBonus;
 import ru.alta.thirdproj.repositories.BonusRepositoryImpl;
 import ru.alta.thirdproj.repositories.iUserBonusRepository;
@@ -11,7 +12,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -25,8 +25,16 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
     private HashMap<String,Object> mapSum = new HashMap<>();
     private HashMap<String,Object> mapCandidate = new HashMap<>();
     private HashMap<String,Object> mapCompany = new HashMap<>();
+
+    private HashMap<String,Object> mapAct = new HashMap<>();
+
     private List<String> employers = new ArrayList<>();
     private List<String> department = new ArrayList<>();
+    private List<Integer> employersId = new ArrayList<>();
+
+    public HashMap<String, Object> getMapAct() {
+        return mapAct;
+    }
 
     @Autowired
     public void setUserBonusProvider(BonusRepositoryImpl userBonusProvider){
@@ -71,7 +79,9 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
             ArrayList<Double> userSumList = new ArrayList<>();
             ArrayList<String> candidateName = new ArrayList<>();
             ArrayList<String> companyName = new ArrayList<>();
+
             map.put("fio", n.getFio());
+            map.put("userId", n.getUserId());
             map.put("position", n.getPosition());
             map.put("department", n.getDepartment());
 
@@ -90,13 +100,14 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
                         userSumList.add(userBonuses.get(j).getSumUser());
                         candidateName.add(userBonuses.get(j).getCandidateName());
                         companyName.add(userBonuses.get(j).getCompanyName());
+
                     }
                 }
                 map.put("moneyByCandidate", moneyByCandidate);
                 map.put("sumUser", userSumList);
                 map.put("candidateName", candidateName);
                 map.put("companyName", companyName);
-
+                map.put("actList", n.getActList());
 
                 mapMoney.put(n.getFio(), moneyByCandidate);
                 mapSum.put(n.getFio(), userSumList);
@@ -113,6 +124,7 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
                         userSumList.add(userBonuses.get(j).getSumUser());
                         candidateName.add(userBonuses.get(j).getCandidateName());
                         companyName.add(userBonuses.get(j).getCompanyName());
+                        mapAct.put(n.getFio(), getExtraBonus((int) userBonuses.get(j).getUserId()));
                     }
                 }
 
@@ -120,6 +132,7 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
                 map.put("sumUser", userSumList);
                 map.put("candidateName", candidateName);
                 map.put("companyName", companyName);
+                map.put("actList", n.getActList());
                 mapMoney.put(n.getFio(), moneyByCandidate);
                 mapSum.put(n.getFio(), userSumList);
                 mapCandidate.put(n.getFio(), candidateName);
@@ -155,6 +168,11 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
         return employers;
     }
 
+    private List<Integer> setEmployersId(int empId){
+        employersId.add(empId);
+        return employersId;
+    }
+
     public List<String> getDepartment() {
         List<String> uniqueDepartment =
                 department
@@ -175,6 +193,15 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
         return uniqueEmployers;
     }
 
+    public List<Integer> getEmployersId(){
+        List<Integer> uniqueEmployersId =
+                employersId
+                        .stream()
+                        .distinct()
+                        .collect(Collectors.toList());
+        return uniqueEmployersId;
+    }
+
     @Override
     public List<UserBonus> getUserBonuses(LocalDate date1, LocalDate date12, Integer userId, Integer departmentId) {
         return null;
@@ -182,15 +209,7 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
 
     public double getAllMoney(HashMap<String, Object> mapMoney) {
 
-        double allMoney;
         ArrayList<Double> doubleArrayList = new ArrayList<>();
-//
-//        for (Object value : mapMoney.values()) {
-//            doubleArrayList.add();
-//        }
-
-
-
         mapMoney.forEach((k, v) -> {
             if (v instanceof ArrayList) {
                 ArrayList<Double> theV = (ArrayList<Double>) v;
@@ -202,35 +221,13 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
             }
         });
 
-
-//
-//        for (Map.Entry<String, Object> entry : mapMoney.entrySet()) {
-//            String key = entry.getKey();
-//            Object value = entry.getValue();
-//            for (int i = 0; i < entry.getValue().size() ; i++) {
-//
-//            }
-//
-//
-//          //  doubleArrayList.add((Double) entry.getValue());
-//        }
-
-      //  double sum = mapMoney.values().stream().mapToDouble(Double::doubleValue).sum();
-
-
-
-//        for (int i = 0; i < employerNews.size(); i++) {
-//            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
-//                doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
-//            }
-//        }
-
-        double doublesSum = doubleArrayList.stream()
+        return   doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
-        return doublesSum;
-
-
-
     }
+
+    public List<Act> getExtraBonus(Integer employerId){
+        return userBonusProvider.getExtraAct(employerId);
+    }
+
 }

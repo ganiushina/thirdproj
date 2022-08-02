@@ -7,10 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.alta.thirdproj.entites.Employer;
-import ru.alta.thirdproj.entites.Role;
-import ru.alta.thirdproj.entites.User;
-import ru.alta.thirdproj.entites.UserBonus;
+import ru.alta.thirdproj.entites.*;
 
 import ru.alta.thirdproj.repositories.UserRepositorySlqO2;
 

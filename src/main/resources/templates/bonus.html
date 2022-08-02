@@ -76,11 +76,9 @@
 
                 <button type="submit" class="btn btn-primary">Фильтровать</button>
 
-
-<!--                <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия">-->
-<!--                <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
-
             </form>
+
+            <form action="#" th:action="@{/bonus/add}" method="get"  >
 
 
             <div class="panel-body">
@@ -100,13 +98,15 @@
                         <th>Процент</th>
                         <th>Месяц</th>
                         <th>Год</th>
+                        <th>Процент за предачу</th>
+                        <th>Добавить</th>
                     </thead>
 
                     <tbody>
 
 
                     <tr th:each="userBonus,iterStat : ${userBonus}">
-                        <td th:text="${userBonus.fio}"/>
+                        <td th:text="${userBonus.fio}" />
                         <td th:text="${userBonus.position}"/>
                         <td th:text="${userBonus.department}"/>
                         <td th:text="${userBonus.sumTotal}"/>
@@ -134,6 +134,15 @@
                         <td th:text="${userBonus.month}"/>
                         <td th:text="${userBonus.year}"/>
 
+                        <td>
+                            <span th:each="act : ${userBonus.actList}">
+                                <span th:text="${act.companies} + ', ' + ${act.candidate} + ';'"/></span>
+                        </td>
+
+                        <td>
+                            <button type="submit" class="btn btn-primary" th:value="${userBonus.fio}" th:name="fio">Добавить</button>
+                        </td>
+
                     </tr>
 
                     </tbody>
@@ -146,12 +155,14 @@
 
             </tbody>
             </table>
+            </form>
         </div>
 
     </div>
 
 </div>
 </div>
+
 
 <script>
     function myFunction() {

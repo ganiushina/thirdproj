@@ -21,4 +21,6 @@ public class Act {
     private Date paymentRealDate;
     private String employerPaid;
 
+    private Double percent;
+
 }

@@ -9,13 +9,10 @@ import java.util.Map;
 @Data
 public class Employer {
 
-    private Long manId;
+    private int manId;
 
     private String manFIO;
 
-    private String userDepartment;
-
-    private String userPosition;
 
 
 
@@ -24,8 +21,6 @@ public class Employer {
     static {
         COLUMN_MAPPINGS.put("man_id", "manId");
         COLUMN_MAPPINGS.put("man_fio", "manFIO");
-        COLUMN_MAPPINGS.put("userPosition", "userPosition");
-        COLUMN_MAPPINGS.put("userDepartment", "userDepartment");
     }
 
 }

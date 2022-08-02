@@ -43,8 +43,14 @@ public class UserRepositorySlqO2
             ",man_fio \n" +
             "from man m \n" +
             "JOIN login l ON l.login_user_id = m.man_id\n" +
-            "JOIN dbo.userplanByMonth ubm ON ubm.user_id = l.login_user_id AND ubm.userplan_month = DATEPART(mm, GETDATE()) AND ubm.userplan_year = DATEPART(yy, GETDATE())\n" +
-            "where l.login_active = 1 AND man_fio = :manFIO";
+            "where man_fio = :manFIO";
+
+    private static final  String SELECT_EMPLOYER_BY_NAME_NEW = "" +
+            "SELECT DISTINCT man_id \n" +
+            ",man_fio \n" +
+            "from man m \n" +
+            "JOIN login l ON l.login_user_id = m.man_id\n" +
+            "where man_fio = :manFIO";
 
     private String SELECT_USER_ROLE_QUERY =
             " SELECT r.id, r.name\n" +

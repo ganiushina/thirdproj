@@ -3,6 +3,7 @@ package ru.alta.thirdproj.entites;
 import lombok.Data;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -31,6 +32,10 @@ public class UserBonus {
     private String companyName;
 
     private String candidateName;
+
+    private List<Act> actList;
+
+    private String extraBonusActName;
 
     private int month;
 
