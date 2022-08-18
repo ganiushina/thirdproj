@@ -54,7 +54,6 @@ public class BonusPaymentSuccessServiceImpl {
 
 
         if (val != null) {
-
             List<String> arrOfEmployerBonus = Arrays.asList(val.split(","));
 
             for (int k = 0; k < arrOfEmployerBonus.size(); k++) {

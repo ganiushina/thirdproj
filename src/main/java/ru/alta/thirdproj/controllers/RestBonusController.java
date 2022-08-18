@@ -173,7 +173,36 @@ public class RestBonusController {
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         model.addAttribute("allMoney", allMoney);
-        return "bonus";
+        return "bonus"; //getUserBonusList
+    }
+
+    @GetMapping("/getall") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
+    // @ApiOperation("Returns list of all products data transfer objects")
+    public String getAllBonuses(Model model,
+                                  Principal principal,
+                                  @RequestParam(value = "date1")
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                  @RequestParam(value = "date2")
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+
+    ) {
+
+        List<UserBonusNew> userBonusNewList =  bonusService.getUserBonusList(date1, date2);
+        date3 = date1;
+        date4 = date2;
+        double allMoney = 0;
+
+        for (int i = 0; i < userBonusNewList.size() ; i++) {
+            for (int j = 0; j <  userBonusNewList.get(i).getMoneyByCandidate().size() ; j++) {
+                allMoney+= userBonusNewList.get(i).getMoneyByCandidate().get(j);
+            }
+        }
+        
+        model.addAttribute("userBonus", userBonusNewList);
+        model.addAttribute("allMoney", allMoney);
+        model.addAttribute("date1", date1);
+        model.addAttribute("date2", date2);
+        return "bonusNew";
     }
 
     @GetMapping("/all2") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
@@ -187,16 +216,17 @@ public class RestBonusController {
     @GetMapping("/add") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
     public String addExtraBonus(Model model, @RequestParam(value ="fio") String fio,
-                                HttpServletRequest httpServletRequest, RedirectAttributes redirectAttributes
-                                ){
+                                HttpServletRequest httpServletRequest){
 
         Employer employer = employerService.findByUserName(fio);
+//        List<Employer> employerList =employerService.getAll();
 
         List<Act> actList = actBonusPercentService.getAllAct(date3, date4, employer.getManId());
 
         model.addAttribute("actList", actList);
         model.addAttribute("employer", employer);
         model.addAttribute("requestParam", httpServletRequest.getHeader("referer"));
+//        model.addAttribute("employers", employerList);
         model.addAttribute("date1", date3);
         model.addAttribute("date2", date4);
 

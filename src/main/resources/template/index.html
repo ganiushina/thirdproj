@@ -28,13 +28,12 @@
     <div th:text="${firstName}" ></div>
 
 
-<form th:action="@{/bonus/all1}" method="get">
-    <!--                <input hidden th:value="${page}" th:name="page">-->
+<!--<form th:action="@{/bonus/all1}" method="get">-->
+    <form th:action="@{/bonus/getall}" method="get">
+
     <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
     <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
 
-<!--    <input th:name="userName" type="text" placeholder="Фамилия" >-->
-<!--    <input th:name="departmentName" type="text" placeholder="Направление">-->
 
     <button type="submit" class="btn btn-primary">Бонусы</button>
 </form>
@@ -42,8 +41,6 @@
 <form th:action="@{/payment/allpayment3}" method="get">
     <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
     <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
-<!--    <input th:value="${userName != ''} ? ${userName}" th:name="userName" type="text" placeholder="Фамилия" >-->
-<!--    <input th:value="${departmentName != ''} ? ${departmentName}" th:name="departmentName" type="text" placeholder="Направление">-->
 
 
     <button type="submit" class="btn btn-primary">Выплаты</button>

@@ -126,16 +126,20 @@
                             <td th:text="${employer.userDepartment}"></td>
                             <td th:text="${employer.allBonus}"></td>
                             <td th:text="${employer.percent}"></td>
+
                             <td>
                                 <span th:each="act : ${employer.actList}" >
+                                     <li>
                                      <input type="checkbox" name="fio"
                                             th:value="${act.bonus} +
                                      '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects}"
-                                            th:checked="${act.paid} ? 'checked'" th:onclick="submit()"
-                                     />
+                                            th:checked="${act.paid} ? 'checked'" th:onclick="submit()"/>
 
                                     <span th:text="${act.bonus}" /></span>
+                                    </li>
+
                             </td>
+
                             <td>
                                 <span th:each="act : ${employer.actList}">
                                     <span th:text="${act.candidate} + ': ' + ${act.bonus}" /></span>

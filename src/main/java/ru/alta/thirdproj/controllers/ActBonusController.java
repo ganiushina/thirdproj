@@ -62,11 +62,11 @@ public class ActBonusController {
     @PostMapping("/allact") // http://localhost:8189/userbonus/act/allact?date1=2022-06-01&date2=2022-06-27
 //    @ApiOperation("Returns list of all products data transfer objects")
     public String showAll3(Model model, @RequestParam(value = "act", required = false) String act, String actList,
-                           String percent, Principal principal, String request, String fio,
-                            LocalDate date1,
-                            LocalDate date2)  {
+                           String percent, Principal principal, String request, String fio//, String manIds
+                           )  {
         User user = userService.findByUserName(principal.getName());
         Employer employer = employerService.findByUserName(fio);
+
 
         final String[] items1 = actList.split("Act");
 

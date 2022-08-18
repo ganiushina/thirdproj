@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #myTable {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+            font-size: 18px;
+
+        }
+
+        #myTable th, #myTable td {
+            text-align: left;
+            padding: 12px;
+
+        }
+
+        #myTable tr {
+            border-bottom: 1px solid #ddd;
+
+        }
+
+        #myTable tr.header, #myTable tr:hover {
+            background-color: #f1f1f1;
+        }
+        .container {
+            display: flex;
+        }
+
+    </style>
+    <meta charset="utf-8"/>
+
+    <title>Бонусы</title>
+
+    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body>
+
+<div th:replace="~{navigation :: navi(Cart)}"/>
+
+<div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+
+            <h1 th:text="Бонусы" />
+
+            <p th:text="Всего  + ' ' + заработано + ' ' + бонусов + ': '  + ${allMoney}" >
+
+            <form th:action="@{/bonus/getall}" method="get">
+
+                <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+                <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+
+
+                <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Type in a name">
+                <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Type in a department">
+
+                <button type="submit" class="btn btn-primary">Фильтровать</button>
+
+            </form>
+
+            <form action="#" th:action="@{/bonus/add}" method="get"  >
+
+
+            <div class="panel-body">
+                <!--                <table class="table table-condensed table-striped">-->
+                <table id="myTable"  class="table table-bordered border-primary">
+                    <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Должность</th>
+                        <th>Департамент</th>
+                        <th>Всего заработано</th>
+                        <th>Всего Бонус</th>
+                        <th>Бонус за кандидата</th>
+                        <th>Заработано за кандидата</th>
+                        <th>Имя кандидата</th>
+                        <th>Наименование компании</th>
+                        <th>Процент</th>
+                        <th>Месяц</th>
+                        <th>Год</th>
+                        <th>Процент за предачу</th>
+                        <th>Добавить</th>
+                    </thead>
+
+                    <tbody>
+
+
+                    <tr th:each="userBonus,iterStat : ${userBonus}">
+                        <td th:text="${userBonus.fio}" />
+                        <td th:text="${userBonus.position}"/>
+                        <td th:text="${userBonus.department}"/>
+                        <td>
+                            <span th:each="monthSummName : ${userBonus.monthSummName}">
+                                <span th:text="${monthSummName}" /></span>
+                        </td>
+                        <td>
+                            <span th:each="monthMoneyName : ${userBonus.monthMoneyName}">
+                                <span th:text="${monthMoneyName}" /></span>
+                        </td>
+
+                        <td>
+                            <span th:each="moneyByCandidate : ${userBonus.moneyByCandidate}">
+                                <span th:text="${moneyByCandidate}" /></span>
+                        </td>
+
+                        <td>
+                            <span th:each="sumUser : ${userBonus.sumUser}">
+                                <span th:text="${sumUser}"/></span>
+                        </td>
+
+                        <td>
+                            <ul>
+                            <span th:each="candidateName : ${userBonus.candidateName}">
+                                 <li>
+                                <span th:text="${candidateName}"/></span>
+                            </li>
+                            </ul>
+                        </td>
+
+                        <td>
+                            <ul>
+                            <span th:each="companyName : ${userBonus.companyName}">
+                                 <li>
+                                <span th:text="${companyName}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+                        <td>
+                            <ul>
+                            <span th:each="percent : ${userBonus.percent}">
+                                <li>
+                                <span th:text="${percent}"/></span>
+                            </li>
+                            </ul>
+                        </td>
+
+                        <td>
+                            <ul>
+                                <span th:each="monthName : ${userBonus.monthName}">
+                            <li>
+                                <span th:text="${monthName}"/></span>
+                            </li>
+                            </ul>
+
+                        </td>
+
+                        <td>
+                            <ul>
+                            <span th:each="year : ${userBonus.year}">
+                            <li>
+                                <span th:text="${year}"/></span>
+                            </li>
+                                </ul>
+                        </td>
+
+                        <td>
+                            <span th:each="act : ${userBonus.actList}">
+                                <span th:text="${act.companies} + ', ' + ${act.candidate} + ';'"/></span>
+                        </td>
+
+                        <td>
+                            <button type="submit" class="btn btn-primary" th:value="${userBonus.fio}" th:name="fio">Добавить</button>
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+            </td>
+            </tr>
+
+            </tbody>
+            </table>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+</div>
+
+
+<script>
+    function myFunction() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputName");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchDep() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputDepartment");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
