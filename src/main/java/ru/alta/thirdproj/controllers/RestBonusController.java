@@ -9,23 +9,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
-import ru.alta.thirdproj.services.ActBonusPercentServiceImpl;
-import ru.alta.thirdproj.services.EmployerServiceImpl;
-import ru.alta.thirdproj.services.UserBonusServiceImpl;
-import ru.alta.thirdproj.services.UserService;
+import ru.alta.thirdproj.services.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 //@RestController
 @Controller
@@ -43,9 +38,8 @@ public class RestBonusController {
 
     private ActBonusPercentServiceImpl actBonusPercentService;
 
+    private UserBonusKPIServiceImpl bonusKPIService;
 
-
-    LocalDate date3, date4;
 
     @Autowired
     public void setActBonusPercentService(ActBonusPercentServiceImpl actBonusPercentService) {
@@ -65,6 +59,11 @@ public class RestBonusController {
     @Autowired
     public void setEmployerService(EmployerServiceImpl employerService) {
         this.employerService = employerService;
+    }
+
+    @Autowired
+    public void setBonusKPIService(UserBonusKPIServiceImpl bonusKPIService){
+        this.bonusKPIService = bonusKPIService;
     }
 
 
@@ -92,12 +91,6 @@ public class RestBonusController {
             userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
         }
 
-//        if (userName != null || departmentName != null)   {
-//            List<UserBonus> userBonusesFilter;
-//            userBonusesFilter =  bonusService.findByFioAndDepartment(userName, departmentName);
-//            return new ResponseEntity(userBonusesFilter, HttpStatus.OK);
-//        }
-//        else
         return new ResponseEntity(userBonuses, HttpStatus.OK);
 
     }
@@ -123,16 +116,9 @@ public class RestBonusController {
 
 
         entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-        //   }
-//        HashMap<String,Object> mapMoney = bonusService.getMapMoney();
-//        HashMap<String,Object> mapSum = bonusService.getMapSum();
-//        HashMap<String,Object> mapCandidate = bonusService.getMapCandidate();
-//        HashMap<String,Object> mapCompany = bonusService.getMapCompany();
-//        List<String> employers = bonusService.getEmployers();
-//        List<String> department = bonusService.getDepartment();
 
         return new ResponseEntity<>(entities, HttpStatus.OK);
-//
+
 
     }
 
@@ -148,8 +134,6 @@ public class RestBonusController {
     ) {
         User user = userService.findByUserName(principal.getName());
         List<HashMap<String, Object>> entities;
-        date3 = date1;
-        date4 = date2;
 
         entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
 
@@ -188,8 +172,6 @@ public class RestBonusController {
     ) {
 
         List<UserBonusNew> userBonusNewList =  bonusService.getUserBonusList(date1, date2);
-        date3 = date1;
-        date4 = date2;
         double allMoney = 0;
 
         for (int i = 0; i < userBonusNewList.size() ; i++) {
@@ -197,9 +179,29 @@ public class RestBonusController {
                 allMoney+= userBonusNewList.get(i).getMoneyByCandidate().get(j);
             }
         }
-        
+        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
+
+        model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("userBonus", userBonusNewList);
         model.addAttribute("allMoney", allMoney);
+        model.addAttribute("date1", date1);
+        model.addAttribute("date2", date2);
+        return "bonusNew";
+    }
+
+    @GetMapping("/getkpi") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
+    // @ApiOperation("Returns list of all products data transfer objects")
+    public String getAllKPIBonuses(Model model,
+                                Principal principal,
+                                @RequestParam(value = "date1")
+                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                @RequestParam(value = "date2")
+                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+
+    ) {
+
+        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
+        model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusNew";
@@ -216,20 +218,19 @@ public class RestBonusController {
     @GetMapping("/add") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
     public String addExtraBonus(Model model, @RequestParam(value ="fio") String fio,
+                                @RequestParam(value = "date1")
+                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                @RequestParam(value = "date2")
+                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2,
                                 HttpServletRequest httpServletRequest){
 
         Employer employer = employerService.findByUserName(fio);
-//        List<Employer> employerList =employerService.getAll();
-
-        List<Act> actList = actBonusPercentService.getAllAct(date3, date4, employer.getManId());
-
+        List<Act> actList = actBonusPercentService.getAllAct(date1, date2, employer.getManId());
         model.addAttribute("actList", actList);
         model.addAttribute("employer", employer);
         model.addAttribute("requestParam", httpServletRequest.getHeader("referer"));
-//        model.addAttribute("employers", employerList);
-        model.addAttribute("date1", date3);
-        model.addAttribute("date2", date4);
-
+        model.addAttribute("date1", date1);
+        model.addAttribute("date2", date2);
         return "act-bonus";
     }
 

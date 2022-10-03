@@ -129,7 +129,7 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
                         userSumList.add(userBonuses.get(j).getSumUser());
                         candidateName.add(userBonuses.get(j).getCandidateName());
                         companyName.add(userBonuses.get(j).getCompanyName());
-                        mapAct.put(n.getFio(), getExtraBonus((int) userBonuses.get(j).getUserId()));
+           //             mapAct.put(n.getFio(), getExtraBonus((int) userBonuses.get(j).getUserId(), userBonuses.get(j).getActId()));
                     }
                 }
 
@@ -231,8 +231,8 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
                 .sum();
     }
 
-    public List<Act> getExtraBonus(Integer employerId){
-        return userBonusProvider.getExtraAct(employerId);
+    public List<Act> getExtraBonus(Integer employerId, List<Integer> actId){
+        return userBonusProvider.getExtraAct(employerId, actId);
     }
 
 }

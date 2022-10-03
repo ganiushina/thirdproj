@@ -67,6 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .disable()
                 .authorizeRequests()
                 .antMatchers("/payment/confirm").hasRole("BUHADMIN")
+                .antMatchers("/act/allact").hasRole("BUHADMIN")
                 .anyRequest()
                 .authenticated()
                 .and()

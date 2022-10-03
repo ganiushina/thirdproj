@@ -142,11 +142,15 @@
 
                             <td>
                                 <span th:each="act : ${employer.actList}">
+                                     <li>
                                     <span th:text="${act.candidate} + ': ' + ${act.bonus}" /></span>
+                                </li>
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">
+                                     <li>
                                     <span th:text="${act.companies}" /></span>
+                                </li>
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">

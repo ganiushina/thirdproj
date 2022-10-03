@@ -43,4 +43,6 @@ public class UserBonusNew {
 
     private List<Act> actList;
 
+    private List<String> extraBonusAct;
+
 }

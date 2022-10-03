@@ -41,6 +41,8 @@ public class UserBonus {
 
     private int year;
 
+    private int actId;
+
 
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
@@ -59,6 +61,7 @@ public class UserBonus {
         COLUMN_MAPPINGS.put("candidate", "candidateName");
         COLUMN_MAPPINGS.put("mon", "month");
         COLUMN_MAPPINGS.put("ya", "year");
+        COLUMN_MAPPINGS.put("act_id", "actId");
     }
 
 }
