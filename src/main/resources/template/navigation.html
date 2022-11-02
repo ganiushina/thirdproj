@@ -20,11 +20,49 @@
 <div class="fluid-container" th:fragment="navi(activeTab)">
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary ">
         <a class="navbar-brand" th:href="@{/}">Альта Персонал</a>
-
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+<!--        <div class="collapse navbar-collapse" id="navbarNav">-->
+<!--            <ul class="navbar-nav">-->
+
+<!--        <li class="nav-item">-->
+<!--&lt;!&ndash;            <form class="align-middle" th:action="@{/authenticateTheUser}" method="POST">&ndash;&gt;-->
+<!--                <div class="input-group-prepend">-->
+<!--                    <input required class="form-control"  th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от "-->
+<!--                           aria-describedby="inputGroup-sizing-sm">-->
+<!--                    <input required class="form-control" th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до"-->
+<!--                           aria-describedby="inputGroup-sizing-sm">-->
+<!--                    <a class="nav-link" th:href="@{'/bonus/getall'}" th:text="Бонуvvсы"></a>-->
+<!--                </div>-->
+<!--&lt;!&ndash;            </form>&ndash;&gt;-->
+<!--        </li>-->
+<!--                <li class="nav-item" th:classappend="${activeTab == 'Home' ? 'active' : ''}">-->
+<!--                    <a class="nav-link" th:href="@{'/bonus/getall'}" th:text="Бонусы"></a>-->
+<!--                </li>-->
+<!--                <li class="nav-item" th:classappend="${activeTab == 'Market' ? 'active' : ''}">-->
+<!--                    <a class="nav-link" th:href="@{'/payment/allpayment3'}" th:text="Выплаты"></a>-->
+<!--                </li>-->
+<!--                <li class="nav-item" th:classappend="${activeTab == 'About' ? 'active' : ''}">-->
+<!--                    <a class="nav-link" th:href="@{'/actPut/actAll'}" th:text="Акты"></a>-->
+<!--                </li>-->
+
+<!--                <li class="nav-item" th:classappend="${activeTab == 'About1' ? 'active' : ''}">-->
+<!--                    <form class="align-middle" th:action="@{actPut/actAll}" method="GET">-->
+<!--                        <div class="input-group-prepend">-->
+<!--                            <input required class="form-control"  th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от "-->
+<!--                                   aria-describedby="inputGroup-sizing-sm">-->
+<!--                            <input required class="form-control" th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до"-->
+<!--                                   aria-describedby="inputGroup-sizing-sm">-->
+<!--                            <button class="btn btn-secondary btn-sm" type="submit">Воjйти</button>-->
+<!--                        </div>-->
+<!--                    </form>-->
+<!--                </li>-->
+
+<!--            </ul>-->
+<!--        </div>-->
 
     </nav>
     <div class="visible-md" style="height:80px;"></div>

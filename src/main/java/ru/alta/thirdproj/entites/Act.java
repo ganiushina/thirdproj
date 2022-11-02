@@ -9,18 +9,20 @@ public class Act {
 
     private String num;
     private int id;
-    private Date date;
+    private String date;
 
     private String candidate;
     private String companies;
     private Integer projects;
-    private Date datePayment;
+    private String datePayment;
     private Double bonus;
-    private Date dateForPay;
+    private String dateForPay;
     private boolean paid;
-    private Date paymentRealDate;
+    private String paymentRealDate;
     private String employerPaid;
-
     private Double percent;
+    private String projectName;
+
+    private String dateAct;
 
 }

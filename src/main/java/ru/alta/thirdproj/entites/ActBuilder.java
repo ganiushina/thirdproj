@@ -1,20 +1,26 @@
 package ru.alta.thirdproj.entites;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public final class ActBuilder {
     private String num;
     private int id;
-    private Date date;
+    private String date;
     private String candidate;
     private String companies;
     private Integer projects;
-    private Date datePayment;
+    private String datePayment;
     private Double bonus;
-    private Date dateForPay;
+    private String dateForPay;
     private boolean paid;
-    private Date paymentRealDate;
+    private String paymentRealDate;
     private String employerPaid;
+    private String projectName;
+    private String dateAct;
+
+    DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
     private ActBuilder() {
     }
@@ -33,7 +39,8 @@ public final class ActBuilder {
         return this;
     }
 
-    public ActBuilder withDate(Date date) {
+    public ActBuilder withDate(String date) {
+//        this.date = formatter1.format(date);
         this.date = date;
         return this;
     }
@@ -53,7 +60,7 @@ public final class ActBuilder {
         return this;
     }
 
-    public ActBuilder withDatePayment(Date datePayment) {
+    public ActBuilder withDatePayment(String datePayment) {
         this.datePayment = datePayment;
         return this;
     }
@@ -63,7 +70,7 @@ public final class ActBuilder {
         return this;
     }
 
-    public ActBuilder withDateForPay(Date dateForPay) {
+    public ActBuilder withDateForPay(String dateForPay) {
         this.dateForPay = dateForPay;
         return this;
     }
@@ -73,7 +80,7 @@ public final class ActBuilder {
         return this;
     }
 
-    public ActBuilder withPaymentRealDate(Date paymentRealDate) {
+    public ActBuilder withPaymentRealDate(String paymentRealDate) {
         this.paymentRealDate = paymentRealDate;
         return this;
     }
@@ -82,6 +89,17 @@ public final class ActBuilder {
         this.employerPaid = employerPaid;
         return this;
     }
+
+    public ActBuilder withProjectName(String employerPaid) {
+        this.projectName = projectName;
+        return this;
+    }
+
+    public ActBuilder withDateAct (String dateAct) {
+        this.dateAct = dateAct;
+        return this;
+    }
+
 
     public Act build() {
         Act act = new Act();
@@ -97,6 +115,8 @@ public final class ActBuilder {
         act.setPaid(paid);
         act.setPaymentRealDate(paymentRealDate);
         act.setEmployerPaid(employerPaid);
+        act.setProjectName(projectName);
+        act.setDateAct(dateAct);
         return act;
     }
 }

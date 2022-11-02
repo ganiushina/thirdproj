@@ -140,12 +140,17 @@ public class RestBonusPaymentController {
 
     ) {
         employerList = paymentBonusService.getEmployerList(date1, date2);
-        double allMoney = paymentBonusService.getAllMoney(employerList);
-        double allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
+        String allMoney = paymentBonusService.getAllMoney(employerList);
+        String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
+        String allNotPaymentMoney = paymentBonusService.getAllNotPaymentMoney(employerList);
+
+        String moneyByDate = paymentBonusService.getMoneyByDate(employerList);
 
         model.addAttribute("employerList", employerList);
         model.addAttribute("allMoney", allMoney);
         model.addAttribute("allPaymentMoney", allPaymentMoney);
+        model.addAttribute("moneyByDate", moneyByDate);
+        model.addAttribute("allNotPaymentMoney", allNotPaymentMoney);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "paymentNew";
@@ -156,10 +161,11 @@ public class RestBonusPaymentController {
     public String paymentConfirm (
             @RequestParam (value = "fio", required = false) String fio,
             HttpServletRequest httpServletRequest,  Principal principal, Model model)  {
+
         User user = userService.findByUserName(principal.getName());
         paymentSuccessService.findEmployer(fio, user.getUserId(), employerList);
 
-        double allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
+        String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
         String referrer = httpServletRequest.getHeader("referer");
         model.addAttribute("allPaymentMoney", allPaymentMoney);
         return "redirect:" + referrer;

@@ -11,6 +11,7 @@ public interface IBonusPaymentSuccess {
     PaymentSuccess findOneByAct(int userId, int actId, String candidate, Double summ);
     void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate);
     void deletePayment(int employerId, Double paymentRealSum, int actId, String candidate);
+    void deletePaymentKPI(int employerId, Double paymentSum, String candidate);
     void deletePaymentAll();
 
 }

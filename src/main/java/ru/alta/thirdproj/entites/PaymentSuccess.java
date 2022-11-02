@@ -17,6 +17,8 @@ public class PaymentSuccess {
     private Date paymentDate;
     private String candidate;
     private int projectId;
+    private String monthKPI;
+    private int type;
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 
@@ -29,6 +31,8 @@ public class PaymentSuccess {
         COLUMN_MAPPINGS.put("act_id", "actId");
         COLUMN_MAPPINGS.put("project_id", "projectId");
         COLUMN_MAPPINGS.put("payment_real_summ", "paymentRealSum");
+        COLUMN_MAPPINGS.put("monthKPI", "month_kpi");
+        COLUMN_MAPPINGS.put("type", "payment_type");
 
     }
 

@@ -16,6 +16,7 @@ import ru.alta.thirdproj.services.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.HashMap;
@@ -172,18 +173,33 @@ public class RestBonusController {
     ) {
 
         List<UserBonusNew> userBonusNewList =  bonusService.getUserBonusList(date1, date2);
+        double allBonusMoney = 0;
         double allMoney = 0;
 
         for (int i = 0; i < userBonusNewList.size() ; i++) {
-            for (int j = 0; j <  userBonusNewList.get(i).getMoneyByCandidate().size() ; j++) {
-                allMoney+= userBonusNewList.get(i).getMoneyByCandidate().get(j);
+            if (userBonusNewList.get(i).getMoneyByCandidate() != null) {
+                for (int j = 0; j < userBonusNewList.get(i).getMoneyByCandidate().size(); j++) {
+                    allBonusMoney += userBonusNewList.get(i).getMoneyByCandidate().get(j);
+                }
             }
         }
+
+        for (int i = 0; i < userBonusNewList.size() ; i++) {
+            if (userBonusNewList.get(i).getSumTotal() != null) {
+                for (int j = 0; j < userBonusNewList.get(i).getSumTotal().size(); j++) {
+                    allMoney += userBonusNewList.get(i).getSumTotal().get(j);
+                }
+            }
+        }
+
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+
         List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
 
         model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("userBonus", userBonusNewList);
-        model.addAttribute("allMoney", allMoney);
+        model.addAttribute("allBonusMoney", formatter.format(allBonusMoney));
+        model.addAttribute("allMoney", formatter.format(allMoney));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusNew";

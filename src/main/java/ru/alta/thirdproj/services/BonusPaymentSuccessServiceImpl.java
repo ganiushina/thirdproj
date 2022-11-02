@@ -7,6 +7,7 @@ import ru.alta.thirdproj.entites.EmployerNew;
 import ru.alta.thirdproj.entites.PaymentSuccess;
 import ru.alta.thirdproj.repositories.IBonusPaymentSuccess;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -20,13 +21,13 @@ public class BonusPaymentSuccessServiceImpl {
     }
 
 
-    public boolean addPayment(int userId, int employerId, Double paymentSum, int actId, String candidate, int projectId){
+    public boolean addPayment(int userId, int employerId, Double paymentSum, int actId, String candidate,
+                              int projectId, String monthKPI, int type){
 
         PaymentSuccess paymentSuccess = new PaymentSuccess();
-
-        if (!findByActId(userId, actId, candidate, paymentSum).isEmpty()) {
-            return false;
-        }
+//        if (!findByActId(userId, actId, candidate, paymentSum).isEmpty()) {
+//            return false;
+//        }
 
         paymentSuccess.setActId(actId);
         paymentSuccess.setCandidate(candidate);
@@ -36,7 +37,8 @@ public class BonusPaymentSuccessServiceImpl {
         paymentSuccess.setPaymentRealSum(paymentSum);
         paymentSuccess.setUserId(userId);
         paymentSuccess.setProjectId(projectId);
-
+        paymentSuccess.setMonthKPI(monthKPI);
+        paymentSuccess.setType(type);
         bonusPaymentSuccess.save(paymentSuccess);
 
         return true;
@@ -52,18 +54,22 @@ public class BonusPaymentSuccessServiceImpl {
 
        List<EmployerNew> paidList = findPaidByActId(employerNewList);
 
+       SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("MMMMM");
 
+        myBreakLabel:
         if (val != null) {
             List<String> arrOfEmployerBonus = Arrays.asList(val.split(","));
-
+            int type = 0;
             for (int k = 0; k < arrOfEmployerBonus.size(); k++) {
 
                 int manId ;
                 Double paymentSum ;
                 int actId ;
                 String candidateName ;
+                String monthKPI = "";
                 int projectId ;
                 int size;
+
 
                 String source = arrOfEmployerBonus.get(k);
                 paymentSum = Double.valueOf(source.substring(0, source.indexOf("/")));
@@ -73,20 +79,36 @@ public class BonusPaymentSuccessServiceImpl {
                 actId = Integer.parseInt(source.substring(0, source.indexOf("/")));
                 source = source.replace(actId + "/", "");
                 candidateName = source.substring(0, source.indexOf("/"));
-                source = source.replace(candidateName + "/", "");
-                projectId = Integer.parseInt(source.substring(0, source.length() - 1));
-                size = paidList.size();
+
+                size = findCountActId(paidList);
+
+                if (candidateName.contains("KPI")) {
+                    monthKPI = candidateName.replace("KPI - ", "");
+                    type = 1;
+                    projectId = 0;
+               //     paidList = findByActIdInList(manId, actId, monthKPI, paymentSum, paidList);
+                }
+                else {
+                    source = source.replace(candidateName + "/", "");
+                    projectId = Integer.parseInt(source.substring(0, source.length() - 1));
+                    type = 2;
+              //      paidList = findByActIdInList(manId, actId, candidateName, paymentSum, paidList);
+                }
                 paidList = findByActIdInList(manId, actId, candidateName, paymentSum, paidList);
-                if (size == paidList.size()) addPayment(userId, manId, paymentSum, actId, candidateName, projectId);
+
+                if (size == findCountActId(paidList)) {
+                    addPayment(userId, manId, paymentSum, actId, candidateName, projectId, monthKPI, type);
+                    break myBreakLabel;
+                }
+
             }
             if (!paidList.isEmpty()) {
-                for (int i = 0; i < paidList.size(); i++) {
-                    for (int j = 0; j < paidList.get(i).getActList().size(); j++) {
-                        bonusPaymentSuccess.deletePayment(paidList.get(i).getManId(), paidList.get(i).getActList().get(j).getBonus(),
-                                paidList.get(i).getActList().get(j).getId(), paidList.get(i).getActList().get(j).getCandidate());
-                    }
-
-                }
+                if (paidList.get(0).getActList().get(0).getId() != 0)
+                bonusPaymentSuccess.deletePayment(paidList.get(0).getManId(), paidList.get(0).getActList().get(0).getBonus(),
+                        paidList.get(0).getActList().get(0).getId(), paidList.get(0).getActList().get(0).getCandidate());
+                if (paidList.get(0).getActList().get(0).getId() == 0)
+                    bonusPaymentSuccess.deletePaymentKPI(paidList.get(0).getManId(), paidList.get(0).getActList().get(0).getBonus(),
+                            paidList.get(0).getActList().get(0).getCandidate());
             }
 
         } else bonusPaymentSuccess.deletePaymentAll();
@@ -96,34 +118,56 @@ public class BonusPaymentSuccessServiceImpl {
 
 
 
-    public List<EmployerNew> findByActIdInList(int userId, int actId, String candidate, Double summ, List<EmployerNew> employerNewList){
-
+    public List<EmployerNew> findByActIdInList(int userId, int actId, String candidate,
+                                               Double summ, List<EmployerNew> employerNewList) {
 
         Iterator<EmployerNew> employerNewIterator = employerNewList.iterator();
+    //    SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("MMMMM");
 
-        while(employerNewIterator.hasNext()) {
+        boolean brk = false;
+
+
+        while (employerNewIterator.hasNext()) {
 
             EmployerNew nextEmployerNew = employerNewIterator.next();
 
             Iterator<Act> actIterator = nextEmployerNew.getActList().iterator();
 
-            while (actIterator.hasNext()){
-                Act actNext = actIterator.next();
-                    if (nextEmployerNew.getManId() == userId
+                while (actIterator.hasNext()) {
+                    Act actNext = actIterator.next();
+                    String month = actNext.getDatePayment();
+
+                  //  if (actId != 0) {
+                        if (nextEmployerNew.getManId() == userId
                             && actNext.getId() == actId
                             && actNext.getCandidate().equals(candidate)
-                            && actNext.getBonus().equals(summ)){
+                            && actNext.getBonus().equals(summ)) {
                         actIterator.remove();
+                            brk = true;
+                        break;
                     }
-            }
+//                }
+//                    if (actId == 0){
+//                        if (nextEmployerNew.getManId() == userId
+//                                && actNext.equals(candidate.toLowerCase())
+//                                && actNext.getBonus().equals(summ)) {
+//                            actIterator.remove();
+//                            brk = true;
+//                            break;
+//                        }
+//                    }
 
-            if (nextEmployerNew.getActList().size() == 0){
-                employerNewIterator.remove();
-            }
+                }
+
+
+                if (nextEmployerNew.getActList().size() == 0) {
+                    employerNewIterator.remove();
+                }
+            if (brk == true) break;
 
         }
-            return employerNewList;
-        }
+        return employerNewList;
+    }
 
 
     public void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate, Double summ){
@@ -162,6 +206,25 @@ public class BonusPaymentSuccessServiceImpl {
         }
 
         return employerList;
+    }
+
+    public int findCountActId(List<EmployerNew> employerList) {
+
+        int cnt = 0;
+
+        Iterator<EmployerNew> employerNewIterator = employerList.iterator();//создаем итератор
+
+        while(employerNewIterator.hasNext()) {//до тех пор, пока в списке есть элементы
+
+            EmployerNew nextEmployerNew = employerNewIterator.next();//получаем следующий элемент
+
+            Iterator<Act> actIterator = nextEmployerNew.getActList().iterator();//создаем итератор
+
+            cnt += nextEmployerNew.getActList().size();
+
+        }
+
+        return cnt;
     }
 
 

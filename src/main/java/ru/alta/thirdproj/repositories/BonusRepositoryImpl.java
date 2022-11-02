@@ -9,6 +9,8 @@ import org.sql2o.data.Table;
 import ru.alta.thirdproj.entites.*;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -188,53 +190,78 @@ public class BonusRepositoryImpl {
                         userBonusNew.setPosition((String) entry.getValue());
 
                     else if (entry.getKey().equals("candidate")) {
-                        String tmpStr = (String) entry.getValue();
-                        if (tmpStr.indexOf("%") > 0)
-                            tmpCanditate = ((String) entry.getValue());
+                        if (!(entry.getValue()).equals("")) {
 
-                        candidateName.add((String) entry.getValue());
+                            String tmpStr = (String) entry.getValue();
+                            if (tmpStr.indexOf("%") > 0)
+                                tmpCanditate = ((String) entry.getValue());
+
+                            candidateName.add((String) entry.getValue());
+                            userBonusNew.setCandidateName(candidateName);
+                        }
 
                     }
                     if (entry.getKey().equals("company_name")) {
-                        companyName.add((String) entry.getValue());
+                        if (!(entry.getValue()).equals("")) {
+                            companyName.add((String) entry.getValue());
+                            userBonusNew.setCompanyName(companyName);
+                        }
 
                     }
                     else if (entry.getKey().equals("persent")) {
-                        percent.add((Integer) entry.getValue());
+                        if ((Integer) entry.getValue() != 0) {
+                            percent.add((Integer) entry.getValue());
+                            userBonusNew.setPercent(percent);
+                        }
                     }
 
                     else if (entry.getKey().equals("money_itog")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        moneyAll.add(d);
-                        moneyAllTmp = d;
+                        if (d != 0.0) {
+                            moneyAll.add(d);
+                            moneyAllTmp = d;
+                            userBonusNew.setMoneyAll(moneyAll);
+                        }
 
                     }
 
                     else if (entry.getKey().equals("money_by_candidate")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        moneyByCandidate.add(d);
+                        if (d != 0.0) {
+                            moneyByCandidate.add(d);
+                            userBonusNew.setMoneyByCandidate(moneyByCandidate);
+                        }
                     }
 
                     else if (entry.getKey().equals("summ_total")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        sumTotal.add(d);
-                        sumTotalTmp = d;
+                        if (d != 0.0) {
+                            sumTotal.add(d);
+                            sumTotalTmp = d;
+                            userBonusNew.setSumTotal(sumTotal);
+                        }
                     }
 
                     else if (entry.getKey().equals("summ_user")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        sumUser.add(d);
+                        if (d != 0.0) {
+                            sumUser.add(d);
+                            userBonusNew.setSumUser(sumUser);
+                        }
                     }
 
                     else if (entry.getKey().equals("mon")) {
                         month.add((Integer) entry.getValue());
                     }
                     else if (entry.getKey().equals("mont")) {
-                        monthName.add((String) entry.getValue());
+                        if (!(entry.getValue()).equals("")) {
+                            monthName.add((String) entry.getValue());
+                            userBonusNew.setMonthName(monthName);
+                        }
                     }
 
                     else if (entry.getKey().equals("ya")) {
@@ -249,25 +276,28 @@ public class BonusRepositoryImpl {
 
 
 
-                if (BigDecimal.ZERO.compareTo(BigDecimal.valueOf(moneyAll.get(0))) != 0)
-                    monthMoneyName.add(moneyAll.get(0) + " за " + monthName.get(0));
-                else monthMoneyName.add(String.valueOf(moneyAll.get(0)));
+                if (moneyAll.size() > 0)
+                    monthMoneyName.add(String.valueOf(moneyAll.get(0)));
+//                else
+//                    monthMoneyName.add(String.valueOf(moneyAll.get(0)));
 
-                if (BigDecimal.ZERO.compareTo(BigDecimal.valueOf(sumTotal.get(0))) != 0)
-                    monthSummName.add(sumTotal.get(0) + " за " + monthName.get(0));
-                else monthSummName.add(String.valueOf(sumTotal.get(0)));
+                if (sumTotal.size() > 0)
+                    monthSummName.add(String.valueOf(sumTotal.get(0))) ;
+//                else
+//                    monthSummName.add(String.valueOf(sumTotal.get(0)));
 
 
-                userBonusNew.setCandidateName(candidateName);
-                userBonusNew.setCompanyName(companyName);
-                userBonusNew.setMoneyAll(moneyAll);
-                userBonusNew.setMoneyByCandidate(moneyByCandidate);
+
+
+
+
+
                 userBonusNew.setMonth(month);
-                userBonusNew.setPercent(percent);
-                userBonusNew.setSumTotal(sumTotal);
-                userBonusNew.setSumUser(sumUser);
+
+
+
                 userBonusNew.setYear(year);
-                userBonusNew.setMonthName(monthName);
+
                 userBonusNew.setMonthMoneyName(monthMoneyName);
                 userBonusNew.setMonthSummName(monthSummName);
 
@@ -285,33 +315,84 @@ public class BonusRepositoryImpl {
                                 .filter(a -> Objects.equals(a.getFio(), finalManFIO))
                                 .collect(Collectors.toList());
 
-                        result.get(0).getCandidateName().add(userBonusNew.getCandidateName().get(0));
-                        result.get(0).getCompanyName().add(userBonusNew.getCompanyName().get(0));
 
-                        if (!result.get(0).getMoneyAll().contains(moneyAllTmp)) {
-                            result.get(0).getMoneyAll().add(moneyAllTmp);
-                            result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
+                        if (userBonusNew.getCandidateName() != null) {
+                            if (result.get(0).getCandidateName() == null)
+                                result.get(0).setCandidateName(userBonusNew.getCandidateName());
+                            else
+                                result.get(0).getCandidateName().add(userBonusNew.getCandidateName().get(0));
                         }
 
-                        if (!result.get(0).getSumTotal().contains(sumTotalTmp)){
-                            result.get(0).getSumTotal().add(sumTotalTmp);
-                            result.get(0).getMonthSummName().add(userBonusNew.getMonthSummName().get(0));
+                        if (userBonusNew.getCompanyName() != null) {
+                            if (result.get(0).getCompanyName() == null)
+                                result.get(0).setCompanyName(userBonusNew.getCompanyName());
+                            else
+                                result.get(0).getCompanyName().add(userBonusNew.getCompanyName().get(0));
                         }
 
-                        result.get(0).getMoneyByCandidate().add(userBonusNew.getMoneyByCandidate().get(0));
+                        if (moneyAllTmp != null) {
+                            if (result.get(0).getMoneyAll() == null ) {
+                                result.get(0).setMoneyAll(userBonusNew.getMoneyAll());
+                                result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
+                            } else if (!result.get(0).getMoneyAll().contains(moneyAllTmp) && userBonusNew.getMonthMoneyName().size() > 0) {
+                                result.get(0).getMoneyAll().add(moneyAllTmp);
+                                result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
+                            }
+                        }
 
-                        if (!userBonusNew.getMonthName().get(0).contains(result.get(0).getMonthName().get(0)))
-                            result.get(0).getMonthName().add(userBonusNew.getMonthName().get(0));
+                        if (sumTotalTmp != null) {
+                            if (result.get(0).getSumTotal() == null ) {
+                                result.get(0).setSumTotal(userBonusNew.getSumTotal());
+                                result.get(0).getMonthSummName().add(userBonusNew.getMonthSummName().get(0));
+                            } else if (!result.get(0).getSumTotal().contains(sumTotalTmp) && sumTotalTmp != 0.0) {
+                                result.get(0).getSumTotal().add(sumTotalTmp);
+                                result.get(0).getMonthSummName().add(userBonusNew.getMonthSummName().get(0));
+                            }
+                        }
 
-                        result.get(0).getPercent().add(userBonusNew.getPercent().get(0));
+                        if (userBonusNew.getMoneyByCandidate() != null) {
+                            if (result.get(0).getMoneyByCandidate() == null) {
+                                result.get(0).setMoneyByCandidate(userBonusNew.getMoneyByCandidate());
+                            } else result.get(0).getMoneyByCandidate().add(userBonusNew.getMoneyByCandidate().get(0));
+                        }
 
-                        result.get(0).getSumUser().add(userBonusNew.getSumUser().get(0));
+
+                        if (userBonusNew.getMonthName() != null) {
+                            if (result.get(0).getMonthName() == null)
+                                result.get(0).setMonthName(userBonusNew.getMonthName());
+                            else
+                                if (!result.get(0).getMonthName().contains(userBonusNew.getMonthName().get(0))) {
+                                    result.get(0).getMonthName().add(userBonusNew.getMonthName().get(0));
+                                    //   userBonusNew.getMonthName().stream().distinct().collect(Collectors.toList());
+                                }
+                        }
+
+
+                        if (userBonusNew.getPercent() != null)
+                        {
+                            if (result.get(0).getPercent() == null )
+                                result.get(0).setPercent(userBonusNew.getPercent());
+                            else
+                                result.get(0).getPercent().add(userBonusNew.getPercent().get(0));
+                        }
+
+
+                        if (userBonusNew.getSumUser() != null){
+                            if (result.get(0).getSumUser() == null)
+                                result.get(0).setSumUser(userBonusNew.getSumUser());
+                            else result.get(0).getSumUser().add(userBonusNew.getSumUser().get(0));
+                        }
+
+
                         result.get(0).getYear().add(userBonusNew.getYear().get(0));
 
                         if (!tmpCanditate.equals("")) {
-                            if (result.get(0).getExtraBonusAct().size() >0)
+                            if (result.get(0).getExtraBonusAct() == null)
+                                result.get(0).setExtraBonusAct(userBonusNew.getExtraBonusAct());
+                            else
+
                                 result.get(0).getExtraBonusAct().add(userBonusNew.getExtraBonusAct().get(0));
-                            else result.get(0).setExtraBonusAct(extraBonusAct);
+
                         }
 
                     } else {

@@ -23,7 +23,9 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             ":act_id ,\n" +
             ":candidate ,\n" +
             ":project_id,\n" +
-            ":payment_real_summ)";
+            ":payment_real_summ," +
+            ":month_kpi," +
+            ":payment_type)";
     private static final String SELECT_ID_BONUS_PAYMENT
             = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ " +
             "FROM paymentSuccess ps WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate and ps.payment_summ = :payment_summ";
@@ -35,6 +37,11 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
     private static final String DELETE_BONUS_PAYMENT =
             "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ";
+
+
+    private static final String DELETE_BONUS_PAYMENT_KPI = "DELETE paymentSuccess WHERE employer_id = :user_id and candidate = :candidate \n" +
+            "\t\t\tand payment_summ = :payment_summ";
+
 
     private static final String DELETE_BONUS_PAYMENT_ALL =
             "DELETE paymentSuccess";
@@ -58,6 +65,8 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("candidate", paymentSuccess.getCandidate())
                     .addParameter("project_id", paymentSuccess.getProjectId())
                     .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
+                    .addParameter("month_kpi", paymentSuccess.getMonthKPI())
+                    .addParameter("payment_type", paymentSuccess.getType())
                     .executeUpdate();
 
         }
@@ -91,7 +100,19 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .executeUpdate();
 
         }
+    }
 
+    @Transactional
+    @Override
+    public void deletePaymentKPI(int employerId, Double paymentSum, String candidate) {
+        try (Connection connection = sql2o.open()) {
+            connection.createQuery(DELETE_BONUS_PAYMENT_KPI, false)
+                    .addParameter("user_id", employerId)
+                    .addParameter("payment_summ", paymentSum)
+                    .addParameter("candidate", candidate)
+                    .executeUpdate();
+
+        }
     }
 
     @Transactional

@@ -9,6 +9,8 @@ import org.sql2o.data.Table;
 import ru.alta.thirdproj.entites.*;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -53,12 +55,14 @@ public class BonusPaymentRepositoryImpl {
             List<Map<String, Object>> list = table.asList();
 
             List<EmployerNew> employerList = new ArrayList<>();
+            DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
             for (Map<String, Object> n : list) {
 
                 EmployerNew employer = new EmployerNew();
                 Act act = new Act();
                 List<Act> actList = new ArrayList<>();
+                List<Integer> percent = new ArrayList<>();
                 boolean isNotNew = false;
                 String manFIO = null;
 
@@ -77,7 +81,6 @@ public class BonusPaymentRepositoryImpl {
                                         }
                                     }
                                 }
-
                                 employer.setManFIO((String) entry.getValue());
                             }
 
@@ -86,63 +89,88 @@ public class BonusPaymentRepositoryImpl {
 
 
                             if (entry.getKey().equals("candidate")) {
-                                act.setCandidate((String) entry.getValue());
+                                if (!(entry.getValue()).equals(""))
+                                    act.setCandidate((String) entry.getValue());
 
                             }
                             if (entry.getKey().equals("company_name")) {
+                                if (!(entry.getValue()).equals(""))
                                 act.setCompanies((String) entry.getValue());
                             }
                             if (entry.getKey().equals("persent")) {
-                                employer.setPercent((int) entry.getValue());
+                                if ((Integer) entry.getValue() != 0) {
+                                    percent.add((Integer) entry.getValue());
+                                    employer.setPercent(percent);
+                                }
                             }
 
                             if (entry.getKey().equals("bonus")) {
                                 BigDecimal bd = (BigDecimal) entry.getValue();
                                 double d = bd.doubleValue();
+                                if (d != 0.0)
                                 act.setBonus(d);
                             }
 
                             if (entry.getKey().equals("all_bonus")) {
                                 BigDecimal bd = (BigDecimal) entry.getValue();
                                 double d = bd.doubleValue();
+                                if (d != 0.0)
                                 employer.setAllBonus(d);
-
                             }
 
                             if (entry.getKey().equals("date_for_pay")) {
-                                act.setDateForPay((Date) entry.getValue());
+                                if (entry.getValue() != null)
+                                    act.setDateForPay(formatter1.format((Date) entry.getValue()));
+                                else act.setDateForPay("");
+
+
+//                                act.setDateForPay((Date) entry.getValue());
+
                             }
 
                             if (entry.getKey().equals("payment_date")) {
-                                act.setDatePayment((Date) entry.getValue());
+                                if (entry.getValue() != null)
+                                    act.setDatePayment(formatter1.format((Date) entry.getValue()));
+                                else act.setDatePayment("");
+//                                act.setDatePayment((Date) entry.getValue());
                             }
 
                             if (entry.getKey().equals("payment_real_date")) {
-                                act.setPaymentRealDate((Date) entry.getValue());
+                                if (entry.getValue() != null)
+                                    act.setPaymentRealDate(formatter1.format((Date) entry.getValue()));
+                              //  else act.setPaymentRealDate("");
+//                                act.setPaymentRealDate((Date) entry.getValue());
                             }
 
                             if (entry.getKey().equals("act_num")) {
+                                if (!(entry.getValue()).equals(""))
                                 act.setNum((String) entry.getValue());
                             }
 
                             if (entry.getKey().equals("act_id")) {
+                                if ((Integer) entry.getValue() != 0)
                                 act.setId((Integer) entry.getValue());
                             }
                             if (entry.getKey().equals("paid")) {
+                                if (entry.getValue() != null)
                                 act.setPaid ((Boolean) entry.getValue());
                             }
 
                             if (entry.getKey().equals("date_act")) {
-                                act.setDate((Date) entry.getValue());
-
+                                if (entry.getValue() != null)
+                                    act.setDate(formatter1.format((Date) entry.getValue()));
+                           //     else act.setDate("");
+                              //  act.setDate((Date) entry.getValue());
                             }
 
                             if (entry.getKey().equals("project_id")) {
+                                if ((Integer) entry.getValue() != 0)
                                 act.setProjects((Integer) entry.getValue());
                             }
 
                             if (entry.getKey().equals("emploeduser")) {
-                                act.setEmployerPaid((String) entry.getValue());
+                                if (entry.getValue() != null)
+                                    act.setEmployerPaid((String) entry.getValue());
                             }
                     }
 
@@ -157,7 +185,11 @@ public class BonusPaymentRepositoryImpl {
                             .collect(Collectors.toList());
 
                     result.get(0).getActList().add(employer.getActList().get(0));
-
+                    if (employer.getPercent() != null) {
+                        if (result.get(0).getPercent() == null) {
+                            result.get(0).setPercent(employer.getPercent());
+                        } else result.get(0).getPercent().add(employer.getPercent().get(0));
+                    }
                 }
                 else {
 

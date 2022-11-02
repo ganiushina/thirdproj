@@ -23,33 +23,33 @@
             font-size: 18px;
 
         }
-        tr:hover td {background: #e8edff;}
+        /*tr:hover td {background: #e8edff;}*/
 
-        #myTable th, #myTable td {
-            text-align: left;
-            padding: 12px;
-        }
+        /*#myTable th, #myTable td {*/
+        /*    text-align: left;*/
+        /*    padding: 12px;*/
+        /*}*/
 
-        #myTable tr {
-            border-bottom: 1px solid #ddd;
+        /*#myTable tr {*/
+        /*    border-bottom: 1px solid #ddd;*/
 
-        }
+        /*}*/
 
-        #myTable tr.header, #myTable tr:hover {
-            background-color: #f1f1f1;
-        }
-        .container {
-            display: flex;
-        }
-        .htmx-settling tr.deactivate td {
-            background: lightcoral;
-        }
-        .htmx-settling tr.activate td {
-            background: darkseagreen;
-        }
-        tr td {
-            transition: all 1.2s;
-        }
+        /*#myTable tr.header, #myTable tr:hover {*/
+        /*    background-color: #f1f1f1;*/
+        /*}*/
+        /*.container {*/
+        /*    display: flex;*/
+        /*}*/
+        /*.htmx-settling tr.deactivate td {*/
+        /*    background: lightcoral;*/
+        /*}*/
+        /*.htmx-settling tr.activate td {*/
+        /*    background: darkseagreen;*/
+        /*}*/
+        /*tr td {*/
+        /*    transition: all 1.2s;*/
+        /*}*/
 
 
     </style>
@@ -80,29 +80,35 @@
 <div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">
     <div class="col-md-12">
 
-            <h1 th:text="Выплаты" />
+        <h1 th:text="Выплаты" />
+
 
         <p  th:text="Всего  + ' ' + к + ' ' + оплате + ': '  + ${allMoney}" >
+
+        <p  th:text="Из  + ' ' + них + ': '  + ${moneyByDate}" >
+
         <p  th:text="Оплачено  + ':  ' + ${allPaymentMoney}" >
 
+        <p  th:text="Осталось  + ':  ' + ${allNotPaymentMoney}" >
 
-            <form th:action="@{/payment/allpayment3}" method="get">
+
+        <form th:action="@{/payment/allpayment3}" method="get">
 
 
-                <input required th:value="${date1 != null} ? ${date1}" th:name="date1"  type="date"  placeholder="Дата от ">
-                <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">
+            <input required th:value="${date1 != null} ? ${date1}" th:name="date1"  type="date"  placeholder="Дата от ">
+            <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">
 
-                <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Find in a name">
-                <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Find in a department">
+            <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Find in a name">
+            <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Find in a department">
 
-                <button type="submit" class="btn btn-primary">Фильтровать</button>
+            <button type="submit" class="btn btn-primary">Фильтровать</button>
 
-            </form>
+        </form>
 
         <form id="checked-contacts" action="#" th:action="@{/payment/confirm}" method="post"  >
 
             <div class="panel-body">
-                    <table id="myTable" class="table table-bordered border-primary">
+                <table id="myTable" class="table table-bordered border-primary">
                     <thead>
                     <tr>
                         <th>ФИО</th>
@@ -110,7 +116,7 @@
                         <th>Всего Бонус</th>
                         <th>Процент</th>
                         <th>Бонус за кандидата</th>
-                        <th>Имя кандидата</th>
+                        <th>Кандидат</th>
                         <th>Компания</th>
                         <th>Номер акта</th>
                         <th>Дата акта</th>
@@ -125,125 +131,397 @@
                             <td th:text="${employer.manFIO}"></td>
                             <td th:text="${employer.userDepartment}"></td>
                             <td th:text="${employer.allBonus}"></td>
-                            <td th:text="${employer.percent}"></td>
+                            <td>
+                               <span th:each="percent : ${employer.percent}">
+                                 <hr />
+                                    <span style="white-space: nowrap"  th:text="${percent}"/></span>
+                            </td>
 
                             <td>
                                 <span th:each="act : ${employer.actList}" >
-                                     <li>
+                                      <hr />
                                      <input type="checkbox" name="fio"
                                             th:value="${act.bonus} +
                                      '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects}"
                                             th:checked="${act.paid} ? 'checked'" th:onclick="submit()"/>
 
                                     <span th:text="${act.bonus}" /></span>
-                                    </li>
 
                             </td>
 
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                     <li>
-                                    <span th:text="${act.candidate} + ': ' + ${act.bonus}" /></span>
-                                </li>
+                                      <hr />
+                                    <span style="white-space: nowrap"  th:text="${act.candidate}" /></span>
+
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                     <li>
-                                    <span th:text="${act.companies}" /></span>
-                                </li>
+                                    <hr />
+                                    <span style="white-space: nowrap"  th:text="${act.companies}" /></span>
+
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                   <span th:text="${act.num}"/></span>
+                                     <hr />
+                                   <span style="white-space: nowrap"  th:text="${act.num}"/></span>
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                <span th:text="${act.date}" /></span>
+                                    <hr />
+                                <span style="white-space: nowrap"  th:text="${act.date}" /></span>
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                <span th:text="${act.dateForPay}"/></span>
+                                    <hr />
+                                <span style="white-space: nowrap"  th:text="${act.dateForPay}"/></span>
                             </td>
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                <span th:text="${act.datePayment}"/></span>
+                                    <hr />
+                                <span style="white-space: nowrap"  th:text="${act.datePayment}"/></span>
                             </td>
 
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                <span th:text="${act.paymentRealDate}"/></span>
+                                    <hr />
+                                <span style="white-space: nowrap"  th:text="${act.paymentRealDate}"/></span>
                             </td>
 
                             <td>
                                 <span th:each="act : ${employer.actList}">
-                                <span th:text="${act.employerPaid}"/></span>
+                                    <hr />
+                                <span style="white-space: nowrap"  th:text="${act.employerPaid}"/></span>
                             </td>
 
 
-                            </th:block>
+                    </th:block>
 
-                        </tr>
+                    </tr>
 
                     </th:block>
 
 
-            </table>
-
-
-        </div>
-    </td>
-</tr>
-
-                    </tbody>
                 </table>
+
+
+            </div>
+            </td>
+            </tr>
+
+            </tbody>
+            </table>
 
 
 
         </form>
 
-<script>
-    function myFunction() {
-        var input, filter, table, tr, td, i;
-        input = document.getElementById("inputName");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("myTable");
-        tr = table.getElementsByTagName("tr");
+        <script>
+            function myFunction() {
+                var input, filter, table, tr, td, i;
+                input = document.getElementById("inputName");
+                filter = input.value.toUpperCase();
+                table = document.getElementById("myTable");
+                tr = table.getElementsByTagName("tr");
 
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0];
-            if (td) {
-                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[0];
+                    if (td) {
+                        if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = "";
+                        } else {
+                            tr[i].style.display = "none";
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    function searchDep() {
-        var input, filter, table, tr, td, i;
-        input = document.getElementById("inputDepartment");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("myTable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[1];
-            if (td) {
-                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
+            function searchDep() {
+                var input, filter, table, tr, td, i;
+                input = document.getElementById("inputDepartment");
+                filter = input.value.toUpperCase();
+                table = document.getElementById("myTable");
+                tr = table.getElementsByTagName("tr");
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[1];
+                    if (td) {
+                        if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = "";
+                        } else {
+                            tr[i].style.display = "none";
+                        }
+                    }
                 }
             }
-        }
-    }
 
 
 
 
-</script>
+        </script>
 
 
 </body>
 </html>
+<!--&lt;!&ndash;<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>&ndash;&gt;-->
+<!--&lt;!&ndash;<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>&ndash;&gt;-->
+<!--&lt;!&ndash;<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />&ndash;&gt;-->
+<!--<!DOCTYPE html>-->
+
+<!--<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">-->
+<!--<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">-->
+
+<!--<head>-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
+<!--&lt;!&ndash;    <style>&ndash;&gt;-->
+<!--&lt;!&ndash;        * {&ndash;&gt;-->
+<!--&lt;!&ndash;            box-sizing: border-box;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        #myTable {&ndash;&gt;-->
+<!--&lt;!&ndash;            table-layout: auto;&ndash;&gt;-->
+<!--&lt;!&ndash;            border-collapse: collapse;&ndash;&gt;-->
+<!--&lt;!&ndash;            width: 100%;&ndash;&gt;-->
+
+<!--&lt;!&ndash;            border: 1px solid #ddd;&ndash;&gt;-->
+<!--&lt;!&ndash;            font-size: 18px;&ndash;&gt;-->
+
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        tr:hover td {background: #e8edff;}&ndash;&gt;-->
+
+<!--&lt;!&ndash;        #myTable th, #myTable td {&ndash;&gt;-->
+<!--&lt;!&ndash;            text-align: left;&ndash;&gt;-->
+<!--&lt;!&ndash;            padding: 12px;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        #myTable tr {&ndash;&gt;-->
+<!--&lt;!&ndash;            border-bottom: 1px solid #ddd;&ndash;&gt;-->
+
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        #myTable tr.header, #myTable tr:hover {&ndash;&gt;-->
+<!--&lt;!&ndash;            background-color: #f1f1f1;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        .container {&ndash;&gt;-->
+<!--&lt;!&ndash;            display: flex;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        .htmx-settling tr.deactivate td {&ndash;&gt;-->
+<!--&lt;!&ndash;            background: lightcoral;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        .htmx-settling tr.activate td {&ndash;&gt;-->
+<!--&lt;!&ndash;            background: darkseagreen;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;        tr td {&ndash;&gt;-->
+<!--&lt;!&ndash;            transition: all 1.2s;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+
+<!--&lt;!&ndash;    </style>&ndash;&gt;-->
+<!--    <meta charset="utf-8"/>-->
+
+<!--    <title>Выплаты</title>-->
+
+<!--    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>-->
+
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">-->
+
+<!--    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">-->
+
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+<!--    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>-->
+<!--    <script type="text/javascript" th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>-->
+
+<!--</head>-->
+
+<!--<body>-->
+<!--<div hx-include="#checked-contacts" hx-target="#tbody">-->
+<!--    <a class="btn" hx-put="/activate">Activate</a>-->
+<!--    <a class="btn" hx-put="/deactivate">Deactivate</a>-->
+<!--</div>-->
+
+<!--<div th:replace="~{navigation :: navi(Cart)}"/>-->
+
+<!--<div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">-->
+<!--    <div class="col-md-12">-->
+
+<!--            <h1 th:text="Выплаты" />-->
+
+<!--        <p  th:text="Всего  + ' ' + к + ' ' + оплате + ': '  + ${allMoney}" >-->
+
+<!--        <p  th:text="Из  + ' ' + них + ': '  + ${moneyByDate}" >-->
+
+<!--        <p  th:text="Оплачено  + ':  ' + ${allPaymentMoney}" >-->
+
+<!--        <p  th:text="Осталось  + ':  ' + ${allNotPaymentMoney}" >-->
+
+
+<!--            <form th:action="@{/payment/allpayment3}" method="get">-->
+
+
+<!--                <input required th:value="${date1 != null} ? ${date1}" th:name="date1"  type="date"  placeholder="Дата от ">-->
+<!--                <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">-->
+
+<!--                <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Find in a name">-->
+<!--                <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Find in a department">-->
+
+<!--                <button type="submit" class="btn btn-primary">Фильтровать</button>-->
+
+<!--            </form>-->
+
+<!--        <form id="checked-contacts" action="#" th:action="@{/payment/confirm}" method="post"  >-->
+
+<!--            <div class="panel-body">-->
+<!--                    <table id="myTable" class="table table-bordered border-primary">-->
+<!--                    <thead>-->
+<!--                    <tr>-->
+<!--                        <th>ФИО</th>-->
+<!--                        <th>Департамент</th>-->
+<!--                        <th>Всего Бонус</th>-->
+<!--                        <th>Процент</th>-->
+<!--                        <th>Бонус за кандидата</th>-->
+<!--                        <th>Кандидат</th>-->
+<!--                        <th>Компания</th>-->
+<!--                        <th>Номер акта</th>-->
+<!--                        <th>Дата акта</th>-->
+<!--                        <th>Дата выплаты бонуса</th>-->
+<!--                        <th>Дата оплаты клиентом</th>-->
+<!--                        <th>Дата оплаты компанией</th>-->
+<!--                        <th>Оплативший сотрудник</th>-->
+<!--                    </thead>-->
+
+<!--                    <th:block th:each="employer, iterStat : ${employerList}" th:object="${employersList}">-->
+<!--                        <tr>-->
+<!--                            <td th:text="${employer.manFIO}"></td>-->
+<!--                            <td th:text="${employer.userDepartment}"></td>-->
+<!--                            <td th:text="${employer.allBonus}"></td>-->
+
+<!--                            <td>-->
+<!--                               <span th:each="percent : ${employer.percent}">-->
+<!--                                 <hr />-->
+<!--                                    <span style="white-space: nowrap"  th:text="${percent}"/></span>-->
+<!--                            </td>-->
+
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}" ></span>-->
+<!--&lt;!&ndash;                                    <hr />&ndash;&gt;-->
+<!--                                     <input type="checkbox" name="fio"-->
+<!--                                            th:value="${act.id}"-->
+<!--                                            th:checked="${act.paid} ? 'checked'"-->
+<!--                                            th:onclick="submit()"/>-->
+
+<!--                                    <span style="white-space: nowrap"  th:text="${act.bonus}" /></span>-->
+
+<!--                            </td>-->
+
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                   <hr />-->
+<!--                                    <span style="white-space: nowrap"  th:text="${act.candidate} + ': ' + ${act.bonus}" /></span>-->
+
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                   <hr />-->
+<!--                                    <span style="white-space: nowrap"  th:text="${act.companies}" /></span>-->
+
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                     <hr />-->
+<!--                                   <span style="white-space: nowrap"  th:text="${act.num}"/></span>-->
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                     <hr />-->
+<!--                                <span style="white-space: nowrap"  th:text="${act.date}" /></span>-->
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                     <hr />-->
+<!--                                <span style="white-space: nowrap"  th:text="${act.dateForPay}"/></span>-->
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                     <hr />-->
+<!--                                <span style="white-space: nowrap"  th:text="${act.datePayment}"/></span>-->
+<!--                            </td>-->
+
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                     <hr />-->
+<!--                                <span style="white-space: nowrap"  th:text="${act.paymentRealDate}"/></span>-->
+<!--                            </td>-->
+
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                     <hr />-->
+<!--                                <span style="white-space: nowrap"  th:text="${act.employerPaid}"/></span>-->
+<!--                            </td>-->
+
+
+<!--                            </th:block>-->
+
+<!--                        </tr>-->
+
+<!--                    </th:block>-->
+
+
+<!--            </table>-->
+
+
+<!--        </div>-->
+<!--    </td>-->
+<!--</tr>-->
+
+<!--                    </tbody>-->
+<!--                </table>-->
+
+
+
+<!--        </form>-->
+
+<!--<script>-->
+<!--    function myFunction() {-->
+<!--        var input, filter, table, tr, td, i;-->
+<!--        input = document.getElementById("inputName");-->
+<!--        filter = input.value.toUpperCase();-->
+<!--        table = document.getElementById("myTable");-->
+<!--        tr = table.getElementsByTagName("tr");-->
+
+<!--        for (i = 0; i < tr.length; i++) {-->
+<!--            td = tr[i].getElementsByTagName("td")[0];-->
+<!--            if (td) {-->
+<!--                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {-->
+<!--                    tr[i].style.display = "";-->
+<!--                } else {-->
+<!--                    tr[i].style.display = "none";-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+<!--    }-->
+
+<!--    function searchDep() {-->
+<!--        var input, filter, table, tr, td, i;-->
+<!--        input = document.getElementById("inputDepartment");-->
+<!--        filter = input.value.toUpperCase();-->
+<!--        table = document.getElementById("myTable");-->
+<!--        tr = table.getElementsByTagName("tr");-->
+<!--        for (i = 0; i < tr.length; i++) {-->
+<!--            td = tr[i].getElementsByTagName("td")[1];-->
+<!--            if (td) {-->
+<!--                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {-->
+<!--                    tr[i].style.display = "";-->
+<!--                } else {-->
+<!--                    tr[i].style.display = "none";-->
+<!--                }-->
+<!--            }-->
+<!--        }-->
+<!--    }-->
+
+
+
+
+<!--</script>-->
+
+
+<!--</body>-->
+<!--</html>-->

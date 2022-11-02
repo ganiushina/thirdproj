@@ -3,16 +3,23 @@ package ru.alta.thirdproj.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.expression.Lists;
+import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.entites.EmployerNew;
 import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.repositories.BonusPaymentRepositoryImpl;
 
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 
 @Service
@@ -63,8 +70,9 @@ public class UserPaymentBonusServiceImpl {
         return userBonusPaymentRepository.userBonusPaymentList(date1,date2);
     }
 
-    public double getAllMoney(List<EmployerNew> employerNews) {
+    public String getAllMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
@@ -72,14 +80,73 @@ public class UserPaymentBonusServiceImpl {
             }
         }
 
+
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
-        return doublesSum;
+        return formatter.format(doublesSum);
     }
 
-    public double getAllPaymentMoney(List<EmployerNew> employerNews) {
+    public String getMoneyByDate(List<EmployerNew> employerNews) {
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d");
+        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("MMMMM");
+
+        NumberFormat format = NumberFormat.getInstance();
+        format.setMaximumFractionDigits(2);
+        Currency currency = Currency.getInstance("RUB");
+        format.setCurrency(currency);
+//        NumberFormat formatter = NumberFormat.getInstance("ru");
+//        Currency.getInstance("ru");
+
+
+        List<Act> actList2 = new ArrayList<>();
+
+        for (EmployerNew e : employerNews) {
+            List<Act> actList = e.getActList();
+            for (Act a : actList){
+                actList2.add(a);
+            }
+        }
+
+
+        SimpleDateFormat formatter2 = new SimpleDateFormat("dd-MM-yyyy");
+        SimpleDateFormat simpleDateFormat3 = new SimpleDateFormat("d");
+
+
+
+        List<Act> result1 = actList2.stream().sorted((o1, o2)->o1.getDateForPay().
+                compareTo(o2.getDateForPay())).
+                collect(Collectors.toList());
+
+
+        Map<String, Double> map5 = actList2.stream()
+                .collect(Collectors.groupingBy(Act::getDateForPay,
+                        Collectors.summingDouble(Act::getBonus)));
+
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+
+        for (Map.Entry<String, Double> entry : map5.entrySet()) {
+            Date date = null;
+            try {
+                date = formatter2.parse(entry.getKey());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            stringBuilder.append(simpleDateFormat1.format(date) + " " + simpleDateFormat.format(date) + " : " + format.format(entry.getValue()) + " ");
+        }
+
+        return stringBuilder.toString();
+    }
+
+
+
+    public String getAllPaymentMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
+
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
@@ -92,7 +159,26 @@ public class UserPaymentBonusServiceImpl {
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
-        return doublesSum;
+        return formatter.format(doublesSum);
+    }
+
+    public String getAllNotPaymentMoney(List<EmployerNew> employerNews) {
+        ArrayList<Double> doubleArrayList = new ArrayList<>();
+
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+
+        for (int i = 0; i < employerNews.size(); i++) {
+            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+                if (!employerNews.get(i).getActList().get(j).isPaid()) {
+                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+                }
+            }
+        }
+
+        double doublesSum = doubleArrayList.stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
+        return formatter.format(doublesSum);
     }
 
     private List<HashMap<String, Object>> getHashMapsUserBonusPayment(List<UserPaymentBonus> userPaymentBonuses){
