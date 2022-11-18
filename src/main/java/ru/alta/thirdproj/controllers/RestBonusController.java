@@ -19,9 +19,7 @@ import java.security.Principal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 //@RestController
 @Controller
@@ -192,17 +190,21 @@ public class RestBonusController {
             }
         }
 
-        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+       // NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+        currencyInstance.setCurrency(Currency.getInstance("RUB"));
 
         List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
 
         model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("userBonus", userBonusNewList);
-        model.addAttribute("allBonusMoney", formatter.format(allBonusMoney));
-        model.addAttribute("allMoney", formatter.format(allMoney));
+        model.addAttribute("allBonusMoney", currencyInstance.format(allBonusMoney));
+        model.addAttribute("allMoney", currencyInstance.format(allMoney));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
-        return "bonusNew";
+        return "bonusNew2";
+
+//        return "Test2";
     }
 
     @GetMapping("/getkpi") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31

@@ -10,18 +10,26 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        * {
-            box-sizing: border-box;
+        /** {*/
+        /*    box-sizing: border-box;*/
+        /*}*/
+
+        /*#myTable {*/
+        /*    table-layout: auto;*/
+        /*    border-collapse: collapse;*/
+        /*    width: 100%;*/
+
+        /*    border: 1px solid #ddd;*/
+        /*    font-size: 18px;*/
+
+        /*}*/
+
+        .nomarker{
+            list-style-type: none;
+            padding: 0px;
         }
-
-        #myTable {
-            table-layout: auto;
-            border-collapse: collapse;
-            width: 100%;
-
-            border: 1px solid #ddd;
-            font-size: 18px;
-
+        table td{
+            text-align: left;
         }
         /*tr:hover td {background: #e8edff;}*/
 
@@ -107,6 +115,8 @@
 
         <form id="checked-contacts" action="#" th:action="@{/payment/confirm}" method="post"  >
 
+            <button type="submit" class="btn btn-primary">Готово</button>
+
             <div class="panel-body">
                 <table id="myTable" class="table table-bordered border-primary">
                     <thead>
@@ -132,66 +142,120 @@
                             <td th:text="${employer.userDepartment}"></td>
                             <td th:text="${employer.allBonus}"></td>
                             <td>
+                                <ul class="nomarker">
                                <span th:each="percent : ${employer.percent}">
-                                 <hr />
+                                 <li>
                                     <span style="white-space: nowrap"  th:text="${percent}"/></span>
+                                </li>
+                                </ul>
                             </td>
 
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}" >
-                                      <hr />
+                                    <li>
                                      <input type="checkbox" name="fio"
                                             th:value="${act.bonus} +
                                      '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects}"
-                                            th:checked="${act.paid} ? 'checked'" th:onclick="submit()"/>
+                                            th:checked="${act.paid} ? 'checked'" />
+
 
                                     <span th:text="${act.bonus}" /></span>
+                                    </li>
+                                </ul>
 
                             </td>
 
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}" >-->
+<!--                                      <hr />-->
+<!--                                     <input type="checkbox" name="fio"-->
+<!--                                            th:value="${act.bonus} +-->
+<!--                                     '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects}"-->
+<!--                                            th:checked="${act.paid} ? 'checked'" th:onclick="submit()"/>-->
+
+<!--                                    <span th:text="${act.bonus}" /></span>-->
+
+<!--                            </td>-->
+
                             <td>
-                                <span th:each="act : ${employer.actList}">
-                                      <hr />
-                                    <span style="white-space: nowrap"  th:text="${act.candidate}" /></span>
+                                <ul class="nomarker">
+                                        <span th:each="act : ${employer.actList}">
+                                            <li>
+                                        <span style="white-space: nowrap" th:text="${act.candidate}"/></span>
+                                    </li>
+                                </ul>
 
                             </td>
+
+
+<!--                            <td>-->
+<!--                                <span th:each="act : ${employer.actList}">-->
+<!--                                      <hr />-->
+<!--                                    <span style="white-space: nowrap"  th:text="${act.candidate}" /></span>-->
+
+<!--                            </td>-->
+
+
+
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                    <hr />
+                                     <li>
                                     <span style="white-space: nowrap"  th:text="${act.companies}" /></span>
+                                    </li>
+                                </ul>
 
                             </td>
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                     <hr />
+                                      <li>
                                    <span style="white-space: nowrap"  th:text="${act.num}"/></span>
+                                    </li>
+                                </ul>
                             </td>
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                    <hr />
+                                     <li>
                                 <span style="white-space: nowrap"  th:text="${act.date}" /></span>
+                                    </li>
+                                </ul>
                             </td>
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                    <hr />
+                                     <li>
                                 <span style="white-space: nowrap"  th:text="${act.dateForPay}"/></span>
+                                    </li>
+                                </ul>
                             </td>
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                    <hr />
+                                    <li>
                                 <span style="white-space: nowrap"  th:text="${act.datePayment}"/></span>
+                                    </li>
+                                </ul>
                             </td>
 
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                    <hr />
+                                    <li>
                                 <span style="white-space: nowrap"  th:text="${act.paymentRealDate}"/></span>
+                                    </li>
+                                </ul>
                             </td>
 
                             <td>
+                                <ul class="nomarker">
                                 <span th:each="act : ${employer.actList}">
-                                    <hr />
+                                    <li>
                                 <span style="white-space: nowrap"  th:text="${act.employerPaid}"/></span>
+                                    </li>
+                                </ul>
                             </td>
 
 

@@ -5,52 +5,56 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-<!--    <style>-->
-<!--        * {-->
-<!--            box-sizing: border-box;-->
-<!--        }-->
+    <style>
+        .nomarker{
+            list-style-type: none;
+        }
+
+/*<!--        * {-->*/
+/*<!--            box-sizing: border-box;-->*/
+/*<!--        }-->*/
 
 
-<!--        #myTable {-->
-<!--            border-collapse: collapse;-->
-<!--            width: 100%;-->
-<!--            border: 1px solid #ddd;-->
-<!--            font-size: 18px;-->
+/*<!--        #myTable {-->*/
+/*<!--            border-collapse: collapse;-->*/
+/*<!--            width: 100%;-->*/
+/*<!--            border: 1px solid #ddd;-->*/
+/*<!--            font-size: 18px;-->*/
 
-<!--        }-->
+/*<!--        }-->*/
 
-<!--        /*#myTable thead th:nth-child(9) {*/-->
-<!--        /*    white-space: nowrap;          */-->
-<!--        /*}*/-->
+/*<!--        !*#myTable thead th:nth-child(9) {*!-->*/
+/*<!--        !*    white-space: nowrap;          *!-->*/
+/*<!--        !*}*!-->*/
 
-<!--        #myTable th, #myTable td {-->
-<!--            text-align: left;-->
-<!--            padding: 12px;-->
+/*<!--        #myTable th, #myTable td {-->*/
+/*<!--            text-align: left;-->*/
+/*<!--            padding: 12px;-->*/
 
-<!--        }-->
+/*<!--        }-->*/
 
-<!--        #myTable tr {-->
-<!--            border-bottom: 1px solid #ddd;-->
+/*<!--        #myTable tr {-->*/
+/*<!--            border-bottom: 1px solid #ddd;-->*/
 
-<!--        }-->
+/*<!--        }-->*/
 
-<!--        #myTable tr.header, #myTable tr:hover {-->
-<!--            background-color: #f1f1f1;-->
-<!--        }-->
+/*<!--        #myTable tr.header, #myTable tr:hover {-->*/
+/*<!--            background-color: #f1f1f1;-->*/
+/*<!--        }-->*/
 
-<!--        .container {-->
-<!--            display: flex;-->
-<!--        }-->
+/*<!--        .container {-->*/
+/*<!--            display: flex;-->*/
+/*<!--        }-->*/
 
-<!--        .styled hr{-->
-<!--            border:0;                   /* for FF; border reset */-->
-<!--            border-top:10px solid gold; /* set hr thickness for good browsers, set style and color for all */-->
-<!--            height:10px;                /* set hr thickness for IE */-->
-<!--            background:transparent;     /* for Opera and Safari; remove default hr color */-->
-<!--            font-size:14px;             /* for FF to mimic the fix "margins" on hr in IE */-->
-<!--        }-->
+/*<!--        .styled hr{-->*/
+/*<!--            border:0;                   !* for FF; border reset *!-->*/
+/*<!--            border-top:10px solid gold; !* set hr thickness for good browsers, set style and color for all *!-->*/
+/*<!--            height:10px;                !* set hr thickness for IE *!-->*/
+/*<!--            background:transparent;     !* for Opera and Safari; remove default hr color *!-->*/
+/*<!--            font-size:14px;             !* for FF to mimic the fix "margins" on hr in IE *!-->*/
+/*<!--        }-->*/
 
-<!--    </style>-->
+    </style>
     <meta charset="utf-8"/>
 
     <title>Бонусы</title>
@@ -194,11 +198,26 @@
                                     <span style="white-space: nowrap" th:text="${sumUser}"/></span>
                                     </td>
 
+
                                     <td>
-                                        <span th:each="candidateName : ${userBonus.candidateName}">
-                                             <hr />
-                                        <span style="white-space: nowrap" th:text="${candidateName}"/></span>
+                                        <ul class="nomarker">
+                                         <span th:each="candidateName : ${userBonus.candidateName}">
+                                            <li>
+                                                <span style="white-space: nowrap" th:text="${candidateName}"/></span>
+                                            </li>
+                                        </ul>
                                     </td>
+
+
+<!--                                    <td>-->
+<!--                                        <span th:each="candidateName : ${userBonus.candidateName}">-->
+<!--                                             <hr />-->
+<!--                                        <span style="white-space: nowrap" th:text="${candidateName}"/></span>-->
+<!--                                    </td>-->
+<!--                                    -->
+
+
+
 
 <!--                                    <td>-->
 <!--                                        <ul>-->
@@ -306,7 +325,7 @@
                                     <td th:text="${userBonusKPI.position}"/>
 
                                     <td>
-                                        <ul>
+                                        <ul class="nomarker">
                                          <span th:each="bonus : ${userBonusKPI.bonus}">
                                             <li>
                                                 <span th:text="${bonus}"/></span>
@@ -316,7 +335,7 @@
                                     </td>
 
                                     <td>
-                                        <ul>
+                                        <ul class="nomarker">
                                          <span th:each="bonusBest : ${userBonusKPI.bonusBest}">
                                             <li>
                                                 <span th:text="${bonusBest}"/></span>
@@ -326,7 +345,7 @@
 
                                     <td>
 
-                                        <ul>
+                                        <ul class="nomarker">
                                           <span th:each="bonusAll : ${userBonusKPI.bonusAll}">
                                             <li>
                                                 <span th:text="${bonusAll}"/></span>
@@ -336,7 +355,7 @@
                                     </td>
 
                                     <td>
-                                        <ul>
+                                        <ul class="nomarker">
                                           <span th:each="month : ${userBonusKPI.month}">
                                             <li>
                                                 <span th:text="${month}"/></span>

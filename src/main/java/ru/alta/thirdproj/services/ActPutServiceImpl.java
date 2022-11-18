@@ -23,4 +23,9 @@ public class ActPutServiceImpl implements iActPutService {
     public List<Act> getAllPutAct(LocalDate date1, LocalDate date2) {
         return actPutRepository.getPutAct(date1, date2);
     }
+
+    @Override
+    public List<Act> getANoPaymentAct() {
+        return actPutRepository.getNoPaymentAct();
+    }
 }

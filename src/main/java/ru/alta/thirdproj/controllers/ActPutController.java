@@ -42,13 +42,17 @@ public class ActPutController {
        // User user = userService.findByUserName(principal.getName());
 
         List<Act> actList = actBonusPercentService.getAllPutAct(date1,date2);
+        List<Act> actNoPayList = actBonusPercentService.getANoPaymentAct();
+        model.addAttribute("actNoPayList", actNoPayList);
         model.addAttribute("actPutList", actList);
+        model.addAttribute("actNoPayList", actNoPayList);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
 
-        return "newTest";
+    //    return "newTest";
+     //   return "TestAct";
+        return "bonusAct2";
     }
-
 
 
 

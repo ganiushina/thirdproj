@@ -72,7 +72,10 @@ public class UserPaymentBonusServiceImpl {
 
     public String getAllMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
-        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+
+        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setCurrency(Currency.getInstance("RUB"));
+      //  NumberFormat formatter = NumberFormat.getCurrencyInstance();
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
@@ -92,10 +95,14 @@ public class UserPaymentBonusServiceImpl {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d");
         SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("MMMMM");
 
-        NumberFormat format = NumberFormat.getInstance();
-        format.setMaximumFractionDigits(2);
-        Currency currency = Currency.getInstance("RUB");
-        format.setCurrency(currency);
+//        NumberFormat format = NumberFormat.getInstance();
+//        format.setMaximumFractionDigits(2);
+//        Currency currency = Currency.getInstance("RUB");
+//        format.setCurrency(currency);
+        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setCurrency(Currency.getInstance("RUB"));
+
+
 //        NumberFormat formatter = NumberFormat.getInstance("ru");
 //        Currency.getInstance("ru");
 
@@ -111,13 +118,6 @@ public class UserPaymentBonusServiceImpl {
 
 
         SimpleDateFormat formatter2 = new SimpleDateFormat("dd-MM-yyyy");
-        SimpleDateFormat simpleDateFormat3 = new SimpleDateFormat("d");
-
-
-
-        List<Act> result1 = actList2.stream().sorted((o1, o2)->o1.getDateForPay().
-                compareTo(o2.getDateForPay())).
-                collect(Collectors.toList());
 
 
         Map<String, Double> map5 = actList2.stream()
@@ -135,7 +135,7 @@ public class UserPaymentBonusServiceImpl {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            stringBuilder.append(simpleDateFormat1.format(date) + " " + simpleDateFormat.format(date) + " : " + format.format(entry.getValue()) + " ");
+            stringBuilder.append(simpleDateFormat1.format(date) + " " + simpleDateFormat.format(date) + " : " + formatter.format(entry.getValue()) + " ");
         }
 
         return stringBuilder.toString();
@@ -146,7 +146,10 @@ public class UserPaymentBonusServiceImpl {
     public String getAllPaymentMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
-        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setCurrency(Currency.getInstance("RUB"));
+
+       // NumberFormat formatter = NumberFormat.getCurrencyInstance();
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
@@ -165,7 +168,9 @@ public class UserPaymentBonusServiceImpl {
     public String getAllNotPaymentMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
-        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        //NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setCurrency(Currency.getInstance("RUB"));
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
