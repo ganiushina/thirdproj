@@ -2,9 +2,13 @@ package ru.alta.thirdproj.controllers;
 
 
 import com.google.gson.Gson;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,8 +67,8 @@ public class RestBonusPaymentController {
         this.paymentSuccessService = paymentSuccessService;
     }
 
-    @GetMapping("/allpayment") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
-//    @ApiOperation("Returns list of all products data transfer objects")
+    @PostMapping("/allpayment") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
+    @ApiOperation("Returns list of all products data transfer objects")
     public ResponseEntity<UserPaymentBonus> getAllUserBonus(Principal principal,
                                             @RequestParam(value = "date1")
                                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
@@ -87,7 +91,7 @@ public class RestBonusPaymentController {
     }
 
     @GetMapping("/allpayment1") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
-//    @ApiOperation("Returns list of all products data transfer objects")
+    @ApiOperation("Returns list of all products data transfer objects")
     public String showAll(Model model, Principal principal,
                                   @RequestParam(value = "date1")
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
@@ -130,7 +134,7 @@ public class RestBonusPaymentController {
 
 
     @GetMapping("/allpayment3") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
-//    @ApiOperation("Returns list of all products data transfer objects")
+    @ApiOperation("Returns list of all products data transfer objects")
     public String showAll3(Model model, Principal principal,
                           @RequestParam(value = "date1")
                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
@@ -156,19 +160,56 @@ public class RestBonusPaymentController {
         return "paymentNew";
     }
 
+//    @PostMapping("/confirm")
+//    @ResponseBody
+//    public ResponseEntity<String> paymentConfirm (@RequestBody String body,
+//            @RequestParam (value = "fio", required = false) String fio,
+//            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Principal principal, Model model
+//    ) throws JSONException {
+//
+////        JSONObject request = new JSONObject(body);
+////        String id = httpServletRequest.getString("id"); // Here the value is 'some id'
+//
+//        // Get the new data in a JSONObject
+//        JSONObject response = new JSONObject();
+//        // build the response...
+//
+//        // Send the response back to your client
+//        HttpHeaders headers = new HttpHeaders();
+//
+//        User user = userService.findByUserName(principal.getName());
+//        //    paymentSuccessService.findEmployer(fio, user.getUserId(), employerList);
+//
+//        paymentSuccessService.findActInList(fio, user.getUserId(), employerList);
+//
+//        String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
+//        String referrer = httpServletRequest.getHeader("referer");
+//        model.addAttribute("allPaymentMoney", allPaymentMoney);
+//       // HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Type", "application/json; charset=utf-8");
+//        return new ResponseEntity<String>("{\"msg\":\"success\"}", headers, HttpStatus.OK);
+//    }
+
+
 
     @PostMapping("/confirm")
+    @ResponseBody
+    @ApiOperation("Confirm payment")
     public String paymentConfirm (
             @RequestParam (value = "fio", required = false) String fio,
-            HttpServletRequest httpServletRequest,  Principal principal, Model model)  {
+            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Principal principal, Model model)  {
 
         User user = userService.findByUserName(principal.getName());
-        paymentSuccessService.findEmployer(fio, user.getUserId(), employerList);
+    //    paymentSuccessService.findEmployer(fio, user.getUserId(), employerList);
+
+        paymentSuccessService.findActInList(fio, user.getUserId(), employerList);
 
         String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
         String referrer = httpServletRequest.getHeader("referer");
         model.addAttribute("allPaymentMoney", allPaymentMoney);
-        return "redirect:" + referrer;
+    //    return "redirect:" + referrer;
+     //   return "redirect:/";
+        return "success";
     }
 
     @ExceptionHandler

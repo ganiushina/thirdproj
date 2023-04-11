@@ -2,6 +2,7 @@ package ru.alta.thirdproj.controllers;
 
 
 import com.google.gson.Gson;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,7 +33,8 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
-@Controller
+@RestController
+//@Controller
 @CrossOrigin("*")
 @RequestMapping("/act") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 @Tag(name="ActBonusController", description="Дополнительные бонусы по актам")
@@ -60,7 +62,7 @@ public class ActBonusController {
     }
 
     @PostMapping("/allact") // http://localhost:8189/userbonus/act/allact?date1=2022-06-01&date2=2022-06-27
-//    @ApiOperation("Returns list of all products data transfer objects")
+    @ApiOperation("Returns list of all products data transfer objects")
     public String showAll3(Model model, @RequestParam(value = "act", required = false) String act, String actList,
                            String percent, Principal principal, String request, String fio//, String manIds
                            )  {

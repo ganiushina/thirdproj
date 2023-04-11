@@ -14,6 +14,7 @@ import ru.alta.thirdproj.entites.PaymentSuccess;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -57,6 +58,9 @@ public class ActBonusPercentRepositories {
 
             Table table = query.executeAndFetchTable();
             List<Map<String, Object>> list = table.asList();
+
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            currencyInstance.setCurrency(Currency.getInstance("RUB"));
 
             List<Act> actList = new ArrayList<>();
 
@@ -108,6 +112,7 @@ public class ActBonusPercentRepositories {
                     .addParameter("bonus_percent", percent)
                     .addParameter("date_add", new Date())
                     .executeUpdate();
+            connection.commit();
         }
     }
 
@@ -118,6 +123,7 @@ public class ActBonusPercentRepositories {
                     .addParameter("employer_id", employerId )
                     .addParameter("act_id", actId)
                     .executeUpdate();
+            connection.commit();
         }
     }
 

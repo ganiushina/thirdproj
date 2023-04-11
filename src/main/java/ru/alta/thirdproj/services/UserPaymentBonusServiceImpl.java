@@ -95,17 +95,8 @@ public class UserPaymentBonusServiceImpl {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d");
         SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("MMMMM");
 
-//        NumberFormat format = NumberFormat.getInstance();
-//        format.setMaximumFractionDigits(2);
-//        Currency currency = Currency.getInstance("RUB");
-//        format.setCurrency(currency);
         final NumberFormat formatter = NumberFormat.getCurrencyInstance();
         formatter.setCurrency(Currency.getInstance("RUB"));
-
-
-//        NumberFormat formatter = NumberFormat.getInstance("ru");
-//        Currency.getInstance("ru");
-
 
         List<Act> actList2 = new ArrayList<>();
 
@@ -149,7 +140,7 @@ public class UserPaymentBonusServiceImpl {
         final NumberFormat formatter = NumberFormat.getCurrencyInstance();
         formatter.setCurrency(Currency.getInstance("RUB"));
 
-       // NumberFormat formatter = NumberFormat.getCurrencyInstance();
+
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {

@@ -6,11 +6,9 @@ import java.util.Date;
 
 @Data
 public class Act {
-
     private String num;
     private int id;
     private String date;
-
     private String candidate;
     private String companies;
     private Integer projects;
@@ -22,7 +20,9 @@ public class Act {
     private String employerPaid;
     private Double percent;
     private String projectName;
-
     private String dateAct;
+    private String dateClientPay;
+    private String bonusRUB;
+
 
 }

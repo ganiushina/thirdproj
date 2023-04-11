@@ -15,4 +15,8 @@ public class UserBonusKPI {
     List<Double> bonusAll;
     List<String> month;
 
+    List<String> bonusRUB;
+    List<String> bonusBestRUB;
+    List<String> bonusAllRUB;
+
 }

@@ -14,4 +14,6 @@ public interface iUserBonusRepository
     List<UserBonus> getUserBonuses(LocalDate date1, LocalDate date12, Integer userId, Integer departmentId);
     double getAllMoney(HashMap<String, Object> mapMoney);
 
+
+
 }

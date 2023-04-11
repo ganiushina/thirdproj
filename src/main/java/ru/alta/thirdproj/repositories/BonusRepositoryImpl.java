@@ -10,6 +10,7 @@ import ru.alta.thirdproj.entites.*;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -28,6 +29,14 @@ public class BonusRepositoryImpl {
     private static final String SELECT_EXTRA_BONUS = "SELECT ab.company_name, ab.candidate, ab.id FROM extra_bonus eb\n" +
             "    JOIN dbo.act_buh ab ON ab.id = eb.act_id\n" +
             "    WHERE eb.employer_id = :employer_id and eb.act_id = :act_id";
+
+    private static final String SELECT_ALL_COMPANY_MONEY = "SELECT sum(total_no_nds) FROM (\n" +
+            "SELECT DISTINCT pb.act_id, ab.date_act, ab.total_no_nds, ab.company_name, ab.candidate\n" +
+            "\tFROM dbo.project_buh pb\n" +
+            "\tJOIN dbo.act_buh ab ON ab.id = pb.act_id\n" +
+            "\tWHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2 \t\n" +
+            "\tAND pb.responsible_user_id IS NOT NULL\n" +
+            ") s" ;
 
 
     public BonusRepositoryImpl(@Autowired Sql2o sql2o) {
@@ -132,6 +141,9 @@ public class BonusRepositoryImpl {
 
             List<UserBonusNew> userBonusNewList = new ArrayList<>();
 
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+
             for (Map<String, Object> n : list) {
 
                 UserBonusNew userBonusNew = new UserBonusNew();
@@ -141,6 +153,9 @@ public class BonusRepositoryImpl {
 
                 Double moneyAllTmp = null;
                 Double sumTotalTmp = null;
+                String moneyAllTmpRUB = null;
+                String sumTotalTmpRUB = null;
+
 
                 List<Double> moneyAll = new ArrayList<>();
                 List<Double> moneyByCandidate = new ArrayList<>();
@@ -157,6 +172,11 @@ public class BonusRepositoryImpl {
 
                 List<String> monthMoneyName = new ArrayList<>();
                 List<String> monthSummName = new ArrayList<>();
+
+                List<String> moneyAllRUB = new ArrayList<>();
+                List<String> moneyByCandidateRUB = new ArrayList<>();
+                List<String> sumTotalRUB = new ArrayList<>();
+                List<String> sumUserRUB = new ArrayList<>();
 
                 List<Integer> actIds = new ArrayList<>();
 
@@ -220,8 +240,11 @@ public class BonusRepositoryImpl {
                         double d = bd.doubleValue();
                         if (d != 0.0) {
                             moneyAll.add(d);
+                            moneyAllRUB.add(currencyInstance.format(d));
                             moneyAllTmp = d;
+                            moneyAllTmpRUB =currencyInstance.format(d);
                             userBonusNew.setMoneyAll(moneyAll);
+                            userBonusNew.setMoneyAllRUB(moneyAllRUB);
                         }
 
                     }
@@ -231,7 +254,9 @@ public class BonusRepositoryImpl {
                         double d = bd.doubleValue();
                         if (d != 0.0) {
                             moneyByCandidate.add(d);
+                            moneyByCandidateRUB.add(currencyInstance.format(d));
                             userBonusNew.setMoneyByCandidate(moneyByCandidate);
+                            userBonusNew.setMoneyByCandidateRUB(moneyByCandidateRUB);
                         }
                     }
 
@@ -240,8 +265,11 @@ public class BonusRepositoryImpl {
                         double d = bd.doubleValue();
                         if (d != 0.0) {
                             sumTotal.add(d);
+                            sumTotalRUB.add(currencyInstance.format(d));
                             sumTotalTmp = d;
+                            sumTotalTmpRUB =currencyInstance.format(d);
                             userBonusNew.setSumTotal(sumTotal);
+                            userBonusNew.setSumTotalRUB(sumTotalRUB);
                         }
                     }
 
@@ -250,7 +278,9 @@ public class BonusRepositoryImpl {
                         double d = bd.doubleValue();
                         if (d != 0.0) {
                             sumUser.add(d);
+                            sumUserRUB.add(currencyInstance.format(d));
                             userBonusNew.setSumUser(sumUser);
+                            userBonusNew.setSumUserRUB(sumUserRUB);
                         }
                     }
 
@@ -274,27 +304,13 @@ public class BonusRepositoryImpl {
 
                 }
 
-
-
                 if (moneyAll.size() > 0)
-                    monthMoneyName.add(String.valueOf(moneyAll.get(0)));
-//                else
-//                    monthMoneyName.add(String.valueOf(moneyAll.get(0)));
+                    monthMoneyName.add(moneyAllRUB.get(0));
 
                 if (sumTotal.size() > 0)
-                    monthSummName.add(String.valueOf(sumTotal.get(0))) ;
-//                else
-//                    monthSummName.add(String.valueOf(sumTotal.get(0)));
-
-
-
-
-
-
+                    monthSummName.add(sumTotalRUB.get(0)) ;
 
                 userBonusNew.setMonth(month);
-
-
 
                 userBonusNew.setYear(year);
 
@@ -333,9 +349,11 @@ public class BonusRepositoryImpl {
                         if (moneyAllTmp != null) {
                             if (result.get(0).getMoneyAll() == null ) {
                                 result.get(0).setMoneyAll(userBonusNew.getMoneyAll());
+                                result.get(0).setMoneyAllRUB(userBonusNew.getMoneyAllRUB());
                                 result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
                             } else if (!result.get(0).getMoneyAll().contains(moneyAllTmp) && userBonusNew.getMonthMoneyName().size() > 0) {
                                 result.get(0).getMoneyAll().add(moneyAllTmp);
+                                result.get(0).getMoneyAllRUB().add(moneyAllTmpRUB);
                                 result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
                             }
                         }
@@ -343,9 +361,11 @@ public class BonusRepositoryImpl {
                         if (sumTotalTmp != null) {
                             if (result.get(0).getSumTotal() == null ) {
                                 result.get(0).setSumTotal(userBonusNew.getSumTotal());
+                                result.get(0).setSumTotalRUB(userBonusNew.getSumTotalRUB());
                                 result.get(0).getMonthSummName().add(userBonusNew.getMonthSummName().get(0));
                             } else if (!result.get(0).getSumTotal().contains(sumTotalTmp) && sumTotalTmp != 0.0) {
                                 result.get(0).getSumTotal().add(sumTotalTmp);
+                                result.get(0).getSumTotalRUB().add(sumTotalTmpRUB);
                                 result.get(0).getMonthSummName().add(userBonusNew.getMonthSummName().get(0));
                             }
                         }
@@ -353,7 +373,11 @@ public class BonusRepositoryImpl {
                         if (userBonusNew.getMoneyByCandidate() != null) {
                             if (result.get(0).getMoneyByCandidate() == null) {
                                 result.get(0).setMoneyByCandidate(userBonusNew.getMoneyByCandidate());
-                            } else result.get(0).getMoneyByCandidate().add(userBonusNew.getMoneyByCandidate().get(0));
+                                result.get(0).setMoneyByCandidateRUB(userBonusNew.getMoneyByCandidateRUB());
+                            } else {
+                                result.get(0).getMoneyByCandidate().add(userBonusNew.getMoneyByCandidate().get(0));
+                                result.get(0).getMoneyByCandidateRUB().add(userBonusNew.getMoneyByCandidateRUB().get(0));
+                            }
                         }
 
 
@@ -363,10 +387,8 @@ public class BonusRepositoryImpl {
                             else
                                 if (!result.get(0).getMonthName().contains(userBonusNew.getMonthName().get(0))) {
                                     result.get(0).getMonthName().add(userBonusNew.getMonthName().get(0));
-                                    //   userBonusNew.getMonthName().stream().distinct().collect(Collectors.toList());
                                 }
                         }
-
 
                         if (userBonusNew.getPercent() != null)
                         {
@@ -378,9 +400,14 @@ public class BonusRepositoryImpl {
 
 
                         if (userBonusNew.getSumUser() != null){
-                            if (result.get(0).getSumUser() == null)
+                            if (result.get(0).getSumUser() == null) {
                                 result.get(0).setSumUser(userBonusNew.getSumUser());
-                            else result.get(0).getSumUser().add(userBonusNew.getSumUser().get(0));
+                                result.get(0).setSumUserRUB(userBonusNew.getSumUserRUB());
+                            }
+                            else {
+                                result.get(0).getSumUser().add(userBonusNew.getSumUser().get(0));
+                                result.get(0).getSumUserRUB().add(userBonusNew.getSumUserRUB().get(0));
+                            }
                         }
 
 
@@ -405,6 +432,15 @@ public class BonusRepositoryImpl {
 
         }
 
+    }
+
+    public Double getCompanyMoney(LocalDate date1, LocalDate date2) {
+        try (Connection connection = sql2o.open()) {
+            return   connection.createQuery(SELECT_ALL_COMPANY_MONEY, false)
+                    .addParameter("date1", date1)
+                    .addParameter("date2", date2)
+                    .executeScalar(Double.class);
+        }
     }
 
 

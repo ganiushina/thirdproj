@@ -68,6 +68,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("month_kpi", paymentSuccess.getMonthKPI())
                     .addParameter("payment_type", paymentSuccess.getType())
                     .executeUpdate();
+            connection.commit();
 
         }
     }
@@ -98,6 +99,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("act_id", actId)
                     .addParameter("candidate", candidate)
                     .executeUpdate();
+            connection.commit();
 
         }
     }
@@ -111,6 +113,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("payment_summ", paymentSum)
                     .addParameter("candidate", candidate)
                     .executeUpdate();
+            connection.commit();
 
         }
     }
@@ -121,6 +124,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(DELETE_BONUS_PAYMENT_ALL, false)
                     .executeUpdate();
+            connection.commit();
         }
     }
 
@@ -138,6 +142,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("act_id", actId)
                     .addParameter("candidate", candidate)
                     .executeUpdate();
+            connection.commit();
 
         }
     }

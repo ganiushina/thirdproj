@@ -9,4 +9,5 @@ public interface iActPutService {
 
     List<Act> getAllPutAct(LocalDate date1, LocalDate date2);
     List<Act> getANoPaymentAct();
+    Double allDebitAct(List<Act> actList);
 }

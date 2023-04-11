@@ -13,6 +13,7 @@ import ru.alta.thirdproj.entites.UserBonusNew;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -42,6 +43,9 @@ public class UserBonusKPIRepositoryImpl {
 
             List<UserBonusKPI> userBonusKPIList = new ArrayList<>();
 
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+
             for (Map<String, Object> n : list) {
 
                 UserBonusKPI userBonusKPI = new UserBonusKPI();
@@ -50,6 +54,10 @@ public class UserBonusKPIRepositoryImpl {
                 List<Double> bonusBest = new ArrayList<>();
                 List<Double> bonusAll = new ArrayList<>();
                 List<String> month = new ArrayList<>();
+
+                List<String> bonusRUB = new ArrayList<>();
+                List<String> bonusBestRUB = new ArrayList<>();
+                List<String> bonusAllRUB = new ArrayList<>();
 
 
                 boolean isNotNew = false;
@@ -83,18 +91,21 @@ public class UserBonusKPIRepositoryImpl {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
                         bonus.add(d);
+                        bonusRUB.add(currencyInstance.format(d));
                     }
 
                     if (entry.getKey().equals("best_bonus")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
                         bonusBest.add(d);
+                        bonusBestRUB.add(currencyInstance.format(d));
                     }
 
                     if (entry.getKey().equals("all_bonus")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
                         bonusAll.add(d);
+                        bonusAllRUB.add(currencyInstance.format(d));
 
                     }
 
@@ -108,6 +119,10 @@ public class UserBonusKPIRepositoryImpl {
                 userBonusKPI.setBonusAll(bonusAll);
                 userBonusKPI.setMonth(month);
 
+                userBonusKPI.setBonusRUB(bonusRUB);
+                userBonusKPI.setBonusBestRUB(bonusBestRUB);
+                userBonusKPI.setBonusAllRUB(bonusAllRUB);
+
                 if (isNotNew) {
                     String finalManFIO = manFIO;
                     List<UserBonusKPI> result = userBonusKPIList.stream()
@@ -118,6 +133,11 @@ public class UserBonusKPIRepositoryImpl {
                     result.get(0).getBonusBest().add(userBonusKPI.getBonusBest().get(0));
                     result.get(0).getBonusAll().add(userBonusKPI.getBonusAll().get(0));
                     result.get(0).getMonth().add(userBonusKPI.getMonth().get(0));
+
+                    result.get(0).getBonusRUB().add(userBonusKPI.getBonusRUB().get(0));
+                    result.get(0).getBonusBestRUB().add(userBonusKPI.getBonusBestRUB().get(0));
+                    result.get(0).getBonusAllRUB().add(userBonusKPI.getBonusAllRUB().get(0));
+
 
 
                 } else

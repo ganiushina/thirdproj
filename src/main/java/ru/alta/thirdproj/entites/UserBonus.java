@@ -12,36 +12,26 @@ public class UserBonus {
     private long id;
 
     private long userId;
-
     private String fio;
-
     private String position;
-
     private String department;
-
     private Double moneyAll;
-
     private Double moneyByCandidate;
-
     private Double percent;
-
     private Double sumTotal;
-
     private Double sumUser;
-
     private String companyName;
-
     private String candidateName;
-
     private List<Act> actList;
-
     private String extraBonusActName;
-
     private int month;
-
     private int year;
-
     private int actId;
+
+    private String moneyAllRUB;
+    private String moneyByCandidateRUB;
+    private String sumTotalRUB;
+    private String sumUserRUB;
 
 
 

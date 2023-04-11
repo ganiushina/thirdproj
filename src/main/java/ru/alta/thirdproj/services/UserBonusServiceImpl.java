@@ -9,8 +9,10 @@ import ru.alta.thirdproj.entites.UserBonusNew;
 import ru.alta.thirdproj.repositories.BonusRepositoryImpl;
 import ru.alta.thirdproj.repositories.iUserBonusRepository;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -233,6 +235,11 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
 
     public List<Act> getExtraBonus(Integer employerId, List<Integer> actId){
         return userBonusProvider.getExtraAct(employerId, actId);
+    }
+
+    public Double getCompanyMoney(LocalDate date1, LocalDate date12){
+        Double money = userBonusProvider.getCompanyMoney(date1, date12);
+        return money;
     }
 
 }

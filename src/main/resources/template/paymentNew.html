@@ -10,27 +10,23 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        /** {*/
-        /*    box-sizing: border-box;*/
-        /*}*/
-
-        /*#myTable {*/
-        /*    table-layout: auto;*/
-        /*    border-collapse: collapse;*/
-        /*    width: 100%;*/
-
-        /*    border: 1px solid #ddd;*/
-        /*    font-size: 18px;*/
-
-        /*}*/
-
         .nomarker{
             list-style-type: none;
             padding: 0px;
+
         }
         table td{
             text-align: left;
         }
+<!--        li > input {-->
+<!--          display:inline-block;-->
+<!--          width:0px;-->
+<!--        }-->
+<!--        label {-->
+<!--          margin-bottom: 0px;-->
+<!--          display:inline-block;-->
+<!--          width:235px;-->
+<!--        }-->
         /*tr:hover td {background: #e8edff;}*/
 
         /*#myTable th, #myTable td {*/
@@ -73,7 +69,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <script type="text/javascript" th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+    <script type="text/javascript" src="js/postScript.js.js"></script>
+
+
 
 </head>
 
@@ -115,7 +113,12 @@
 
         <form id="checked-contacts" action="#" th:action="@{/payment/confirm}" method="post"  >
 
-            <button type="submit" class="btn btn-primary">Готово</button>
+<!--            <div class="input-group mb-3">-->
+<!--                <input type="checkbox" id="selectall" name="selectall" autocomplete="off" checked onclick="eventCheckBox()">-->
+
+<!--                <span class="input-group-text" id="basic-addon1">Выделить все выплаты</span>-->
+<!--                <button type="submit" class="btn btn-primary">Готово</button>-->
+<!--            </div>-->
 
             <div class="panel-body">
                 <table id="myTable" class="table table-bordered border-primary">
@@ -134,13 +137,16 @@
                         <th>Дата оплаты клиентом</th>
                         <th>Дата оплаты компанией</th>
                         <th>Оплативший сотрудник</th>
+                        <th>test</th>
+
+
                     </thead>
 
-                    <th:block th:each="employer, iterStat : ${employerList}" th:object="${employersList}">
-                        <tr>
+                    <tr th:each="employer, iterStat : ${employerList}" th:object="${employersList}">
+<!--                        <tr>-->
                             <td th:text="${employer.manFIO}"></td>
                             <td th:text="${employer.userDepartment}"></td>
-                            <td th:text="${employer.allBonus}"></td>
+                            <td th:text="${employer.allBonusRUB}"></td>
                             <td>
                                 <ul class="nomarker">
                                <span th:each="percent : ${employer.percent}">
@@ -150,21 +156,42 @@
                                 </ul>
                             </td>
 
-                            <td>
+
+
+                        <td>
                                 <ul class="nomarker">
-                                <span th:each="act : ${employer.actList}" >
+                                <span style="white-space: nowrap" th:each="act : ${employer.actList}" >
                                     <li>
-                                     <input type="checkbox" name="fio"
+                                    <input id="agreement" type="checkbox" name="fio"
                                             th:value="${act.bonus} +
-                                     '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects}"
-                                            th:checked="${act.paid} ? 'checked'" />
+                                     '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects} + '/' + ${act.paid}"
+                                            th:checked="${act.paid} ? 'checked'"  >
+                                    <span th:text="${act.bonusRUB}" /></span>
 
-
-                                    <span th:text="${act.bonus}" /></span>
+                                </span>
                                     </li>
                                 </ul>
 
+
                             </td>
+
+
+<!--                            <td>-->
+<!--                                <ul class="nomarker">-->
+<!--                                <span th:each="act : ${employer.actList}" >-->
+<!--                                    <li>-->
+<!--                                     <input type="checkbox" name="fio"-->
+<!--                                            th:value="${act.bonus} +-->
+<!--                                     '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects}"-->
+<!--                                            th:checked="${act.paid} ? 'checked'" th:onclick="submit()"/>-->
+
+<!--&lt;!&ndash;                                        th:onclick="submit()"&ndash;&gt;-->
+
+<!--                                    <span th:text="${act.bonus}" /></span>-->
+<!--                                    </li>-->
+<!--                                </ul>-->
+
+<!--                            </td>-->
 
 <!--                            <td>-->
 <!--                                <span th:each="act : ${employer.actList}" >-->
@@ -187,14 +214,6 @@
                                 </ul>
 
                             </td>
-
-
-<!--                            <td>-->
-<!--                                <span th:each="act : ${employer.actList}">-->
-<!--                                      <hr />-->
-<!--                                    <span style="white-space: nowrap"  th:text="${act.candidate}" /></span>-->
-
-<!--                            </td>-->
 
 
 
@@ -257,13 +276,18 @@
                                     </li>
                                 </ul>
                             </td>
+                        <td>
+                            <button class="btn btn-success btn-lg" onclick="eventCheckBox()">Glenkinchie</button>
+                        </td>
 
 
-                    </th:block>
+
+
+<!--                    </tr>-->
+
+
 
                     </tr>
-
-                    </th:block>
 
 
                 </table>
@@ -317,9 +341,293 @@
                     }
                 }
             }
+            //
+            // $(document).ready(function() {
+            //     $('input[type="checkbox"]').on('change', function(e){
+            //             var formData = {}
+            //             $.each(this, function(i, v){
+            //                 var input = $(v);
+            //                 // populate form data as key-value pairs
+            //                 // with the name of input as key and its value as value
+            //                 formData[input.attr("fio")] = input.val();
+            //             });
+            //             $.ajax({
+            //                 type: 'post', // method attribute of form
+            //                 url: '/payment/confirm',  // action attribute of form
+            //                 dataType : 'json',
+            //                 // convert form data to json format
+            //                 data : formData
+            //             });
+            //         // e.preventDefault();
+            //         // e.stopPropagation();
+            //     });
+            // });
+
+
+            ////// yyyy
+
+           //
+           //  $('input:checkbox').change(function(e) {
+           //      // reference to form object
+           //   //   var form = this;
+           //      // for stopping the default action of element
+           // //     e.preventDefault();
+           //      // mapthat will hold form data
+           //
+           //      //iterate over form elements
+           //      // var wegeb = document.getElementById("agreement")
+           //      // var txt = wegeb.outerHTML.valueOf();
+           //  //    var formData = {}
+           //      // $.each(this, function(i, v){
+           //      //     var input = $(v);
+           //      //     // populate form data as key-value pairs
+           //      //     // with the name of input as key and its value as value
+           //      //     formData[input.attr("fio")] = input.val();
+           //      // });
+           //
+           //      var status = this.value;
+           //      $.ajax({
+           //          url: '/payment/confirm',
+           //          type: 'POST',
+           //          headers: {
+           //              'Accept': 'application/json',
+           //              'Content-Type': 'application/json'
+           //          },
+           //          data: status, //Stringified Json Object
+           //          beforeSend: function(xhr) {
+           //              xhr.setRequestHeader("Accept", "application/json");
+           //              xhr.setRequestHeader("Content-Type", "application/json");
+           //          },
+           //          success: function(resposeJsonObject){}
+           //      });
+           //
+           //      // $.ajax({
+           //      //     type: 'post', // method attribute of form
+           //      //     url: '/payment/confirm',  // action attribute of form
+           //      //     dataType : 'json',
+           //      //     // convert form data to json format
+           //      //     data : JSON.stringify(formData),
+           //      //     success     :   function ( result ) {
+           //      //        alert(result);
+           //      //     }
+           //      // });
+           //  });
+
+
+//////yyyyy
 
 
 
+            // $('#agreement').change(function (e) {
+            $('input[type="checkbox"]').on('change', function(e){
+                // reference to form object
+
+                // for stopping the default action of element
+                e.preventDefault();
+                // mapthat will hold form data
+                var formData = this.value;
+                //iterate over form elements
+                // $.each(this, function(i, v){
+                //     var input = $(v);
+                //     // populate form data as key-value pairs
+                //     // with the name of input as key and its value as value
+                //     formData[input.attr("fio")] = input.val();
+                // });
+                $.ajax({
+                    type: 'post', // method attribute of form
+                    url: '/payment/confirm',  // action attribute of form
+                    dataType : 'json',
+                    // convert form data to json format
+                    data : formData
+                });
+            });
+
+            // var successHandler = function( data, textStatus, jqXHR ) {
+            //     // After success reload table with JavaScript
+            //     // based on data...
+            // };
+            //
+            // var errorHandler = function( jqXHR, textStatus, errorThrown ) {
+            //     // Error handler. AJAX request failed.
+            //     // 404 or KO from server...
+            //     alert('Something bad happened while reloading the table.');
+            // };
+
+///44444
+
+             // function eventCheckBox() {
+             //
+             //     var agreement = document.querySelector('#agreement')
+             //
+             //
+             //
+             //     // for stopping the default action of element
+             //     $.preventDefault();
+             //     // mapthat will hold form data
+             //     var formData = {}
+             //     //iterate over form elements
+             //     var status = this.value;
+             //     $.each(this, function(i, v){
+             //         var input = $(v);
+             //         // populate form data as key-value pairs
+             //         // with the name of input as key and its value as value
+             //         formData[input.attr("fio")] = input.val();
+             //     });
+             //
+             //
+             //     $.ajax({
+             //         type: 'post', // method attribute of form
+             //         url: '/payment/confirm',  // action attribute of form
+             //     //    dataType : 'json',
+             //         // convert form data to json format
+             //         data : formData,
+             //         // type: "POST", // It can be GET also
+             //         // url: link,
+             //         // contentType: 'application/json',
+             //         // data       : val,
+             //         // success    : successHandler,
+             //         // error      : errorHandler
+             //         success: function (data) {
+             //             if(data.msg === "success") {
+             //             alert(data)
+             //             }
+             //         }
+             //
+             //
+             //     });
+             // }
+            ///44444
+
+                // fetch(link, {
+                //     method: 'post',
+                //     headers: {
+                //         "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                //     },
+                //     body: 'foo=bar&lorem=ipsum'
+                // })
+                    // .then(json)
+                    // .then(function (data) {
+                    //     console.log('Request succeeded with JSON response', data);
+                    // })
+                    // .catch(function (error) {
+                    //     console.log('Request failed', error);
+                    // });
+
+                // const formData = new FormData();
+                //
+                //
+                // formData.append('fio', val);
+                //
+                // try {
+                //     const response = await fetch(link, {
+                //         method: 'POST',
+                //         body: formData
+                //     });
+                //     const result = await response.json();
+                //     console.log('Успех:', JSON.stringify(result));
+                // } catch (error) {
+                //     console.error('Ошибка:', error);
+                // }
+
+
+           //     let link = '/payment/confirm';
+           //      fetch(link + val)
+           //          .then((response) => {
+           //              if (!response.ok) {
+           //                  throw new Error('Network response was not ok');
+           //              }
+           //              console.log('Request successfully completed');
+           //          })
+           //          .catch((error) => {
+           //              console.error('There has been a problem while contacting server:', error);
+           //          });
+           //
+           //      console.log('Agreement changed to ' + agreement.checked);
+
+                // let checkboxs = document.getElementsByTagName("input");
+                // for(let i = 0; i < checkboxs.length ; i++) { //zero-based array
+                //     checkboxs[i].checked = !checkboxs[i].checked;
+                // }
+      //      }
+
+            // function eventCheckBox() {
+            //     $("#agreement").submit(function (event) {
+            //         var productData = {}
+            //         var agreement = document.querySelector('#agreement')
+            //         let val = agreement.getAttribute('value');
+            //         productData["fio"] = $("#agreement").val();
+            //
+            //
+            //         $("#success-msg").hide();
+            //         $("#error-msg").hide();
+            //
+            //         $.ajax({
+            //             type: "POST",
+            //             contentType: "application/json",
+            //             url: "/payment/confirm",
+            //             data: JSON.stringify(productData),
+            //             dataType: 'json',
+            //             cache: false,
+            //             timeout: 60000,
+            //             success: function (data) {
+            //                 $("#success-msg").show();
+            //             },
+            //             error: function (e) {
+            //                 $("#error-msg").show();
+            //             }
+            //         });
+            //     });
+            // });
+            //
+            //
+            // $('#checked-contacts').submit(function(e) {
+            //     // reference to form object
+            //     var form = this;
+            //     // for stopping the default action of element
+            //     e.preventDefault();
+            //     // mapthat will hold form data
+            //     var formData = {}
+            //     //iterate over form elements
+            //     $.each(this, function(i, v){
+            //         var input = $(v);
+            //         // populate form data as key-value pairs
+            //         // with the name of input as key and its value as value
+            //         formData[input.attr("name")] = input.val();
+            //     });
+            //     $.ajax({
+            //         type: form.attr('method'), // method attribute of form
+            //         url: form.attr('action'),  // action attribute of form
+            //         dataType : 'json',
+            //         // convert form data to json format
+            //         data : JSON.stringify(formData),
+            //     });
+            // });
+
+
+
+
+
+
+
+            // document.addEventListener('DOMContentLoaded', () => {
+            //     var agreement = document.querySelector('#agreement');
+            //
+            //         let itemId = agreement.getAttribute("fio");
+            //         let link = '@{/payment/confirm}';
+            //                     fetch(link + itemId)
+            //                         .then((response) => {
+            //                             if (!response.ok) {
+            //                                 throw new Error('Network response was not ok');
+            //                             }
+            //                             console.log('Request successfully completed');
+            //                         })
+            //                         .catch((error) => {
+            //                             console.error('There has been a problem while contacting server:', error);
+            //                         });
+            //
+            //         console.log('Agreement changed to ' + agreement.checked);
+            //
+            // });
 
         </script>
 

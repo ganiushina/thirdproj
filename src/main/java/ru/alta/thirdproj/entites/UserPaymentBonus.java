@@ -43,6 +43,9 @@ public class UserPaymentBonus {
 
     private Date paymentDate;
 
+    private String allBonusRUB;
+    private String bonusRUB;
+
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 
     static {

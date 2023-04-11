@@ -14,7 +14,9 @@ import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.services.ActPutServiceImpl;
 
 import java.security.Principal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 
 @Controller
@@ -41,11 +43,37 @@ public class ActPutController {
                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2)  {
        // User user = userService.findByUserName(principal.getName());
 
+
         List<Act> actList = actBonusPercentService.getAllPutAct(date1,date2);
+        double allActMoneyPeriod = 0;
+        double allActMoneyPeriodPaid = 0;
+        for (int i = 0; i < actList.size() ; i++) {
+            if (!actList.get(i).isPaid()) {
+                if (actList.get(i).getBonus() != null) {
+                    allActMoneyPeriod += actList.get(i).getBonus();
+                }
+            }
+            else {
+                allActMoneyPeriodPaid += actList.get(i).getBonus();
+            }
+        }
         List<Act> actNoPayList = actBonusPercentService.getANoPaymentAct();
+        double allActMoney =0;
+        for (int i = 0; i < actNoPayList.size() ; i++) {
+            if (actNoPayList.get(i).getBonus() != null) {
+                allActMoney += actNoPayList.get(i).getBonus();
+
+            }
+        }
+        final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+        currencyInstance.setCurrency(Currency.getInstance("RUB"));
+
         model.addAttribute("actNoPayList", actNoPayList);
         model.addAttribute("actPutList", actList);
         model.addAttribute("actNoPayList", actNoPayList);
+        model.addAttribute("allActMoney", currencyInstance.format(allActMoney));
+        model.addAttribute("allActMoneyPeriod", currencyInstance.format(allActMoneyPeriod));
+        model.addAttribute("allActMoneyPeriodPaid", currencyInstance.format(allActMoneyPeriodPaid));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
 

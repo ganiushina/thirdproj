@@ -10,6 +10,7 @@ import ru.alta.thirdproj.entites.*;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -24,6 +25,8 @@ public class BonusPaymentRepositoryImpl {
     private static final String SELECT_BONUS_PAYMENT_QUERY = "SELECT * FROM fn_User_Bonus_Payment (:date1, :date2, :userId, :department_id)";
 
     private static final String SELECT_BONUS_PAYMENT_QUERY_NEW = "SELECT * FROM fn_User_Bonus_Payment (:date1, :date2, :userId, :department_id)";
+
+
 
     public BonusPaymentRepositoryImpl(@Autowired Sql2o sql2o) {
         this.sql2o = sql2o;
@@ -43,6 +46,8 @@ public class BonusPaymentRepositoryImpl {
     }
 
 
+
+
     public List<EmployerNew> userBonusPaymentList(LocalDate date1, LocalDate date12){
 
         try (Connection connection = sql2o.open()) {
@@ -56,6 +61,9 @@ public class BonusPaymentRepositoryImpl {
 
             List<EmployerNew> employerList = new ArrayList<>();
             DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
+
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            currencyInstance.setCurrency(Currency.getInstance("RUB"));
 
             for (Map<String, Object> n : list) {
 
@@ -107,15 +115,19 @@ public class BonusPaymentRepositoryImpl {
                             if (entry.getKey().equals("bonus")) {
                                 BigDecimal bd = (BigDecimal) entry.getValue();
                                 double d = bd.doubleValue();
-                                if (d != 0.0)
-                                act.setBonus(d);
+                                if (d != 0.0) {
+                                    act.setBonus(d);
+                                    act.setBonusRUB(currencyInstance.format(d));
+                                }
                             }
 
                             if (entry.getKey().equals("all_bonus")) {
                                 BigDecimal bd = (BigDecimal) entry.getValue();
                                 double d = bd.doubleValue();
-                                if (d != 0.0)
-                                employer.setAllBonus(d);
+                                if (d != 0.0) {
+                                    employer.setAllBonus(d);
+                                    employer.setAllBonusRUB(currencyInstance.format(d));
+                                }
                             }
 
                             if (entry.getKey().equals("date_for_pay")) {

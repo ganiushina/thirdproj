@@ -16,6 +16,7 @@ import ru.alta.thirdproj.services.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -38,6 +39,8 @@ public class RestBonusController {
     private ActBonusPercentServiceImpl actBonusPercentService;
 
     private UserBonusKPIServiceImpl bonusKPIService;
+
+    private List<UserBonusKPI> bonusKPIList;
 
 
     @Autowired
@@ -146,6 +149,8 @@ public class RestBonusController {
 
         double allMoney = bonusService.getAllMoney(mapMoney);
 
+
+
         model.addAttribute("userBonus", entities);
         model.addAttribute("moneyByCandidate", mapMoney);
         model.addAttribute("sumUser", mapSum);
@@ -172,7 +177,7 @@ public class RestBonusController {
 
         List<UserBonusNew> userBonusNewList =  bonusService.getUserBonusList(date1, date2);
         double allBonusMoney = 0;
-        double allMoney = 0;
+
 
         for (int i = 0; i < userBonusNewList.size() ; i++) {
             if (userBonusNewList.get(i).getMoneyByCandidate() != null) {
@@ -182,29 +187,38 @@ public class RestBonusController {
             }
         }
 
-        for (int i = 0; i < userBonusNewList.size() ; i++) {
-            if (userBonusNewList.get(i).getSumTotal() != null) {
-                for (int j = 0; j < userBonusNewList.get(i).getSumTotal().size(); j++) {
-                    allMoney += userBonusNewList.get(i).getSumTotal().get(j);
-                }
+        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
+
+        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setCurrency(Currency.getInstance("RUB"));
+
+        Double allMoney = bonusService.getCompanyMoney(date1, date2);
+
+        double percentWithoutPKI = allBonusMoney*100/allMoney;
+
+        bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
+
+        double allKPIMoney = 0;
+
+        for (int i = 0; i < bonusKPIList.size() ; i++) {
+            for (int j = 0; j < bonusKPIList.get(i).getBonusAll().size(); j++) {
+                allKPIMoney += bonusKPIList.get(i).getBonusAll().get(j);
             }
         }
+        double percentWithPKI = (allBonusMoney+allKPIMoney)*100/allMoney;
 
-       // NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-        currencyInstance.setCurrency(Currency.getInstance("RUB"));
+        DecimalFormat decimalFormat = new DecimalFormat( "#.##" );
 
-        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
 
         model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("userBonus", userBonusNewList);
-        model.addAttribute("allBonusMoney", currencyInstance.format(allBonusMoney));
-        model.addAttribute("allMoney", currencyInstance.format(allMoney));
+        model.addAttribute("allBonusMoney", formatter.format(allBonusMoney));
+        model.addAttribute("allMoney", formatter.format(allMoney));
+        model.addAttribute("percentWithoutPKI", decimalFormat.format(percentWithoutPKI));
+        model.addAttribute("percentWithPKI", decimalFormat.format(percentWithPKI));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusNew2";
-
-//        return "Test2";
     }
 
     @GetMapping("/getkpi") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
@@ -217,8 +231,6 @@ public class RestBonusController {
                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
 
     ) {
-
-        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
         model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);

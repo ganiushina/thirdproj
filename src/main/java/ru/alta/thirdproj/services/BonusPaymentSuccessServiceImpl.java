@@ -9,6 +9,7 @@ import ru.alta.thirdproj.repositories.IBonusPaymentSuccess;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BonusPaymentSuccessServiceImpl {
@@ -59,6 +60,10 @@ public class BonusPaymentSuccessServiceImpl {
         myBreakLabel:
         if (val != null) {
             List<String> arrOfEmployerBonus = Arrays.asList(val.split(","));
+//            List<String> result = arrOfEmployerBonus.stream()
+//                    .filter(lang -> lang.contains("false"))
+//                    .collect(Collectors.toList());
+
             int type = 0;
             for (int k = 0; k < arrOfEmployerBonus.size(); k++) {
 
@@ -98,17 +103,89 @@ public class BonusPaymentSuccessServiceImpl {
 
                 if (size == findCountActId(paidList)) {
                     addPayment(userId, manId, paymentSum, actId, candidateName, projectId, monthKPI, type);
-                    break myBreakLabel;
+                  //  break myBreakLabel;
                 }
 
             }
             if (!paidList.isEmpty()) {
                 if (paidList.get(0).getActList().get(0).getId() != 0)
-                bonusPaymentSuccess.deletePayment(paidList.get(0).getManId(), paidList.get(0).getActList().get(0).getBonus(),
+                bonusPaymentSuccess.deletePayment(paidList.get(0).getManId(), Double.valueOf(paidList.get(0).getActList().get(0).getBonus()),
                         paidList.get(0).getActList().get(0).getId(), paidList.get(0).getActList().get(0).getCandidate());
                 if (paidList.get(0).getActList().get(0).getId() == 0)
-                    bonusPaymentSuccess.deletePaymentKPI(paidList.get(0).getManId(), paidList.get(0).getActList().get(0).getBonus(),
+                    bonusPaymentSuccess.deletePaymentKPI(paidList.get(0).getManId(), Double.valueOf(paidList.get(0).getActList().get(0).getBonus()),
                             paidList.get(0).getActList().get(0).getCandidate());
+            }
+
+        } else bonusPaymentSuccess.deletePaymentAll();
+        paidList.clear();
+    }
+
+    public void findActInList(String val, int userId, List<EmployerNew> employerNewList) {
+
+        List<EmployerNew> paidList = findPaidByActId(employerNewList);
+
+        int cntOld = findCountActId(paidList);
+        int cntNew;
+
+        int manId ;
+        Double paymentSum ;
+        int actId ;
+        String candidateName ;
+        String monthKPI = "";
+        int projectId ;
+        int type;
+
+        List<EmployerNew> newList = new ArrayList<>();
+
+
+        if (val != null) {
+            List<String> arrOfEmployerBonus = Arrays.asList(val.split(","));
+            cntNew = arrOfEmployerBonus.size();
+
+            if (cntOld < cntNew) {
+                List<String> result = arrOfEmployerBonus.stream()
+                        .filter(lang -> lang.contains("false"))
+                        .collect(Collectors.toList());
+
+                String source = result.get(0);
+                paymentSum = Double.valueOf(source.substring(0, source.indexOf("/")));
+                source = source.replace(paymentSum + "/", "");
+                manId = Integer.parseInt(source.substring(0, source.indexOf("/")));
+                source = source.replace(manId + "/", "");
+                actId = Integer.parseInt(source.substring(0, source.indexOf("/")));
+                source = source.replace(actId + "/", "");
+                candidateName = source.substring(0, source.indexOf("/"));
+
+                if (candidateName.contains("KPI")) {
+                    monthKPI = candidateName.replace("KPI - ", "");
+                    type = 1;
+                    projectId = 0;
+                }
+                else {
+                    source = source.replace(candidateName + "/", "");
+                    projectId = Integer.parseInt(source.substring(0, source.indexOf("/")));
+                    type = 2;
+                }
+                addPayment(userId, manId, paymentSum, actId, candidateName, projectId, monthKPI, type);
+            }
+            else {
+                for (int k = 0; k < arrOfEmployerBonus.size(); k++) {
+
+                    String source = arrOfEmployerBonus.get(k);
+                    paymentSum = Double.valueOf(source.substring(0, source.indexOf("/")));
+                    source = source.replace(paymentSum + "/", "");
+                    manId = Integer.parseInt(source.substring(0, source.indexOf("/")));
+                    source = source.replace(manId + "/", "");
+                    actId = Integer.parseInt(source.substring(0, source.indexOf("/")));
+                    source = source.replace(actId + "/", "");
+                    candidateName = source.substring(0, source.indexOf("/"));
+
+                    newList = findByActIdInList(manId, actId, candidateName, paymentSum, paidList);
+                }
+
+                bonusPaymentSuccess.deletePayment(newList.get(0).getManId(), Double.valueOf(newList.get(0).getActList().get(0).getBonus()),
+                        newList.get(0).getActList().get(0).getId(), newList.get(0).getActList().get(0).getCandidate());
+
             }
 
         } else bonusPaymentSuccess.deletePaymentAll();

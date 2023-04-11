@@ -28,4 +28,9 @@ public class ActPutServiceImpl implements iActPutService {
     public List<Act> getANoPaymentAct() {
         return actPutRepository.getNoPaymentAct();
     }
+
+    @Override
+    public Double allDebitAct(List<Act> actList) {
+        return null;
+    }
 }

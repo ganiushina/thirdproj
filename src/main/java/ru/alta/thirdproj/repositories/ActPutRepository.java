@@ -11,6 +11,7 @@ import ru.alta.thirdproj.entites.ActBuilder;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -30,14 +31,17 @@ public class ActPutRepository {
 
     private static final String SELECT_ACT_PAYMENT_QUERY = "SELECT * FROM fn_GetPaymentDone (:date1, :date2)";
 
-    private static final String SELECT_ACT_NO_PAYMENT_QUERY = "SELECT DISTINCT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, ab.candidate FROM dbo.act_buh ab \n" +
-            "JOIN dbo.project_buh pb ON pb.act_id = ab.id\n" +
-            "WHERE ab.id NOT IN (\n" +
-            "\tSELECT ab.id FROM dbo.payment_buh pb\n" +
-            "\tJOIN dbo.act_buh ab ON ab.id = pb.act_id\n" +
-            "\tWHERE ab.date_act >= convert(datetime, '20210101'))\n" +
-            "AND ab.date_act >= convert(datetime, '20210101')" +
-            "ORDER BY ab.date_act";
+    private static final String SELECT_ACT_NO_PAYMENT_QUERY = "SELECT DISTINCT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, ab.candidate \n" +
+            ",(SELECT [dbo].[date_notholiday] (ab.date_act, p.project_delay_pay))\t date_for_client_pay \n" +
+            "FROM dbo.act_buh ab \n" +
+            "            JOIN dbo.project_buh pb ON pb.act_id = ab.id\n" +
+            "\t\t\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
+            "            WHERE ab.id NOT IN (\n" +
+            "            SELECT ab.id FROM dbo.payment_buh pb\n" +
+            "            JOIN dbo.act_buh ab ON ab.id = pb.act_id\t\t\t\n" +
+            "            WHERE ab.date_act >= convert(datetime, '20220101'))\n" +
+            "            AND ab.date_act >= convert(datetime, '20220101')\n" +
+            "            ORDER BY ab.date_act";
 
     public List<Act> getPutAct(LocalDate date1, LocalDate date2)  {
 
@@ -51,6 +55,9 @@ public class ActPutRepository {
 
             List<Act> actList = new ArrayList<>();
             DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
+
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            currencyInstance.setCurrency(Currency.getInstance("RUB"));
 
 
             for (Map<String, Object> n : list) {
@@ -68,8 +75,10 @@ public class ActPutRepository {
                     if (entry.getKey().equals("total_no_nds")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        if (d != 0.0)
+                        if (d != 0.0) {
                             act.setBonus(d);
+                            act.setBonusRUB(currencyInstance.format(d));
+                        }
                     }
 
                     if (entry.getKey().equals("company_name")) {
@@ -93,25 +102,16 @@ public class ActPutRepository {
                         if (entry.getValue() != null)
                             act.setDate(formatter1.format((Date) entry.getValue()));
                         else act.setDate("");
-                        //                        act.setDateAct(formatter1.format((Date) entry.getValue()));
-//                        if (entry.getValue() != null)
-//                            try {
-//                                act.setDate(formatter1.parse(formatter1.format((Date) entry.getValue())));
-//                            } catch (ParseException e) {
-//                                e.printStackTrace();
-//                            }
-//                        else act.setDate((Date) entry.getValue());
+                    }
+
+                    if (entry.getKey().equals("date_for_client_pay")) {
+                        if (entry.getValue() != null)
+                            act.setDateClientPay(formatter1.format((Date) entry.getValue()));
+                        else act.setDateClientPay("");
 
                     }
 
                     if (entry.getKey().equals("payment_date")) {
-//                        if (entry.getValue() != null)
-//                        try {
-//                            act.setDatePayment(formatter1.parse(formatter1.format((Date) entry.getValue())));
-//                        } catch (ParseException e) {
-//                            e.printStackTrace();
-//                        }
-//                        else act.setDatePayment((Date) entry.getValue());
                         if (entry.getValue() != null)
                             act.setDatePayment(formatter1.format((Date) entry.getValue()));
                         else act.setDatePayment("");
@@ -137,6 +137,9 @@ public class ActPutRepository {
             List<Act> actList = new ArrayList<>();
             DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
+            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
+            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+
 
             for (Map<String, Object> n : list) {
 
@@ -152,6 +155,7 @@ public class ActPutRepository {
                     }
                     if (entry.getKey().equals("total_no_nds")) {
                         act.setBonus((double) entry.getValue());
+                        act.setBonusRUB(currencyInstance.format((double) entry.getValue()));
                     }
 
                     if (entry.getKey().equals("company_name")) {
@@ -170,6 +174,11 @@ public class ActPutRepository {
                         if (entry.getValue() != null)
                             act.setDate(formatter1.format((Date) entry.getValue()));
                         else act.setDate("");
+                    }
+                    if (entry.getKey().equals("date_for_client_pay")) {
+                        if (entry.getValue() != null)
+                            act.setDateClientPay(formatter1.format((Date) entry.getValue()));
+                        else act.setDateClientPay("");
 
                     }
 

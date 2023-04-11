@@ -45,4 +45,9 @@ public class UserBonusNew {
 
     private List<String> extraBonusAct;
 
+    private List<String> moneyAllRUB;
+    private List<String> moneyByCandidateRUB;
+    private List<String> sumTotalRUB;
+    private List<String> sumUserRUB;
+
 }

@@ -1,0 +1,8 @@
+/* общие настройки для всей страницы */
+.bg-primary {
+    background-color: #d62137 !important;
+}
+
+.navbar{
+    background-color: #d62137 !important;
+}
