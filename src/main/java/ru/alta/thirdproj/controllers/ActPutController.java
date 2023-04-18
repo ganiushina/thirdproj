@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.services.ActPutServiceImpl;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 @CrossOrigin("*")
@@ -43,30 +45,36 @@ public class ActPutController {
                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2)  {
        // User user = userService.findByUserName(principal.getName());
 
-
         List<Act> actList = actBonusPercentService.getAllPutAct(date1,date2);
         double allActMoneyPeriod = 0;
         double allActMoneyPeriodPaid = 0;
+        double allActForClientMoneyPeriod = 0;
         for (int i = 0; i < actList.size() ; i++) {
-            if (!actList.get(i).isPaid()) {
-                if (actList.get(i).getBonus() != null) {
+            if (actList.get(i).getDateAct().isAfter(date1) && actList.get(i).getDateAct().isBefore(date2)) {
+                if (!actList.get(i).isPaid()) {
                     allActMoneyPeriod += actList.get(i).getBonus();
                 }
+                allActForClientMoneyPeriod += actList.get(i).getBonus();
             }
-            else {
-                allActMoneyPeriodPaid += actList.get(i).getBonus();
+
+            if (actList.get(i).getPaymentDate() != null) {
+                if (actList.get(i).getPaymentDate().isAfter(date1) && actList.get(i).getPaymentDate().isBefore(date2)) {
+                    allActMoneyPeriodPaid += actList.get(i).getBonus();
+                }
             }
         }
+
         List<Act> actNoPayList = actBonusPercentService.getANoPaymentAct();
         double allActMoney =0;
         for (int i = 0; i < actNoPayList.size() ; i++) {
-            if (actNoPayList.get(i).getBonus() != null) {
                 allActMoney += actNoPayList.get(i).getBonus();
-
-            }
         }
-        final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-        currencyInstance.setCurrency(Currency.getInstance("RUB"));
+
+        BigDecimal tmp = BigDecimal.valueOf(allActMoney);
+
+        Locale ru = new Locale("ru", "RU");
+        Currency rub = Currency.getInstance(ru);
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         model.addAttribute("actNoPayList", actNoPayList);
         model.addAttribute("actPutList", actList);
@@ -74,6 +82,7 @@ public class ActPutController {
         model.addAttribute("allActMoney", currencyInstance.format(allActMoney));
         model.addAttribute("allActMoneyPeriod", currencyInstance.format(allActMoneyPeriod));
         model.addAttribute("allActMoneyPeriodPaid", currencyInstance.format(allActMoneyPeriodPaid));
+        model.addAttribute("allActForClientMoneyPeriod", currencyInstance.format(allActForClientMoneyPeriod));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
 

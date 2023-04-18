@@ -189,8 +189,9 @@ public class RestBonusController {
 
         List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
 
-        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        formatter.setCurrency(Currency.getInstance("RUB"));
+        Locale ru = new Locale("ru", "RU");
+        Currency rub = Currency.getInstance(ru);
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         Double allMoney = bonusService.getCompanyMoney(date1, date2);
 
@@ -212,8 +213,8 @@ public class RestBonusController {
 
         model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("userBonus", userBonusNewList);
-        model.addAttribute("allBonusMoney", formatter.format(allBonusMoney));
-        model.addAttribute("allMoney", formatter.format(allMoney));
+        model.addAttribute("allBonusMoney", currencyInstance.format(allBonusMoney));
+        model.addAttribute("allMoney", currencyInstance.format(allMoney));
         model.addAttribute("percentWithoutPKI", decimalFormat.format(percentWithoutPKI));
         model.addAttribute("percentWithPKI", decimalFormat.format(percentWithPKI));
         model.addAttribute("date1", date1);

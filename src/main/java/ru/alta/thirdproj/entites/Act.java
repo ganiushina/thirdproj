@@ -2,6 +2,7 @@ package ru.alta.thirdproj.entites;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -17,10 +18,12 @@ public class Act {
     private String dateForPay;
     private boolean paid;
     private String paymentRealDate;
+
+    private LocalDate paymentDate;
     private String employerPaid;
     private Double percent;
     private String projectName;
-    private String dateAct;
+    private LocalDate dateAct;
     private String dateClientPay;
     private String bonusRUB;
 

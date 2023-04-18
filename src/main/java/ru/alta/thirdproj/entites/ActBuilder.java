@@ -2,6 +2,7 @@ package ru.alta.thirdproj.entites;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 public final class ActBuilder {
@@ -16,9 +17,14 @@ public final class ActBuilder {
     private String dateForPay;
     private boolean paid;
     private String paymentRealDate;
+    private LocalDate paymentDate;
     private String employerPaid;
     private String projectName;
-    private String dateAct;
+    private LocalDate dateAct;
+
+    public void setPaymentDate(LocalDate paymentDate) {
+        this.paymentDate = paymentDate;
+    }
 
     DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
@@ -85,6 +91,16 @@ public final class ActBuilder {
         return this;
     }
 
+    public ActBuilder withPaymentDate(String paymentRealDate) {
+        this.paymentRealDate = paymentRealDate;
+        return this;
+    }
+
+    public ActBuilder withPaymentDate(LocalDate paymentDate) {
+        this.paymentDate = paymentDate;
+        return this;
+    }
+
     public ActBuilder withEmployerPaid(String employerPaid) {
         this.employerPaid = employerPaid;
         return this;
@@ -95,7 +111,7 @@ public final class ActBuilder {
         return this;
     }
 
-    public ActBuilder withDateAct (String dateAct) {
+    public ActBuilder withDateAct (LocalDate dateAct) {
         this.dateAct = dateAct;
         return this;
     }
@@ -114,6 +130,7 @@ public final class ActBuilder {
         act.setDateForPay(dateForPay);
         act.setPaid(paid);
         act.setPaymentRealDate(paymentRealDate);
+        act.setPaymentDate(paymentDate);
         act.setEmployerPaid(employerPaid);
         act.setProjectName(projectName);
         act.setDateAct(dateAct);

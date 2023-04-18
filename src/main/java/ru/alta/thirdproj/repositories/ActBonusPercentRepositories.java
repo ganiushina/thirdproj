@@ -59,8 +59,9 @@ public class ActBonusPercentRepositories {
             Table table = query.executeAndFetchTable();
             List<Map<String, Object>> list = table.asList();
 
-            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+            Locale ru = new Locale("ru", "RU");
+            Currency rub = Currency.getInstance(ru);
+            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
             List<Act> actList = new ArrayList<>();
 

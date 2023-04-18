@@ -43,8 +43,9 @@ public class UserBonusKPIRepositoryImpl {
 
             List<UserBonusKPI> userBonusKPIList = new ArrayList<>();
 
-            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+            Locale ru = new Locale("ru", "RU");
+            Currency rub = Currency.getInstance(ru);
+            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
             for (Map<String, Object> n : list) {
 

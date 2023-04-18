@@ -62,8 +62,10 @@ public class BonusPaymentRepositoryImpl {
             List<EmployerNew> employerList = new ArrayList<>();
             DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
-            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+            Locale ru = new Locale("ru", "RU");
+            Currency rub = Currency.getInstance(ru);
+            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+
 
             for (Map<String, Object> n : list) {
 

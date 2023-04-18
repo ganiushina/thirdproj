@@ -73,9 +73,9 @@ public class UserPaymentBonusServiceImpl {
     public String getAllMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
-        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        formatter.setCurrency(Currency.getInstance("RUB"));
-      //  NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        Locale ru = new Locale("ru", "RU");
+        Currency rub = Currency.getInstance(ru);
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
@@ -87,7 +87,7 @@ public class UserPaymentBonusServiceImpl {
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
-        return formatter.format(doublesSum);
+        return currencyInstance.format(doublesSum);
     }
 
     public String getMoneyByDate(List<EmployerNew> employerNews) {
@@ -95,8 +95,9 @@ public class UserPaymentBonusServiceImpl {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d");
         SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("MMMMM");
 
-        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        formatter.setCurrency(Currency.getInstance("RUB"));
+        Locale ru = new Locale("ru", "RU");
+        Currency rub = Currency.getInstance(ru);
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         List<Act> actList2 = new ArrayList<>();
 
@@ -126,7 +127,7 @@ public class UserPaymentBonusServiceImpl {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            stringBuilder.append(simpleDateFormat1.format(date) + " " + simpleDateFormat.format(date) + " : " + formatter.format(entry.getValue()) + " ");
+            stringBuilder.append(simpleDateFormat1.format(date) + " " + simpleDateFormat.format(date) + " : " + currencyInstance.format(entry.getValue()) + " ");
         }
 
         return stringBuilder.toString();
@@ -137,8 +138,9 @@ public class UserPaymentBonusServiceImpl {
     public String getAllPaymentMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
-        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        formatter.setCurrency(Currency.getInstance("RUB"));
+        Locale ru = new Locale("ru", "RU");
+        Currency rub = Currency.getInstance(ru);
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
 
 
@@ -153,15 +155,15 @@ public class UserPaymentBonusServiceImpl {
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
-        return formatter.format(doublesSum);
+        return currencyInstance.format(doublesSum);
     }
 
     public String getAllNotPaymentMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
-        //NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        final NumberFormat formatter = NumberFormat.getCurrencyInstance();
-        formatter.setCurrency(Currency.getInstance("RUB"));
+        Locale ru = new Locale("ru", "RU");
+        Currency rub = Currency.getInstance(ru);
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
@@ -174,7 +176,7 @@ public class UserPaymentBonusServiceImpl {
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();
-        return formatter.format(doublesSum);
+        return currencyInstance.format(doublesSum);
     }
 
     private List<HashMap<String, Object>> getHashMapsUserBonusPayment(List<UserPaymentBonus> userPaymentBonuses){

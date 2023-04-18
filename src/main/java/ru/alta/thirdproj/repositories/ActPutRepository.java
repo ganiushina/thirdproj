@@ -31,17 +31,12 @@ public class ActPutRepository {
 
     private static final String SELECT_ACT_PAYMENT_QUERY = "SELECT * FROM fn_GetPaymentDone (:date1, :date2)";
 
-    private static final String SELECT_ACT_NO_PAYMENT_QUERY = "SELECT DISTINCT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, ab.candidate \n" +
-            ",(SELECT [dbo].[date_notholiday] (ab.date_act, p.project_delay_pay))\t date_for_client_pay \n" +
-            "FROM dbo.act_buh ab \n" +
-            "            JOIN dbo.project_buh pb ON pb.act_id = ab.id\n" +
-            "\t\t\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
-            "            WHERE ab.id NOT IN (\n" +
-            "            SELECT ab.id FROM dbo.payment_buh pb\n" +
-            "            JOIN dbo.act_buh ab ON ab.id = pb.act_id\t\t\t\n" +
-            "            WHERE ab.date_act >= convert(datetime, '20220101'))\n" +
-            "            AND ab.date_act >= convert(datetime, '20220101')\n" +
-            "            ORDER BY ab.date_act";
+    private static final String SELECT_ACT_NO_PAYMENT_QUERY = "SELECT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total, ab.total_no_nds, ab.project_name, \n" +
+            "\tab.candidate, (SELECT [dbo].[date_notholiday] (ab.date_act, p.project_delay_pay)) date_for_client_pay \n" +
+            "\tFROM dbo.act_buh ab\n" +
+            "\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
+            "\tWHERE ab.id NOT IN (SELECT pb.act_id FROM dbo.payment_buh pb) \n" +
+            "\tAND ab.date_act >= convert(datetime, '20220101')";
 
     public List<Act> getPutAct(LocalDate date1, LocalDate date2)  {
 
@@ -56,9 +51,9 @@ public class ActPutRepository {
             List<Act> actList = new ArrayList<>();
             DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
-            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-            currencyInstance.setCurrency(Currency.getInstance("RUB"));
-
+            Locale ru = new Locale("ru", "RU");
+            Currency rub = Currency.getInstance(ru);
+            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
             for (Map<String, Object> n : list) {
 
@@ -99,8 +94,10 @@ public class ActPutRepository {
                     }
 
                     if (entry.getKey().equals("date_act")) {
-                        if (entry.getValue() != null)
+                        if (entry.getValue() != null) {
                             act.setDate(formatter1.format((Date) entry.getValue()));
+                            act.setDateAct(convertToLocalDateViaSqlDate((Date) entry.getValue()));
+                        }
                         else act.setDate("");
                     }
 
@@ -112,8 +109,10 @@ public class ActPutRepository {
                     }
 
                     if (entry.getKey().equals("payment_date")) {
-                        if (entry.getValue() != null)
+                        if (entry.getValue() != null) {
                             act.setDatePayment(formatter1.format((Date) entry.getValue()));
+                            act.setPaymentDate(convertToLocalDateViaSqlDate((Date) entry.getValue()));
+                        }
                         else act.setDatePayment("");
                     }
 
@@ -125,6 +124,10 @@ public class ActPutRepository {
     }
 
 }
+    public LocalDate convertToLocalDateViaSqlDate(Date dateToConvert) {
+        return new java.sql.Date(dateToConvert.getTime()).toLocalDate();
+    }
+
 
     public List<Act> getNoPaymentAct()  {
 
@@ -137,8 +140,8 @@ public class ActPutRepository {
             List<Act> actList = new ArrayList<>();
             DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
 
-            final NumberFormat currencyInstance = NumberFormat.getCurrencyInstance();
-            currencyInstance.setCurrency(Currency.getInstance("RUB"));
+            Locale ru = new Locale("ru", "RU");
+            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
 
             for (Map<String, Object> n : list) {
@@ -171,15 +174,16 @@ public class ActPutRepository {
                     }
 
                     if (entry.getKey().equals("date_act")) {
-                        if (entry.getValue() != null)
+                        if (entry.getValue() != null) {
                             act.setDate(formatter1.format((Date) entry.getValue()));
+                            act.setDateAct(convertToLocalDateViaSqlDate((Date) entry.getValue()));
+                        }
                         else act.setDate("");
                     }
                     if (entry.getKey().equals("date_for_client_pay")) {
                         if (entry.getValue() != null)
                             act.setDateClientPay(formatter1.format((Date) entry.getValue()));
                         else act.setDateClientPay("");
-
                     }
 
                 }
