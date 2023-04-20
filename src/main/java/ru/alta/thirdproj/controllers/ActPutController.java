@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.MoneyByFinalist;
 import ru.alta.thirdproj.services.ActPutServiceImpl;
+import ru.alta.thirdproj.services.ExpectedMoneyByFinalistService;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Controller
 @CrossOrigin("*")
@@ -34,6 +37,9 @@ public class ActPutController {
     public void setActBonusPercentService(ActPutServiceImpl actBonusPercentService){
         this.actBonusPercentService = actBonusPercentService;
     }
+    @Autowired
+    ExpectedMoneyByFinalistService moneyByFinalistService;
+
 
     @GetMapping("/actAll") // http://localhost:8189/userbonus/actPut/allact?date1=2022-06-01&date2=2022-06-27
 //    @ApiOperation("Returns list of all products data transfer objects")
@@ -70,10 +76,17 @@ public class ActPutController {
                 allActMoney += actNoPayList.get(i).getBonus();
         }
 
-        BigDecimal tmp = BigDecimal.valueOf(allActMoney);
+        List<MoneyByFinalist> moneyByFinalists = moneyByFinalistService.getMoneyByFinalistList();
+
+        double allFinalistMoneyPeriodPaid = 0;
+
+         for (int i = 0; i < moneyByFinalists.size() ; i++) {
+            if (moneyByFinalists.get(i).getProjectFee() != null) {
+                allFinalistMoneyPeriodPaid += moneyByFinalists.get(i).getProjectFee().doubleValue();
+            }
+        }
 
         Locale ru = new Locale("ru", "RU");
-        Currency rub = Currency.getInstance(ru);
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         model.addAttribute("actNoPayList", actNoPayList);
@@ -83,11 +96,10 @@ public class ActPutController {
         model.addAttribute("allActMoneyPeriod", currencyInstance.format(allActMoneyPeriod));
         model.addAttribute("allActMoneyPeriodPaid", currencyInstance.format(allActMoneyPeriodPaid));
         model.addAttribute("allActForClientMoneyPeriod", currencyInstance.format(allActForClientMoneyPeriod));
+        model.addAttribute("moneyByFinalists", moneyByFinalists);
+        model.addAttribute("allFinalistMoneyPeriodPaid", currencyInstance.format(allFinalistMoneyPeriodPaid));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
-
-    //    return "newTest";
-     //   return "TestAct";
         return "bonusAct2";
     }
 

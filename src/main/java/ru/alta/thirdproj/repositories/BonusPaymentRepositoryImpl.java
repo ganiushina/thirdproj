@@ -137,23 +137,17 @@ public class BonusPaymentRepositoryImpl {
                                     act.setDateForPay(formatter1.format((Date) entry.getValue()));
                                 else act.setDateForPay("");
 
-
-//                                act.setDateForPay((Date) entry.getValue());
-
                             }
 
                             if (entry.getKey().equals("payment_date")) {
                                 if (entry.getValue() != null)
                                     act.setDatePayment(formatter1.format((Date) entry.getValue()));
-                                else act.setDatePayment("");
-//                                act.setDatePayment((Date) entry.getValue());
+                                else act.setDatePayment("");//
                             }
 
                             if (entry.getKey().equals("payment_real_date")) {
                                 if (entry.getValue() != null)
                                     act.setPaymentRealDate(formatter1.format((Date) entry.getValue()));
-                              //  else act.setPaymentRealDate("");
-//                                act.setPaymentRealDate((Date) entry.getValue());
                             }
 
                             if (entry.getKey().equals("act_num")) {
@@ -173,8 +167,6 @@ public class BonusPaymentRepositoryImpl {
                             if (entry.getKey().equals("date_act")) {
                                 if (entry.getValue() != null)
                                     act.setDate(formatter1.format((Date) entry.getValue()));
-                           //     else act.setDate("");
-                              //  act.setDate((Date) entry.getValue());
                             }
 
                             if (entry.getKey().equals("project_id")) {
@@ -187,7 +179,6 @@ public class BonusPaymentRepositoryImpl {
                                     act.setEmployerPaid((String) entry.getValue());
                             }
                     }
-
 
                 actList.add(act);
                 employer.setActList(actList);

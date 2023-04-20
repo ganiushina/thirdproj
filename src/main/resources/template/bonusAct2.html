@@ -66,6 +66,8 @@
 
     <p th:text="Оплачено  + ' ' + актов + ' ' + за + ' ' + период +': '  + ${allActMoneyPeriodPaid}">
 
+    <p th:text="Ожидается  + ' ' + выходов + ' ' + на + ' ' + сумму +': '  + ${allFinalistMoneyPeriodPaid}">
+
 
     <form th:action="@{/actPut/actAll}" method="get">
 
@@ -95,6 +97,10 @@
             <li>
                 <button href="#tab-table2" data-toggle="tab">Все неоплаченные акты</button>
             </li>
+            <li>
+                <button href="#tab-table3" data-toggle="tab">Ожидается выходов</button>
+            </li>
+
         </ul>
     </nav>
 </div>
@@ -104,10 +110,6 @@
                 <div class="tab-content">
 
                         <div class="tab-pane active" id="tab-table1">
-
-
-<!--                        <div class="panel-body">-->
-<!--                            <table id="myTable" class="table table-bordered border-primary">-->
 
                             <table id="example1" class="table table-bordered border-primary">
 
@@ -182,7 +184,41 @@
                             </table>
                         </div>
 
+
+
+                    <div class="tab-pane" id="tab-table3">
+
+
+                        <table id="example3" class="table table-bordered border-primary">
+                            <thead>
+                            <tr>
+                                <th>Компания</th>
+                                <th>Кандидат</th>
+                                <th>Гонорар</th>
+                                <th>Проект</th>
+                                <th>Дата выхода</th>
+                                <th>Отсрочка платежа</th>
+                                <th>Оплата до</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <tr th:each="finalist,iterStat : ${moneyByFinalists}">
+                                <td style="white-space: nowrap"  th:text="${finalist.companyName}"/>
+                                <td style="white-space: nowrap"  th:text="${finalist.manFio}"/>
+                                <td style="white-space: nowrap"  th:text="${finalist.projectFeeRUB}"/>
+                                <td style="white-space: nowrap"  th:text="${finalist.projectName}"/>
+                                <td style="white-space: nowrap"  th:text="${finalist.recruitingToWorkString}"/>
+                                <td style="white-space: nowrap"  th:text="${finalist.projectDelayPay}"/>
+                                <td style="white-space: nowrap" th:text="${finalist.recruitingMoneyToWork}"/>
+                            </tr>
+                            </tbody>
+
+                        </table>
                     </div>
+
+                </div>
 
             </form>
 
