@@ -179,6 +179,9 @@ public class BonusRepositoryImpl {
                 List<String> sumTotalRUB = new ArrayList<>();
                 List<String> sumUserRUB = new ArrayList<>();
 
+                List<String> moneyAllRUBPerMonth = new ArrayList<>();
+
+
                 List<Integer> actIds = new ArrayList<>();
 
 
@@ -311,12 +314,16 @@ public class BonusRepositoryImpl {
                 if (sumTotal.size() > 0)
                     monthSummName.add(sumTotalRUB.get(0)) ;
 
+                if (moneyAllRUB.size() > 0 && monthName.size()>0)
+                    moneyAllRUBPerMonth.add(moneyAllRUB.get(0) + ":" + monthName.get(0));
+
                 userBonusNew.setMonth(month);
 
                 userBonusNew.setYear(year);
 
                 userBonusNew.setMonthMoneyName(monthMoneyName);
                 userBonusNew.setMonthSummName(monthSummName);
+                userBonusNew.setMoneyAllRUBPerMonth(moneyAllRUBPerMonth);
 
                 if (!tmpCanditate.equals("")) {
                     extraBonusAct.add(tmpCanditate + " " + userBonusNew.getCompanyName().get(0));
@@ -347,15 +354,37 @@ public class BonusRepositoryImpl {
                                 result.get(0).getCompanyName().add(userBonusNew.getCompanyName().get(0));
                         }
 
+                        if (userBonusNew.getMonthName() != null) {
+                            if (result.get(0).getMonthName() == null)
+                                result.get(0).setMonthName(userBonusNew.getMonthName());
+                            else
+                            if (!result.get(0).getMonthName().contains(userBonusNew.getMonthName().get(0))) {
+                                result.get(0).getMonthName().add(userBonusNew.getMonthName().get(0));
+                            }
+                        }
+
+                        if (userBonusNew.getMonth() != null) {
+                            if (result.get(0).getMonth() == null)
+                                result.get(0).setMonth(userBonusNew.getMonth());
+                            else
+                            if (!result.get(0).getMonth().contains(userBonusNew.getMonth().get(0))) {
+                                result.get(0).getMonth().add(userBonusNew.getMonth().get(0));
+                            }
+                        }
+
                         if (moneyAllTmp != null) {
-                            if (result.get(0).getMoneyAll() == null ) {
+                            if (result.get(0).getMoneyAll() == null) {
                                 result.get(0).setMoneyAll(userBonusNew.getMoneyAll());
                                 result.get(0).setMoneyAllRUB(userBonusNew.getMoneyAllRUB());
                                 result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
-                            } else if (!result.get(0).getMoneyAll().contains(moneyAllTmp) && userBonusNew.getMonthMoneyName().size() > 0) {
-                                result.get(0).getMoneyAll().add(moneyAllTmp);
-                                result.get(0).getMoneyAllRUB().add(moneyAllTmpRUB);
-                                result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
+                            } else
+                            {
+                                if (!result.get(0).getMoneyAllRUBPerMonth().contains(userBonusNew.getMoneyAllRUBPerMonth().get(0))) {
+                                    result.get(0).getMoneyAll().add(moneyAllTmp);
+                                    result.get(0).getMoneyAllRUB().add(moneyAllTmpRUB);
+                                    result.get(0).getMoneyAllRUBPerMonth().add(userBonusNew.getMoneyAllRUBPerMonth().get(0));
+                                    result.get(0).getMonthMoneyName().add(userBonusNew.getMonthMoneyName().get(0));
+                                }
                             }
                         }
 
@@ -381,15 +410,6 @@ public class BonusRepositoryImpl {
                             }
                         }
 
-
-                        if (userBonusNew.getMonthName() != null) {
-                            if (result.get(0).getMonthName() == null)
-                                result.get(0).setMonthName(userBonusNew.getMonthName());
-                            else
-                                if (!result.get(0).getMonthName().contains(userBonusNew.getMonthName().get(0))) {
-                                    result.get(0).getMonthName().add(userBonusNew.getMonthName().get(0));
-                                }
-                        }
 
                         if (userBonusNew.getPercent() != null)
                         {

@@ -50,4 +50,6 @@ public class UserBonusNew {
     private List<String> sumTotalRUB;
     private List<String> sumUserRUB;
 
+    private List<String> moneyAllRUBPerMonth;
+
 }

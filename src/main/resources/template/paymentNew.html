@@ -141,6 +141,9 @@
 
 
                     </thead>
+                    <tbody>
+
+
 
                     <tr th:each="employer, iterStat : ${employerList}" th:object="${employersList}">
 <!--                        <tr>-->
@@ -165,7 +168,7 @@
                                     <input id="agreement" type="checkbox" name="fio"
                                             th:value="${act.bonus} +
                                      '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects} + '/' + ${act.paid}"
-                                            th:checked="${act.paid} ? 'checked'"  >
+                                            th:checked="${act.paid} ? 'checked'"  th:onclick="submit()" >
                                     <span th:text="${act.bonusRUB}" /></span>
 
                                 </span>
@@ -289,16 +292,16 @@
 
                     </tr>
 
-
+                    </tbody>
                 </table>
 
 
-            </div>
-            </td>
-            </tr>
+<!--            </div>-->
+<!--            </td>-->
+<!--            </tr>-->
 
-            </tbody>
-            </table>
+<!--            </tbody>-->
+<!--            </table>-->
 
 
 
@@ -366,81 +369,81 @@
 
             ////// yyyy
 
-           //
-           //  $('input:checkbox').change(function(e) {
-           //      // reference to form object
-           //   //   var form = this;
-           //      // for stopping the default action of element
-           // //     e.preventDefault();
-           //      // mapthat will hold form data
-           //
-           //      //iterate over form elements
-           //      // var wegeb = document.getElementById("agreement")
-           //      // var txt = wegeb.outerHTML.valueOf();
-           //  //    var formData = {}
-           //      // $.each(this, function(i, v){
-           //      //     var input = $(v);
-           //      //     // populate form data as key-value pairs
-           //      //     // with the name of input as key and its value as value
-           //      //     formData[input.attr("fio")] = input.val();
-           //      // });
-           //
-           //      var status = this.value;
-           //      $.ajax({
-           //          url: '/payment/confirm',
-           //          type: 'POST',
-           //          headers: {
-           //              'Accept': 'application/json',
-           //              'Content-Type': 'application/json'
-           //          },
-           //          data: status, //Stringified Json Object
-           //          beforeSend: function(xhr) {
-           //              xhr.setRequestHeader("Accept", "application/json");
-           //              xhr.setRequestHeader("Content-Type", "application/json");
-           //          },
-           //          success: function(resposeJsonObject){}
-           //      });
-           //
-           //      // $.ajax({
-           //      //     type: 'post', // method attribute of form
-           //      //     url: '/payment/confirm',  // action attribute of form
-           //      //     dataType : 'json',
-           //      //     // convert form data to json format
-           //      //     data : JSON.stringify(formData),
-           //      //     success     :   function ( result ) {
-           //      //        alert(result);
-           //      //     }
-           //      // });
-           //  });
+
+             $('input:checkbox').change(function(e) {
+                 // reference to form object
+              //   var form = this;
+                 // for stopping the default action of element
+            //     e.preventDefault();
+                 // mapthat will hold form data
+
+                 //iterate over form elements
+                 // var wegeb = document.getElementById("agreement")
+                 // var txt = wegeb.outerHTML.valueOf();
+             //    var formData = {}
+                 // $.each(this, function(i, v){
+                 //     var input = $(v);
+                 //     // populate form data as key-value pairs
+                 //     // with the name of input as key and its value as value
+                 //     formData[input.attr("fio")] = input.val();
+                 // });
+
+                 var status = this.value;
+                 $.ajax({
+                     url: '/payment/confirm',
+                     type: 'POST',
+                     headers: {
+                         'Accept': 'application/json',
+                         'Content-Type': 'application/json'
+                     },
+                     data: status, //Stringified Json Object
+                     beforeSend: function(xhr) {
+                         xhr.setRequestHeader("Accept", "application/json");
+                         xhr.setRequestHeader("Content-Type", "application/json");
+                     },
+                     success: function(resposeJsonObject){}
+                 });
+
+                 // $.ajax({
+                 //     type: 'post', // method attribute of form
+                 //     url: '/payment/confirm',  // action attribute of form
+                 //     dataType : 'json',
+                 //     // convert form data to json format
+                 //     data : JSON.stringify(formData),
+                 //     success     :   function ( result ) {
+                 //        alert(result);
+                 //     }
+                 // });
+             });
 
 
 //////yyyyy
 
 
 
-            // $('#agreement').change(function (e) {
-            $('input[type="checkbox"]').on('change', function(e){
-                // reference to form object
+<!--            // $('#agreement').change(function (e) {-->
+<!--            $('input[type="checkbox"]').on('change', function(e){-->
+<!--                // reference to form object-->
 
-                // for stopping the default action of element
-                e.preventDefault();
-                // mapthat will hold form data
-                var formData = this.value;
-                //iterate over form elements
-                // $.each(this, function(i, v){
-                //     var input = $(v);
-                //     // populate form data as key-value pairs
-                //     // with the name of input as key and its value as value
-                //     formData[input.attr("fio")] = input.val();
-                // });
-                $.ajax({
-                    type: 'post', // method attribute of form
-                    url: '/payment/confirm',  // action attribute of form
-                    dataType : 'json',
-                    // convert form data to json format
-                    data : formData
-                });
-            });
+<!--                // for stopping the default action of element-->
+<!--                e.preventDefault();-->
+<!--                // mapthat will hold form data-->
+<!--                var formData = this.value;-->
+<!--                //iterate over form elements-->
+<!--                // $.each(this, function(i, v){-->
+<!--                //     var input = $(v);-->
+<!--                //     // populate form data as key-value pairs-->
+<!--                //     // with the name of input as key and its value as value-->
+<!--                //     formData[input.attr("fio")] = input.val();-->
+<!--                // });-->
+<!--                $.ajax({-->
+<!--                    type: 'post', // method attribute of form-->
+<!--                    url: '/payment/confirm',  // action attribute of form-->
+<!--                    dataType : 'json',-->
+<!--                    // convert form data to json format-->
+<!--                    data : formData-->
+<!--                });-->
+<!--            });-->
 
             // var successHandler = function( data, textStatus, jqXHR ) {
             //     // After success reload table with JavaScript
@@ -632,7 +635,7 @@
         </script>
 
 
-</body>
+
 </html>
 <!--&lt;!&ndash;<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>&ndash;&gt;-->
 <!--&lt;!&ndash;<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>&ndash;&gt;-->
