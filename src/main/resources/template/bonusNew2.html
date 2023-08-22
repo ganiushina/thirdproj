@@ -87,6 +87,13 @@
         <p th:text="Процент  + ' ' + выплаты  + ': '  + ${percentWithoutPKI}  + '%' ">
         <p th:text="Процент  + ' ' + выплаты + ' ' + с + ' ' + KPI + ': '  + ${percentWithPKI} + '%' ">
 
+        <form th:action="@{/bonus/export-to-excel}" method="get">
+
+         <button type="submit" class="btn btn-primary">Скачать Excel File</button>
+        <p> </p>
+
+
+        </form>
 
             <form th:action="@{/bonus/getall}" method="get">
 
@@ -332,6 +339,7 @@
                         </div>
 
                     </div>
+                </div>
 
             </form>
 

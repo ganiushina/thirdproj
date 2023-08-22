@@ -115,7 +115,9 @@ public class ActPutRepository {
                         }
                         else act.setDatePayment("");
                     }
-
+                    if (entry.getKey().equals("organization")) {
+                        act.setOrganization((String) entry.getValue());
+                    }
                 }
                 actList.add(act);
 

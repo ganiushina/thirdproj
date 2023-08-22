@@ -168,7 +168,7 @@
                                     <input id="agreement" type="checkbox" name="fio"
                                             th:value="${act.bonus} +
                                      '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects} + '/' + ${act.paid}"
-                                            th:checked="${act.paid} ? 'checked'"  th:onclick="submit()" >
+                                            th:checked="${act.paid} ? 'checked'"   > // th:onclick="submit()"
                                     <span th:text="${act.bonusRUB}" /></span>
 
                                 </span>

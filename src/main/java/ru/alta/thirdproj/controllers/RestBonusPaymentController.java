@@ -9,21 +9,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.EmployerNew;
 import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
+import ru.alta.thirdproj.export.ExcelGenerator;
 import ru.alta.thirdproj.services.BonusPaymentSuccessServiceImpl;
 import ru.alta.thirdproj.services.UserPaymentBonusServiceImpl;
 import ru.alta.thirdproj.services.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.security.Principal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 //@RestController
 @Controller
@@ -39,6 +43,12 @@ public class RestBonusPaymentController {
     private UserService userService;
 
     private List<EmployerNew> employerList;
+
+    private LocalDate dateS;
+
+    private LocalDate dateF;
+
+    private List<List<Object>> objectList;
 
     @Autowired
     public RestBonusPaymentController(UserPaymentBonusServiceImpl paymentBonusService) {
@@ -123,12 +133,18 @@ public class RestBonusPaymentController {
 
 
     ) {
+        dateS = date1;
+        dateF = date2;
         employerList = paymentBonusService.getEmployerList(date1, date2);
         String allMoney = paymentBonusService.getAllMoney(employerList);
         String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
         String allNotPaymentMoney = paymentBonusService.getAllNotPaymentMoney(employerList);
 
         String moneyByDate = paymentBonusService.getMoneyByDate(employerList);
+
+        objectList = new ArrayList<>();
+
+        objectList.add(Collections.singletonList(employerList));
 
         model.addAttribute("employerList", employerList);
         model.addAttribute("allMoney", allMoney);
@@ -138,12 +154,14 @@ public class RestBonusPaymentController {
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "paymentNew1";
+   //   return "ajax";
     }
 
 
-    @PostMapping(value = "/confirm", headers = "HX-Request")
+
+    @PostMapping(value = "/confirm")
     @ApiOperation("Confirm payment")
-    public String paymentConfirm (
+    public @ResponseBody String paymentConfirm (
             @RequestParam (value = "fio", required = false) String fio,
             HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Principal principal, Model model)  {
 
@@ -154,8 +172,23 @@ public class RestBonusPaymentController {
         String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
         String referrer = httpServletRequest.getHeader("referer");
         model.addAttribute("allPaymentMoney", allPaymentMoney);
+//        return "success" ;
         return "redirect:" + referrer;
     }
+
+    @GetMapping("/export-to-excel")
+    public void exportIntoExcelFile(HttpServletResponse response) throws Exception {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=bonus" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+        ExcelGenerator generator = new ExcelGenerator(objectList, dateS, dateF);
+        generator.generate(response);
+    }
+
+
 
     @ExceptionHandler
     public ResponseEntity<?> handleException(UserBonusNotFoundException exc) {

@@ -26,6 +26,7 @@ public class Act {
     private LocalDate dateAct;
     private String dateClientPay;
     private String bonusRUB;
+    private String organization;
 
 
 }

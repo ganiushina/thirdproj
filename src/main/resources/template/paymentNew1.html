@@ -31,9 +31,11 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/postScript.js.js"></script>
+<!--    <script type="text/javascript" src="js/postScript.js.js"></script>-->
 
     <script type="text/javascript" th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
 
 
 
@@ -50,7 +52,9 @@
 <div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">
     <div class="col-md-12">
 
-        <h1 th:text="Выплаты" />
+<!--        <h1 th:text="Выплаты" />-->
+
+        <h1>Выплаты</h1>
 
 
         <p  th:text="Всего  + ' ' + к + ' ' + оплате + ': '  + ${allMoney}" >
@@ -60,6 +64,14 @@
         <p  th:text="Оплачено  + ':  ' + ${allPaymentMoney}" >
 
         <p  th:text="Осталось  + ':  ' + ${allNotPaymentMoney}" >
+
+        <form th:action="@{/payment/export-to-excel}" method="get">
+
+            <button type="submit" class="btn btn-primary">Скачать Excel File</button>
+            <p> </p>
+
+
+        </form>
 
 
         <form th:action="@{/payment/allpayment3}" method="get">
@@ -75,7 +87,7 @@
 
         </form>
 
-        <form id="checked-contacts" action="#"   >
+        <form id="checked-contacts" action="#" th:action="@{/payment/confirm}" method="post"  >
 
 <!--        <form id="checked-contacts" action="#" th:action="@{/payment/confirm}" method="post"  >-->
 
@@ -101,9 +113,9 @@
 
 
                     </thead>
-                    <tbody hx-target="closest tr" hx-swap="outerHTML">
+                    <tbody>
 
-                    <tr hx-trigger='cancel' class='editing' hx-post="/payment/confirm"  th:each="employer, iterStat : ${employerList}" th:object="${employersList}">
+                    <tr th:each="employer, iterStat : ${employerList}" th:object="${employersList}">
 <!--                        <tr>-->
                             <td th:text="${employer.manFIO}"></td>
                             <td th:text="${employer.userDepartment}"></td>
@@ -117,16 +129,14 @@
                                 </ul>
                             </td>
 
-
-
                         <td>
                                 <ul class="nomarker">
                                 <span style="white-space: nowrap" th:each="act : ${employer.actList}" >
                                     <li>
-                                    <input hx-put="/contact/${contact.id}" hx-include="closest tr" id="agreement" type="checkbox" name="fio"
+                                    <input id="agreement" type="checkbox" name="fio"
                                             th:value="${act.bonus} +
                                      '/' + ${employer.manId} + '/' + ${act.id} + '/' + ${act.candidate} + '/' + ${act.projects} + '/' + ${act.paid}"
-                                            th:checked="${act.paid} ? 'checked'"  th:onclick="submit()" >
+                                            th:checked="${act.paid} ? 'checked'"  >
                                     <span th:text="${act.bonusRUB}" /></span>
 
                                 </span>
@@ -135,6 +145,8 @@
 
 
                             </td>
+
+<!--                        th:onclick="submit()"-->
 
 
                             <td>
@@ -212,7 +224,7 @@
 
 
                         <td>
-                            <button class="btn btn-danger" hx-put="/payment/confirm" hx-include="closest tr">
+                            <button class="btn btn-danger" onclick="save">
                                 Save
                             </button>
                         </td>
@@ -237,6 +249,8 @@
 
 
         </form>
+    </div>
+</div>
 
         <script>
             function myFunction() {
@@ -276,8 +290,74 @@
                 }
             }
 
+           $('input:checkbox').change(function(e) {
+                 // reference to form object
+              //   var form = this;
+                 // for stopping the default action of element
+            //     e.preventDefault();
+                 // mapthat will hold form data
+
+                 //iterate over form elements
+                 // var wegeb = document.getElementById("agreement")
+                 // var txt = wegeb.outerHTML.valueOf();
+             //    var formData = {}
+                 // $.each(this, function(i, v){
+                 //     var input = $(v);
+                 //     // populate form data as key-value pairs
+                 //     // with the name of input as key and its value as value
+                 //     formData[input.attr("fio")] = input.val();
+                 // });
+
+                 var status = this.value;
+                 $.ajax({
+                     url: "/payment/confirm",
+                     type: "post",
+<!--                     headers: {-->
+<!--                         'Accept': 'application/json',-->
+<!--                         'Content-Type': 'application/json'-->
+<!--                     },-->
+                     data: status, //Stringified Json Object
+<!--                     beforeSend: function(xhr) {-->
+<!--                         xhr.setRequestHeader("Accept", "application/json");-->
+<!--                         xhr.setRequestHeader("Content-Type", "application/json");-->
+<!--                     },-->
+                     success: function(){
+                      alert("success");
+                      }
+                 });
+
+                 // $.ajax({
+                 //     type: 'post', // method attribute of form
+                 //     url: '/payment/confirm',  // action attribute of form
+                 //     dataType : 'json',
+                 //     // convert form data to json format
+                 //     data : JSON.stringify(formData),
+                 //     success     :   function ( result ) {
+                 //        alert(result);
+                 //     }
+                 // });
+             });
+
+            function save() {
+             var status = this.value;
+                   $.ajax({
+                      type: 'post', // method attribute of form
+                      url: '/payment/confirm',  // action attribute of form
+<!--                      dataType : 'json',-->
+
+                      data : status,
+                      success     :   function () {
+                         alert("success");
+                      }
+                  });
+
+            }
+
+
+
 
         </script>
 
+</body>
 
 </html>

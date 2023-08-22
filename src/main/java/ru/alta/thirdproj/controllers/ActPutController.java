@@ -19,10 +19,8 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.Currency;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @CrossOrigin("*")
@@ -51,16 +49,36 @@ public class ActPutController {
                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2)  {
        // User user = userService.findByUserName(principal.getName());
 
+        Locale ru = new Locale("ru", "RU");
+        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+
         List<Act> actList = actBonusPercentService.getAllPutAct(date1,date2);
         double allActMoneyPeriod = 0;
         double allActMoneyPeriodPaid = 0;
         double allActForClientMoneyPeriod = 0;
+        Map<String, Double> allActForClientMoneyPeriodByCompany =
+        actList.stream()
+                .filter(e->e.getDateAct().isAfter(date1))
+                .filter(e->e.getDateAct().isBefore(date2))
+                .collect(
+                Collectors.groupingBy(Act::getOrganization, Collectors.summingDouble(Act::getBonus)));
+
+        StringBuilder sb = new StringBuilder();
+
+        for(Map.Entry<String, Double> item : allActForClientMoneyPeriodByCompany.entrySet()){
+
+            sb.append(" " + item.getKey() + " - " + currencyInstance.format(item.getValue()));
+        }
+
+        String allActForClientMoneyPeriodByCompanyString = sb.toString();
+
         for (int i = 0; i < actList.size() ; i++) {
             if (actList.get(i).getDateAct().isAfter(date1) && actList.get(i).getDateAct().isBefore(date2)) {
                 if (!actList.get(i).isPaid()) {
                     allActMoneyPeriod += actList.get(i).getBonus();
                 }
                 allActForClientMoneyPeriod += actList.get(i).getBonus();
+
             }
 
             if (actList.get(i).getPaymentDate() != null) {
@@ -86,8 +104,7 @@ public class ActPutController {
             }
         }
 
-        Locale ru = new Locale("ru", "RU");
-        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+
 
         model.addAttribute("actNoPayList", actNoPayList);
         model.addAttribute("actPutList", actList);
@@ -98,6 +115,7 @@ public class ActPutController {
         model.addAttribute("allActForClientMoneyPeriod", currencyInstance.format(allActForClientMoneyPeriod));
         model.addAttribute("moneyByFinalists", moneyByFinalists);
         model.addAttribute("allFinalistMoneyPeriodPaid", currencyInstance.format(allFinalistMoneyPeriodPaid));
+        model.addAttribute("allActForClientMoneyPeriodByCompanyString", allActForClientMoneyPeriodByCompanyString);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusAct2";

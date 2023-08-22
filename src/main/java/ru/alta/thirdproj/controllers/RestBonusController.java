@@ -12,12 +12,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
+import ru.alta.thirdproj.export.ExcelGenerator;
 import ru.alta.thirdproj.services.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.Principal;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -41,6 +46,16 @@ public class RestBonusController {
     private UserBonusKPIServiceImpl bonusKPIService;
 
     private List<UserBonusKPI> bonusKPIList;
+
+    private List<UserBonusNew> userBonusNewList;
+
+    private LocalDate dateS;
+
+    private LocalDate dateF;
+
+    private List<List<Object>> objectList;
+
+    List<HashMap<String, Object>> entitiesTest;
 
 
     @Autowired
@@ -175,8 +190,10 @@ public class RestBonusController {
 
     ) {
 
-        List<UserBonusNew> userBonusNewList =  bonusService.getUserBonusList(date1, date2);
-        double allBonusMoney = 0;
+        userBonusNewList =  bonusService.getUserBonusList(date1, date2);
+        Double allBonusMoney = Double.valueOf(0);;
+        dateS = date1;
+        dateF = date2;
 
 
         for (int i = 0; i < userBonusNewList.size() ; i++) {
@@ -193,9 +210,14 @@ public class RestBonusController {
         Currency rub = Currency.getInstance(ru);
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
-        Double allMoney = bonusService.getCompanyMoney(date1, date2);
+        Double allMoney = Double.valueOf(0);
+        allMoney = bonusService.getCompanyMoney(date1, date2);
 
-        double percentWithoutPKI = allBonusMoney*100/allMoney;
+
+        Double percentWithoutPKI = Double.valueOf(0);
+        if (allMoney != null) {
+            percentWithoutPKI = allBonusMoney * 100 / allMoney;
+        }
 
         bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
 
@@ -206,20 +228,46 @@ public class RestBonusController {
                 allKPIMoney += bonusKPIList.get(i).getBonusAll().get(j);
             }
         }
-        double percentWithPKI = (allBonusMoney+allKPIMoney)*100/allMoney;
+        Double percentWithPKI = Double.valueOf(0);
+        if (allMoney != null) {
+         percentWithPKI = (allBonusMoney + allKPIMoney) * 100 / allMoney;
+        }
 
         DecimalFormat decimalFormat = new DecimalFormat( "#.##" );
+
+        String allMoneyStr = "";
+        if (allMoney != null)
+            allMoneyStr = currencyInstance.format(allMoney);
+
+        objectList = new ArrayList<>();
+
+        if (bonusKPIList.size() >0){
+            objectList.add(Collections.singletonList(bonusKPIList));
+        }
+        objectList.add(Collections.singletonList((userBonusNewList)));
 
 
         model.addAttribute("userBonusKPI", bonusKPIList);
         model.addAttribute("userBonus", userBonusNewList);
         model.addAttribute("allBonusMoney", currencyInstance.format(allBonusMoney));
-        model.addAttribute("allMoney", currencyInstance.format(allMoney));
+        model.addAttribute("allMoney", allMoneyStr);
         model.addAttribute("percentWithoutPKI", decimalFormat.format(percentWithoutPKI));
         model.addAttribute("percentWithPKI", decimalFormat.format(percentWithPKI));
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusNew2";
+    }
+
+    @GetMapping("/export-to-excel")
+    public void exportIntoExcelFile(HttpServletResponse response) throws Exception {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=bonus" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+        ExcelGenerator generator = new ExcelGenerator(objectList, dateS, dateF);
+        generator.generate(response);
     }
 
     @GetMapping("/getkpi") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31

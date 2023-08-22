@@ -81,7 +81,6 @@ public class BonusPaymentRepositoryImpl {
                             if (entry.getKey().equals("man_id")) {
                                 employer.setManId((Integer) entry.getValue());
                             }
-
                             if (entry.getKey().equals("man_fio")) {
                                 for (int j = 0; j < employerList.size(); j++) {
                                     if (entry.getKey().equals("man_fio")) {
@@ -169,10 +168,10 @@ public class BonusPaymentRepositoryImpl {
                                     act.setDate(formatter1.format((Date) entry.getValue()));
                             }
 
-                            if (entry.getKey().equals("project_id")) {
-                                if ((Integer) entry.getValue() != 0)
-                                act.setProjects((Integer) entry.getValue());
-                            }
+//                            if (entry.getKey().equals("project_id")) {
+//                                if ((Integer) entry.getValue() != 0)
+//                                act.setProjects((Integer) entry.getValue());
+//                            }
 
                             if (entry.getKey().equals("emploeduser")) {
                                 if (entry.getValue() != null)

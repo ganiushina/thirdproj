@@ -60,7 +60,9 @@
 
     <p th:text="Всего  + ' ' + неоплачено + ' ' + актов + ': '  + ${allActMoney}">
 
-    <p th:text="Выставлено  + ' ' + актов + ' ' + за + ' ' + период +': '  + ${allActForClientMoneyPeriod}">
+    <p th:text="Всего  + ' ' + выставлено  + ' ' + актов + ' ' + за + ' ' + период  +': '  + ${allActForClientMoneyPeriod}">
+
+    <p th:text="Выставлено  + ' ' + актов + ' ' + за + ' ' + период + ' ' + по + ' ' + компаниям + ': '  + ${allActForClientMoneyPeriodByCompanyString}">
 
     <p th:text="Неоплачено  + ' ' + актов + ' ' + за + ' ' + период +': '  + ${allActMoneyPeriod}">
 
@@ -115,6 +117,7 @@
 
                                 <thead>
                                     <tr>
+                                        <th>От компании</th>
                                         <th>Номер акта</th>
                                         <th>Дата акта</th>
                                         <th>Компания</th>
@@ -130,6 +133,7 @@
                                     <tbody>
 
                                     <tr th:each="act,iterStat : ${actPutList}">
+                                        <td style="white-space: nowrap" th:text="${act.organization}"/>
                                         <td style="white-space: nowrap" th:text="${act.num}"/>
                                         <td style="white-space: nowrap" th:text="${act.date}"/>
 
