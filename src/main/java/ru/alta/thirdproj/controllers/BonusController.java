@@ -17,7 +17,6 @@ import ru.alta.thirdproj.services.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.security.Principal;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -33,28 +32,18 @@ import java.util.*;
 @RequestMapping("/bonus") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 //@Api("Set of endpoints for CRUD operations for UserBonus")
 @Tag(name="RestBonusController", description="Заработанные бонусы")
-public class RestBonusController {
+public class BonusController {
 
     private UserBonusServiceImpl bonusService;
-
     private EmployerServiceImpl employerService;
-
     private UserService userService;
-
     private ActBonusPercentServiceImpl actBonusPercentService;
-
     private UserBonusKPIServiceImpl bonusKPIService;
-
     private List<UserBonusKPI> bonusKPIList;
-
     private List<UserBonusNew> userBonusNewList;
-
     private LocalDate dateS;
-
     private LocalDate dateF;
-
     private List<List<Object>> objectList;
-
     List<HashMap<String, Object>> entitiesTest;
 
 
@@ -69,7 +58,7 @@ public class RestBonusController {
     }
 
     @Autowired
-    public RestBonusController(UserBonusServiceImpl bonusService) {
+    public BonusController(UserBonusServiceImpl bonusService) {
         this.bonusService = bonusService;
     }
 

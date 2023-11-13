@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.EmployerNew;
 import ru.alta.thirdproj.entites.User;
@@ -22,7 +21,6 @@ import ru.alta.thirdproj.services.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.security.Principal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -34,24 +32,18 @@ import java.util.*;
 @CrossOrigin("*")
 @RequestMapping("/payment") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 @Tag(name="RestBonusPaymentController", description="Выплаты по бонусам")
-public class RestBonusPaymentController {
+public class BonusPaymentController {
 
     private UserPaymentBonusServiceImpl paymentBonusService;
-
     private BonusPaymentSuccessServiceImpl paymentSuccessService;
-
     private UserService userService;
-
     private List<EmployerNew> employerList;
-
     private LocalDate dateS;
-
     private LocalDate dateF;
-
     private List<List<Object>> objectList;
 
     @Autowired
-    public RestBonusPaymentController(UserPaymentBonusServiceImpl paymentBonusService) {
+    public BonusPaymentController(UserPaymentBonusServiceImpl paymentBonusService) {
         this.paymentBonusService = paymentBonusService;
     }
 

@@ -79,9 +79,14 @@ public class ExpectedMoneyByFinalistRepository {
                         moneyByFinalist.setCompanyName((String) entry.getValue());
                     } else
                     if (entry.getKey().equals("project_fee")) {
-                        BigDecimal bd = new BigDecimal((String) entry.getValue());
+                        String val = "";
+                        if (String.valueOf(entry.getValue()).indexOf(",") > 0){
+                            val = String.valueOf(entry.getValue()).replace(",", ".");
+                        }
+                        else val = String.valueOf(entry.getValue());
+                        BigDecimal bd = new BigDecimal(val);
                         double d = bd.doubleValue();
-                        moneyByFinalist.setProjectFee(new BigDecimal((String) entry.getValue()));
+                        moneyByFinalist.setProjectFee(bd);
                         moneyByFinalist.setProjectFeeRUB(currencyInstance.format(d));
                     } else
 
