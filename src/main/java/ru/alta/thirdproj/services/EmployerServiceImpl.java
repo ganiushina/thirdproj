@@ -35,5 +35,4 @@ public class EmployerServiceImpl {
         return userProvider.getEmployerByName(username);
     }
 
-
 }

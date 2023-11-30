@@ -8,15 +8,13 @@ import org.sql2o.Sql2o;
 import org.sql2o.data.Table;
 import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.entites.ActBuilder;
+import ru.alta.thirdproj.entites.Employer;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Component
@@ -30,6 +28,10 @@ public class ActPutRepository {
 
 
     private static final String SELECT_ACT_PAYMENT_QUERY = "SELECT * FROM fn_GetPaymentDone (:date1, :date2)";
+
+    private static final String SELECT_ACT_PAYMENT_BY_ACT_QUERY = "select pb.act_id, pb.responsible_user_name  from project_buh pb \n" +
+            "\n" +
+            "where pb.act_id = :act_id";
 
     private static final String SELECT_ACT_NO_PAYMENT_QUERY = "SELECT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total, ab.total_no_nds, ab.project_name, \n" +
             "\tab.candidate, (SELECT [dbo].[date_notholiday] (ab.date_act, p.project_delay_pay)) date_for_client_pay \n" +
@@ -196,4 +198,5 @@ public class ActPutRepository {
         }
 
     }
+
 }

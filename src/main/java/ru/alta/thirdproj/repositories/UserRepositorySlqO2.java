@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.entites.Role;
 import ru.alta.thirdproj.entites.User;

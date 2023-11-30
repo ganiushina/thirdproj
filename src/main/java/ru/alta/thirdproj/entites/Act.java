@@ -18,7 +18,6 @@ public class Act {
     private String dateForPay;
     private boolean paid;
     private String paymentRealDate;
-
     private LocalDate paymentDate;
     private String employerPaid;
     private Double percent;
@@ -27,6 +26,5 @@ public class Act {
     private String dateClientPay;
     private String bonusRUB;
     private String organization;
-
 
 }

@@ -15,13 +15,14 @@ import ru.alta.thirdproj.entites.MoneyByFinalist;
 import ru.alta.thirdproj.services.ActPutServiceImpl;
 import ru.alta.thirdproj.services.ExpectedMoneyByFinalistService;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.codehaus.groovy.vmplugin.v8.PluginDefaultGroovyMethods.mapToDouble;
 
 @Controller
 @CrossOrigin("*")
@@ -52,15 +53,18 @@ public class ActPutController {
 
         Locale ru = new Locale("ru", "RU");
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+        String bestUser = "";
 
-        List<Act> actList = actBonusPercentService.getAllPutAct(date1,date2);
+        List<Act> actList = (actBonusPercentService.getAllPutAct(date1,date2)).
+                stream().sorted(Comparator.comparingInt(Act::getId)).collect(Collectors.toList());
+        Optional<Act> actList1 = null;
         double allActMoneyPeriod = 0;
         double allActMoneyPeriodPaid = 0;
         double allActForClientMoneyPeriod = 0;
         Map<String, Double> allActForClientMoneyPeriodByCompany =
         actList.stream()
+                .filter(e->e.getDateAct().isBefore(date2.plusDays(1)))
                 .filter(e->e.getDateAct().isAfter(date1))
-                .filter(e->e.getDateAct().isBefore(date2))
                 .collect(
                 Collectors.groupingBy(Act::getOrganization, Collectors.summingDouble(Act::getBonus)));
 
@@ -73,6 +77,9 @@ public class ActPutController {
 
         String allActForClientMoneyPeriodByCompanyString = sb.toString();
 
+        BigDecimal BONUS_SUM = BigDecimal.valueOf(75000000.0);
+        boolean stop = false;
+
         for (int i = 0; i < actList.size() ; i++) {
             if (actList.get(i).getDateAct().isAfter(date1) && actList.get(i).getDateAct().isBefore(date2)) {
                 if (!actList.get(i).isPaid()) {
@@ -80,6 +87,12 @@ public class ActPutController {
                 }
                 allActForClientMoneyPeriod += actList.get(i).getBonus();
 
+            if (!stop) {
+                if (BigDecimal.valueOf(allActForClientMoneyPeriod).compareTo(BONUS_SUM) >= 0) {
+                    bestUser = actList.get(i).getNum() + " " + actList.get(i).getCandidate();
+                    stop = true;
+                }
+            }
             }
 
             if (actList.get(i).getPaymentDate() != null) {
@@ -106,7 +119,6 @@ public class ActPutController {
         }
 
 
-
         model.addAttribute("actNoPayList", actNoPayList);
         model.addAttribute("actPutList", actList);
         model.addAttribute("actNoPayList", actNoPayList);
@@ -117,6 +129,7 @@ public class ActPutController {
         model.addAttribute("moneyByFinalists", moneyByFinalists);
         model.addAttribute("allFinalistMoneyPeriodPaid", currencyInstance.format(allFinalistMoneyPeriodPaid));
         model.addAttribute("allActForClientMoneyPeriodByCompanyString", allActForClientMoneyPeriodByCompanyString);
+        model.addAttribute("bestUser", bestUser);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusAct2";

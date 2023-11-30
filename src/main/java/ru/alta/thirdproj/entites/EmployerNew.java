@@ -16,4 +16,5 @@ public class EmployerNew {
     private List<Integer> percent;
     private String allBonusRUB;
 
+
 }

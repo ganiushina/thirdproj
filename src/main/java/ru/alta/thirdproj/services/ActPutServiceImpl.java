@@ -3,6 +3,7 @@ package ru.alta.thirdproj.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.repositories.ActPutRepository;
 
 import java.time.LocalDate;
@@ -33,4 +34,7 @@ public class ActPutServiceImpl implements iActPutService {
     public Double allDebitAct(List<Act> actList) {
         return null;
     }
+
+
+
 }

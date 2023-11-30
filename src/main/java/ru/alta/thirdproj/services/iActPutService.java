@@ -1,6 +1,7 @@
 package ru.alta.thirdproj.services;
 
 import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.Employer;
 
 import java.time.LocalDate;
 import java.util.List;
