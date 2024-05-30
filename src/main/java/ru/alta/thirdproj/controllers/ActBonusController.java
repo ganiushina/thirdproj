@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
-@RestController
-//@Controller
+//@RestController
+@Controller
 @CrossOrigin("*")
 @RequestMapping("/act") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 @Tag(name="ActBonusController", description="Дополнительные бонусы по актам")

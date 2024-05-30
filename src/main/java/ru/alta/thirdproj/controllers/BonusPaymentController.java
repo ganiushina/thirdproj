@@ -9,12 +9,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.EmployerNew;
 import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.entites.UserPaymentBonus;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.export.ExcelGenerator;
+import ru.alta.thirdproj.response.JsonResponse;
 import ru.alta.thirdproj.services.BonusPaymentSuccessServiceImpl;
 import ru.alta.thirdproj.services.UserPaymentBonusServiceImpl;
 import ru.alta.thirdproj.services.UserService;
@@ -147,6 +150,56 @@ public class BonusPaymentController {
         model.addAttribute("date2", date2);
         return "paymentNew1";
    //   return "ajax";
+    }
+
+    @GetMapping("/allpaymentAjax") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
+    @ApiOperation("Returns list of all products data transfer objects")
+    public  @ResponseBody JsonResponse showAllAjax(Model model, Principal principal,
+                                                   @RequestParam(value = "date1")
+                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
+                                                   @RequestParam(value = "date2")
+                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+            , BindingResult result
+
+
+    ) {
+
+
+        dateS = date1;
+        dateF = date2;
+        employerList = paymentBonusService.getEmployerList(date1, date2);
+        String allMoney = paymentBonusService.getAllMoney(employerList);
+        String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
+        String allNotPaymentMoney = paymentBonusService.getAllNotPaymentMoney(employerList);
+
+        String moneyByDate = paymentBonusService.getMoneyByDate(employerList);
+
+        objectList = new ArrayList<>();
+
+        objectList.add(Collections.singletonList(employerList));
+        JsonResponse res = new JsonResponse();
+        ValidationUtils.rejectIfEmpty(result, "name", "Name can not be empty.");
+        ValidationUtils.rejectIfEmpty(result, "education", "Educatioan not be empty");
+        if(!result.hasErrors()){
+            objectList.add(Collections.singletonList(employerList));
+            res.setStatus("SUCCESS");
+            res.setResult(objectList);
+        }else{
+            res.setStatus("FAIL");
+            res.setResult(result.getAllErrors());
+        }
+
+        return res;
+
+//        model.addAttribute("employerList", employerList);
+//        model.addAttribute("allMoney", allMoney);
+//        model.addAttribute("allPaymentMoney", allPaymentMoney);
+//        model.addAttribute("moneyByDate", moneyByDate);
+//        model.addAttribute("allNotPaymentMoney", allNotPaymentMoney);
+//        model.addAttribute("date1", date1);
+//        model.addAttribute("date2", date2);
+//        return "paymentNew1";
+        //   return "ajax";
     }
 
 

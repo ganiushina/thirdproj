@@ -54,6 +54,8 @@ public class ActPutController {
         Locale ru = new Locale("ru", "RU");
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
         String bestUser = "";
+        String bestUser_m = "";
+        String bestUser_s = "";
 
         List<Act> actList = (actBonusPercentService.getAllPutAct(date1,date2)).
                 stream().sorted(Comparator.comparingInt(Act::getId)).collect(Collectors.toList());
@@ -77,8 +79,9 @@ public class ActPutController {
 
         String allActForClientMoneyPeriodByCompanyString = sb.toString();
 
-        BigDecimal BONUS_SUM = BigDecimal.valueOf(75000000.0);
         boolean stop = false;
+        boolean stop_m = false;
+        boolean stop_s = false;
 
         for (int i = 0; i < actList.size() ; i++) {
             if (actList.get(i).getDateAct().isAfter(date1) && actList.get(i).getDateAct().isBefore(date2)) {
@@ -86,13 +89,6 @@ public class ActPutController {
                     allActMoneyPeriod += actList.get(i).getBonus();
                 }
                 allActForClientMoneyPeriod += actList.get(i).getBonus();
-
-            if (!stop) {
-                if (BigDecimal.valueOf(allActForClientMoneyPeriod).compareTo(BONUS_SUM) >= 0) {
-                    bestUser = actList.get(i).getNum() + " " + actList.get(i).getCandidate();
-                    stop = true;
-                }
-            }
             }
 
             if (actList.get(i).getPaymentDate() != null) {
@@ -129,7 +125,6 @@ public class ActPutController {
         model.addAttribute("moneyByFinalists", moneyByFinalists);
         model.addAttribute("allFinalistMoneyPeriodPaid", currencyInstance.format(allFinalistMoneyPeriodPaid));
         model.addAttribute("allActForClientMoneyPeriodByCompanyString", allActForClientMoneyPeriodByCompanyString);
-        model.addAttribute("bestUser", bestUser);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "bonusAct2";
