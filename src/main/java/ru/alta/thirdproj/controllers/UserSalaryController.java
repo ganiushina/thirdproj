@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.alta.thirdproj.entites.MarginBonusBDM;
-import ru.alta.thirdproj.entites.UserSalary;
+import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.services.MarginBonusServiceImpl;
 import ru.alta.thirdproj.services.UserSalaryServiceImpl;
+import ru.alta.thirdproj.services.UserSalesServiceImpl;
 
 import java.security.Principal;
 import java.text.NumberFormat;
@@ -28,28 +28,41 @@ public class UserSalaryController {
     private UserSalaryServiceImpl userSalaryService;
     private MarginBonusServiceImpl marginBonusService;
 
+    private UserSalesServiceImpl userSalesService;
+
     @Autowired
-    public void setUserSalaryService(UserSalaryServiceImpl userSalaryService, MarginBonusServiceImpl marginBonusService){
+    public void setUserSalaryService(UserSalaryServiceImpl userSalaryService, MarginBonusServiceImpl marginBonusService, UserSalesServiceImpl userSalesService){
         this.userSalaryService = userSalaryService;
         this.marginBonusService = marginBonusService;
+        this.userSalesService = userSalesService;
     }
 
-    @GetMapping("/getSalaryAll") // http://localhost:8189/userbonus/actPut/allact?date1=2022-06-01&date2=2022-06-27
+    @GetMapping("/getSalaryAll") // http://192.168.0.240:8181/userbonus/salary/getSalaryAll?date1=2024-06-01&date2=2024-06-30
 //    @ApiOperation("Returns list of all products data transfer objects")
     public String showSalaryAll(Model model,
                           Principal principal,
                           @RequestParam(value = "date1")
                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
                           @RequestParam(value = "date2")
-                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2) {
+                          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+                 //         ,@RequestParam(value = "qrt") String qrt
+    ) {
         Locale ru = new Locale("ru", "RU");
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
-        List<UserSalary> userSalaryList = userSalaryService.getUserSalaryList(date1,date2);
-        model.addAttribute("userSalaryList", userSalaryList);
+//        List<UserSalary> userSalaryList = userSalaryService.getUserSalaryList(date1,date2);
+//        List<MarginBonusBDM> marginBonusList = marginBonusService.getAllMarginBonus(date1,date2);
+//        List<DepartmentUserSales> userSaleList = userSalesService.getUserSalesList(date1,date2);
+        List<MarginBonus> marginBonuses = userSalesService.getMarginBonusByMonth(date1,date2);
+
+//        model.addAttribute("marginBonusList", marginBonusList);
+//        model.addAttribute("userSalaryList", userSalaryList);
+//        model.addAttribute("userSaleList", userSaleList);
+        model.addAttribute("marginBonusByMonth", marginBonuses);
+
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
-        return "salary";
+        return "salary1";
 
     }
 
@@ -68,7 +81,7 @@ public class UserSalaryController {
         model.addAttribute("marginBonusList", marginBonusList);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
-        return "margin";
+        return "salary1";
 
     }
 
