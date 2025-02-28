@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Email with Embedded Image</title>
+</head>
+<body>
+
+<div style="text-align: center;">
+    <p>
+    <h1>Привет, коллега!</h1>
+    </p>
+    <p>
+       Завтра, <b> <span style="color:red; font-size: 16pt;" th:text="${date}"></span></b> День рождения отмечает
+    </p>
+
+    <ul style="list-style:none;">
+
+        <li style="list-style:none;" th:each="user : ${userBirthday}">
+            <hr>
+            <p>  <b>Именинник:</b>  <span style="color:blue; font-size: 16pt;" th:text="${user.manFIO}"></span> </p>
+            <img src="cid:logo" alt="Logo" style="width: 200px; height: 200px;">
+            <p> <b>Команда\Должность:</b> <span th:text="| ${user.companyName}, ${user.position}|"></span> </p>
+        </li>
+    </ul>
+
+
+</div>
+</body>
+</html>
