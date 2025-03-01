@@ -84,8 +84,8 @@ public class ScheduledConfiguration {
         }
     }
 
-    @Scheduled(cron = "0 0 9 * * *")
- //   @Scheduled(cron = "*/60 * * * * *")
+    @Scheduled(cron = "0 0 9 1 * *")
+//    @Scheduled(cron = "*/60 * * * * *")
     public void executeTaskUserMonth() throws MessagingException {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(100);
         if (userBirthDayList.size()>0) {
