@@ -47,8 +47,9 @@ public class ScheduledConfiguration {
 //       emails.add("sadykov@altapersonnel.ru");
 
 
-    @Scheduled(cron = "0 0 7 * * *")
+//    @Scheduled(cron = "0 0 7 * * *")
  //   @Scheduled(cron = "*/60 * * * * *")
+    @Scheduled(cron =  "0 0 7 * * ?", zone="Europe/Samara")
     public void executeTaskUserTomorrow() throws Exception {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(1);
         if (userBirthDayList.size()>0) {
@@ -66,7 +67,8 @@ public class ScheduledConfiguration {
     }
 
 //    @Scheduled(cron = "*/60 * * * * *")
-    @Scheduled(cron = "0 0 0 1 * *")
+  //  @Scheduled(cron = "0 0 8 * * *")
+    @Scheduled(cron =  "0 0 8 * * ?", zone="Europe/Samara")
     public void executeTaskClient() throws MessagingException {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(0);
         if (userBirthDayList.size()>0) {
@@ -84,8 +86,12 @@ public class ScheduledConfiguration {
         }
     }
 
-    @Scheduled(cron = "0 0 9 1 * *")
+//    @Scheduled(cron = "0 0 9 1 * *")
 //    @Scheduled(cron = "*/60 * * * * *")
+
+ //   @Scheduled(cron = "0 9 1 * ?")
+
+    @Scheduled(cron="0 0 6 1 * *", zone="Europe/Samara")
     public void executeTaskUserMonth() throws MessagingException {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(100);
         if (userBirthDayList.size()>0) {
