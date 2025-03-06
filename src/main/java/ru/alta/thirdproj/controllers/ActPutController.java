@@ -98,7 +98,7 @@ public class ActPutController {
             }
         }
 
-        List<Act> actNoPayList = actBonusPercentService.getANoPaymentAct();
+        List<Act> actNoPayList = actBonusPercentService.getANoPaymentAct(date1);
         double allActMoney =0;
         for (int i = 0; i < actNoPayList.size() ; i++) {
                 allActMoney += actNoPayList.get(i).getBonus();

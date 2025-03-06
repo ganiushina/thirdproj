@@ -12,11 +12,13 @@ public class UserBonusKPI {
     private String position;
     List<Double> bonus;
     List<Double> bonusBest;
+    List<Double> bonusBestMarketing;
     List<Double> bonusAll;
     List<String> month;
 
     List<String> bonusRUB;
     List<String> bonusBestRUB;
     List<String> bonusAllRUB;
+    List<String> bonusBestMarketingRUB;
 
 }

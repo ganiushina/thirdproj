@@ -53,12 +53,14 @@ public class UserBonusKPIRepositoryImpl {
 
                 List<Double> bonus = new ArrayList<>();
                 List<Double> bonusBest = new ArrayList<>();
+                List<Double> bonusBestMarketing= new ArrayList<>();
                 List<Double> bonusAll = new ArrayList<>();
                 List<String> month = new ArrayList<>();
 
                 List<String> bonusRUB = new ArrayList<>();
                 List<String> bonusBestRUB = new ArrayList<>();
                 List<String> bonusAllRUB = new ArrayList<>();
+                List<String> bonusBestMarketingRUB= new ArrayList<>();
 
 
                 boolean isNotNew = false;
@@ -101,6 +103,13 @@ public class UserBonusKPIRepositoryImpl {
                         bonusBest.add(d);
                         bonusBestRUB.add(currencyInstance.format(d));
                     }
+                    if (entry.getKey().equals("best_bonus_kpi_marketing")) {
+                        BigDecimal bd = (BigDecimal) entry.getValue();
+                        double d = bd.doubleValue();
+                        bonusBestMarketing.add(d);
+                        bonusBestMarketingRUB.add(currencyInstance.format(d));
+                    }
+
 
                     if (entry.getKey().equals("all_bonus")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
@@ -119,10 +128,12 @@ public class UserBonusKPIRepositoryImpl {
                 userBonusKPI.setBonusBest(bonusBest);
                 userBonusKPI.setBonusAll(bonusAll);
                 userBonusKPI.setMonth(month);
+                userBonusKPI.setBonusBestMarketing(bonusBestMarketing);
 
                 userBonusKPI.setBonusRUB(bonusRUB);
                 userBonusKPI.setBonusBestRUB(bonusBestRUB);
                 userBonusKPI.setBonusAllRUB(bonusAllRUB);
+                userBonusKPI.setBonusBestMarketingRUB(bonusBestMarketingRUB);
 
                 if (isNotNew) {
                     String finalManFIO = manFIO;
@@ -134,10 +145,12 @@ public class UserBonusKPIRepositoryImpl {
                     result.get(0).getBonusBest().add(userBonusKPI.getBonusBest().get(0));
                     result.get(0).getBonusAll().add(userBonusKPI.getBonusAll().get(0));
                     result.get(0).getMonth().add(userBonusKPI.getMonth().get(0));
+                    result.get(0).getBonusBestMarketing().add(userBonusKPI.getBonusBestMarketing().get(0));
 
                     result.get(0).getBonusRUB().add(userBonusKPI.getBonusRUB().get(0));
                     result.get(0).getBonusBestRUB().add(userBonusKPI.getBonusBestRUB().get(0));
                     result.get(0).getBonusAllRUB().add(userBonusKPI.getBonusAllRUB().get(0));
+                    result.get(0).getBonusBestMarketingRUB().add(userBonusKPI.getBonusBestMarketingRUB().get(0));
 
 
 

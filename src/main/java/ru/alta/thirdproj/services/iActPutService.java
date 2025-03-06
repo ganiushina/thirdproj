@@ -9,6 +9,6 @@ import java.util.List;
 public interface iActPutService {
 
     List<Act> getAllPutAct(LocalDate date1, LocalDate date2);
-    List<Act> getANoPaymentAct();
+    List<Act> getANoPaymentAct(LocalDate date1);
     Double allDebitAct(List<Act> actList);
 }

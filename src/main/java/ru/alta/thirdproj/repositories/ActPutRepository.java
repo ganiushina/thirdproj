@@ -38,7 +38,7 @@ public class ActPutRepository {
             "\tFROM dbo.act_buh ab\n" +
             "\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
             "\tWHERE ab.id NOT IN (SELECT pb.act_id FROM dbo.payment_buh pb) \n" +
-            "\tAND ab.date_act >= convert(datetime, '20220101')";
+            "\tAND convert(date, ab.date_act) >= convert(date, dateadd(yy, -1, :date1))";
 
     public List<Act> getPutAct(LocalDate date1, LocalDate date2)  {
 
@@ -133,10 +133,11 @@ public class ActPutRepository {
     }
 
 
-    public List<Act> getNoPaymentAct()  {
+    public List<Act> getNoPaymentAct(LocalDate date1)  {
 
         try (Connection connection = sql2o.open()) {
-            Query query = connection.createQuery(SELECT_ACT_NO_PAYMENT_QUERY, false);
+            Query query = connection.createQuery(SELECT_ACT_NO_PAYMENT_QUERY, false)
+                    .addParameter("date1", date1);
 
             Table table = query.executeAndFetchTable();
             List<Map<String, Object>> list = table.asList();

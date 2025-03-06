@@ -281,6 +281,7 @@
                                     <th>Должность</th>
                                     <th>Бонус</th>
                                     <th>Бонус за 1-ое место</th>
+                                    <th>Бонус за 1-ое Маркетинг</th>
                                     <th>Весь бонус</th>
                                     <th>Месяц</th>
                                 </tr>
@@ -305,6 +306,14 @@
                                     <td>
                                         <ul class="nomarker">
                                          <span th:each="bonusBest : ${userBonusKPI.bonusBestRUB}">
+                                            <li>
+                                                <span th:text="${bonusBest}"/></span>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                    <td>
+                                        <ul class="nomarker">
+                                         <span th:each="bonusBest : ${userBonusKPI.bonusBestMarketingRUB}">
                                             <li>
                                                 <span th:text="${bonusBest}"/></span>
                                             </li>
