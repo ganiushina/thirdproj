@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="detailsTab">
+    <h4>Маржа поквартально</h4>
+    <p>Маржа за период <span th:text="${#temporals.format(dateFrom)}">...</span>
+         <span th:text="${#temporals.format(dateTo)}">...</span></p>
+
+    <div th:replace="~{fragments/filter-fragment_quarter :: filter-form(tableId='salesTable')}"></div>
+
+    <div class="sticky-table-wrapper">
+    <table id="salesTable" class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Направление</th>
+            <th scope="col">Заработано направлением</th>
+            <th scope="col">Выплачено направлению</th>
+            <th scope="col">Маржа направления</th>
+            <th scope="col">Бонус BDM</th>
+            <th scope="col">Квартал</th>
+            <th scope="col">Год</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="marginBonus : ${marginBonusList}"
+            th:attr="data-name=${marginBonus.departmentName},
+            data-department=${marginBonus.departmentName}">
+
+            <td class="department-name" th:text="${marginBonus.departmentName}"></td>
+
+            <td>
+                <ul class="list-inline">
+                            <span th:each="margin : ${marginBonus.earnedMoneyDepartment}">
+                                <li>
+                                    <span  th:text="${margin}"/></span>
+                    </li>
+                </ul>
+            </td>
+            <td>
+                <ul class="list-inline">
+                            <span th:each="margin : ${marginBonus.paidMoney}">
+                                <li>
+                                    <span  th:text="${margin}"/></span>
+                    </li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                            <span th:each="margin : ${marginBonus.marginDepartment}">
+                                <li>
+<!--                        <input id="agreement" type="checkbox" name="salaryAll" >-->
+                                    <span  th:text="${margin}"/></span>
+                    </li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                            <span th:each="margin : ${marginBonus.marginBonusBDM}">
+                                <li>
+                                    <span  th:text="${margin}"/></span>
+                    </li>
+                </ul>
+            </td>
+            <td>
+                <ul class="list-inline">
+                            <span th:each="margin : ${marginBonus.marginQuarter}">
+                                <li>
+                                    <span  th:text="${margin}"/></span>
+                    </li>
+                </ul>
+            </td>
+
+            <td th:text="${marginBonus.marginYear}"></td>
+
+        </tr>
+        </tbody>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function adjustStickyHeader() {
+                    const nav = document.querySelector('nav'); // Или ваш селектор навигации
+                    const navHeight = nav ? nav.offsetHeight : 56; // 56px - стандартная высота
+
+                    document.querySelectorAll('.sticky-table-wrapper thead th').forEach(th => {
+                        th.style.top = navHeight + 'px';
+                    });
+                }
+
+                // Инициализация + обработка ресайза
+                adjustStickyHeader();
+                window.addEventListener('resize', adjustStickyHeader);
+
+                // Для динамических изменений в навигации
+                new MutationObserver(adjustStickyHeader).observe(
+                    document.querySelector('nav'),
+                    { attributes: true, attributeFilter: ['style'] }
+                );
+            });
+        </script>
+    </table>
+</div>
+</div>
+
+</body>
+</html>

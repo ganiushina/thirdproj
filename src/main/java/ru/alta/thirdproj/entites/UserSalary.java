@@ -6,22 +6,17 @@ import java.util.List;
 
 @Data
 public class UserSalary {
-
     private long userId;
-    private String fio;
-    private List<String> userSalary;
-    private List<String> userBonus;
-    private List<String> userBonusKPI;
-    private List<String> userMoneyReal;
-    private List<String> userSalaryAll;
-    private int salaryMonth;
-    private List<String> salaryMonthStr;
-    private int salaryYear;
-   // private int salaryQuarter;
-    private String position;
+    private String userFio;
+    private String userBonusKPI;
+    private String userBonus;
+    private String userSalary;
+    private String userSalaryAll;
+    private String userSalaryAllWithOutCoef;
     private String department;
-
-
-
-
+    private String position;
+    private int salaryMonth;
+    private int salaryQuarter;
+    private String salaryMonthStr;
+    private int salaryYear;
 }

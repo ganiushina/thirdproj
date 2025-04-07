@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="homeTable">
+    <h3>Home Tab</h3>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Направление</th>
+            <th scope="col">Месяц</th>
+            <th scope="col">Заработано за месяц</th>
+            <th scope="col">Выплачено за месяц</th>
+            <th scope="col">Маржа за месяц</th>
+            <th scope="col">Заработано всего</th>
+            <th scope="col">Выплачено всего</th>
+            <th scope="col">Маржа всего</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="marginBonusByMonth, iterStat : ${marginBonusByMonth}" th:object="${marginBonusByMonth}">
+            <td th:text="${marginBonusByMonth.depName}"></td>
+            <td th:text="${marginBonusByMonth.salaryMonth}"></td>
+            <td th:text="${marginBonusByMonth.amountEarnedRUB}"></td>
+            <td th:text="${marginBonusByMonth.amountPaidRUB}"></td>
+            <td th:text="${marginBonusByMonth.marginRUB}"></td>
+            <td th:text="${marginBonusByMonth.amountEarnedAllPeriodRUB}"></td>
+            <td th:text="${marginBonusByMonth.amountPaidAllPeriodRUB}"></td>
+            <td th:text="${marginBonusByMonth.marginAllPeriodRUB}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

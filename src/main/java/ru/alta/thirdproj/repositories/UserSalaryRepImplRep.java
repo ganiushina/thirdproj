@@ -60,29 +60,13 @@ public class UserSalaryRepImplRep  {
 
                 double allsumm = 0;
 
-                List<String> bonuskpi = new ArrayList<>();
-                List<String> bonus = new ArrayList<>();
-                List<String> salary = new ArrayList<>();
-                List<String> salaryAll = new ArrayList<>();
-
-                List<String> monthName = new ArrayList<>();
-
-
                 for (var entry : n.entrySet()) {
 
                     if (entry.getKey().equals("man_id")) {
                         userSalary.setUserId((Integer) entry.getValue());
                     }
-                    else if (entry.getKey().equals("man_fio")) {
-                        for (int j = 0; j < userSalaryList.size(); j++) {
-                            if (entry.getKey().equals("man_fio")) {
-                                if (userSalaryList.get(j).getFio().equals(entry.getValue())) {
-                                    manFIO = (String) entry.getValue();//
-                                    isNotNew = true;
-                                }
-                            }
-                        }
-                        userSalary.setFio((String) entry.getValue());
+                    if (entry.getKey().equals("man_fio")) {
+                        userSalary.setUserFio((String) entry.getValue());
                     }
 
                     if (entry.getKey().equals("dep_name")) {
@@ -94,35 +78,34 @@ public class UserSalaryRepImplRep  {
                     if (entry.getKey().equals("bonuskpi")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        bonuskpi.add(currencyInstance.format(d));
-                        userSalary.setUserBonusKPI(bonuskpi);
+                        userSalary.setUserBonusKPI(currencyInstance.format(d));
 
                     }
                     if (entry.getKey().equals("bonus")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        bonus.add(currencyInstance.format(d));
-                        userSalary.setUserBonus(bonus);
+                        userSalary.setUserBonus(currencyInstance.format(d));
 
                     }
                     if (entry.getKey().equals("manzp")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
-                        if (d == 1.0) {
-                            salary.add(currencyInstance.format(0.0));
-                            userSalary.setUserSalary(salary);
-                        }
-                        else {
-                            salary.add(currencyInstance.format(d));
-                            userSalary.setUserSalary(salary);
-                        }
+                        userSalary.setUserSalary(currencyInstance.format(d));
                     }
+
                     if (entry.getKey().equals("allsumm")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
                         allsumm = d;
-                        salaryAll.add(currencyInstance.format(d));
-                        userSalary.setUserSalaryAll(salaryAll);
+                        userSalary.setUserSalaryAll(currencyInstance.format(d));
+
+                    }
+
+                    if (entry.getKey().equals("allsumm_without_coef")) {
+                        BigDecimal bd = (BigDecimal) entry.getValue();
+                        double d = bd.doubleValue();
+                        allsumm = d;
+                        userSalary.setUserSalaryAllWithOutCoef(currencyInstance.format(d));
 
                     }
                     if (entry.getKey().equals("salary_month")) {
@@ -131,75 +114,24 @@ public class UserSalaryRepImplRep  {
 
                     if (entry.getKey().equals("salary_month_str")) {
                         if (!(entry.getValue()).equals("")) {
-                            monthName.add((String) entry.getValue());
-                            userSalary.setSalaryMonthStr(monthName);
+                            userSalary.setSalaryMonthStr((String) entry.getValue());
                         }
 
                     }
                     if (entry.getKey().equals("salary_year")) {
                         userSalary.setSalaryYear((Integer) entry.getValue());
                     }
+
                 }
+                userSalaryList.add(userSalary);
 
-                if (isNotNew && allsumm > 1.0)  {
-                    String finalManFIO = manFIO;
-                    List<UserSalary> result = userSalaryList.stream()
-                            .filter(a -> Objects.equals(a.getFio(), finalManFIO))
-                            .collect(toList());
-
-
-                    if (userSalary.getUserSalary() != null) {
-                        if (result.get(0).getUserSalary() == null)
-                            result.get(0).setUserSalary(userSalary.getUserSalary());
-                        else
-                            result.get(0).getUserSalary().add(userSalary.getUserSalary().get(0));
-                    }
-
-                    if (userSalary.getUserSalaryAll() != null) {
-                        if (result.get(0).getUserSalaryAll() == null)
-                            result.get(0).setUserSalaryAll(userSalary.getUserSalaryAll());
-                        else
-                            result.get(0).getUserSalaryAll().add(userSalary.getUserSalaryAll().get(0));
-                    }
-
-                    if (userSalary.getSalaryMonthStr() != null) {
-                        if (result.get(0).getSalaryMonthStr() == null)
-                            result.get(0).setSalaryMonthStr(userSalary.getSalaryMonthStr());
-                        else
-                        if (!result.get(0).getSalaryMonthStr().contains(userSalary.getSalaryMonthStr().get(0))) {
-                            result.get(0).getSalaryMonthStr().add(userSalary.getSalaryMonthStr().get(0));
-                        }
-                    }
-                    if (userSalary.getUserBonus() != null) {
-                        if (result.get(0).getUserBonus() == null)
-                            result.get(0).setUserBonus(userSalary.getUserBonus());
-                        else
-                        if (!result.get(0).getUserBonus().contains(userSalary.getUserBonus().get(0))) {
-                            result.get(0).getUserBonus().add(userSalary.getUserBonus().get(0));
-                        }
-                    }
-
-                    if (userSalary.getUserBonusKPI() != null) {
-                        if (result.get(0).getUserBonusKPI() == null) {
-                            result.get(0).setUserBonusKPI(userSalary.getUserBonusKPI());
-                        } else {
-                            result.get(0).getUserBonusKPI().add(userSalary.getUserBonusKPI().get(0));
-
-                        }
-                    }
-
-
-                } else {
-                    if (allsumm > 1.0) {
-                        userSalaryList.add(userSalary);
-                    }
-                }
             }
             return userSalaryList;
+        }
 
         }
 
-    }
+
     public List<MarginBonusBDM> getMarginBonus(LocalDate date1, LocalDate date2) {
         try (Connection connection = sql2o.open()) {
             Query query = connection.createQuery(SELECT_MARGIN_QUARTER_QUERY, false)

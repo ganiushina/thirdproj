@@ -3,6 +3,7 @@ package ru.alta.thirdproj.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.MarginBonusBDM;
+import ru.alta.thirdproj.entites.UserSalary;
 import ru.alta.thirdproj.repositories.UserBonusKPIRepositoryImpl;
 import ru.alta.thirdproj.repositories.UserSalaryRepImplRep;
 
@@ -21,5 +22,10 @@ public class MarginBonusServiceImpl implements iMarginBonusService {
     @Override
     public List<MarginBonusBDM> getAllMarginBonus(LocalDate date1, LocalDate date2) {
         return userSalaryRepImplRep.getMarginBonus(date1, date2);
+    }
+
+    @Override
+    public List<UserSalary> getUserSalary(LocalDate date1, LocalDate date2) {
+        return userSalaryRepImplRep.getAllUserSalary(date1, date2);
     }
 }

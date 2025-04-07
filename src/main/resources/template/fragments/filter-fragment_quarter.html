@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Name filter fragment -->
+<div th:fragment="filter-form(tableId)">
+
+    <div class="card mb-3">
+        <div class="filter-container mb-4 p-3 bg-light rounded">
+            <div class="row">
+                <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter" placeholder="Filter by Department" th:onkeyup="departmentFilter(this)" />
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

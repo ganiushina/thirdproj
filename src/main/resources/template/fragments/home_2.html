@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="homeTable">
+    <h3>Home Tab</h3>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Role</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${homeUsers}">
+            <td th:text="${user.id}">1</td>
+            <td th:text="${user.name}">John Doe</td>
+            <td th:text="${user.role}">Admin</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

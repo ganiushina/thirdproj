@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Summary Tab Fragment -->
+<div th:fragment="summaryTab" >
+    <h4>Маржа помесячно</h4>
+    <p>Маржа за период <span th:text="${dateFrom != null} ? ${#temporals.format(dateFrom)}">...</span>
+         <span th:text="${dateTo != null} ? ${#temporals.format(dateTo)}">...</span></p>
+
+
+    <div th:replace="~{fragments/filter-fragment :: filter-form('myTable')}"></div>
+
+    <div class="sticky-table-wrapper">
+    <table id="myTable" class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Направление</th>
+            <th scope="col">Месяц</th>
+            <th scope="col">Заработано за месяц</th>
+            <th scope="col">Выплачено за месяц</th>
+            <th scope="col">Маржа за месяц</th>
+            <th scope="col">Заработано всего</th>
+            <th scope="col">Выплачено всего</th>
+            <th scope="col">Маржа всего</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="marginBonusByMonth, iterStat : ${marginBonusByMonth}" th:object="${marginBonusByMonth}">
+            <td class="department-name" th:text="${marginBonusByMonth.depName}"></td>
+            <td th:text="${marginBonusByMonth.salaryMonth}"></td>
+            <td th:text="${marginBonusByMonth.amountEarnedRUB}"></td>
+            <td th:text="${marginBonusByMonth.amountPaidRUB}"></td>
+            <td th:text="${marginBonusByMonth.marginRUB}"></td>
+            <td th:text="${marginBonusByMonth.amountEarnedAllPeriodRUB}"></td>
+            <td th:text="${marginBonusByMonth.amountPaidAllPeriodRUB}"></td>
+            <td th:text="${marginBonusByMonth.marginAllPeriodRUB}"></td>
+        </tr>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function adjustStickyHeader() {
+                    const nav = document.querySelector('nav'); // Или ваш селектор навигации
+                    const navHeight = nav ? nav.offsetHeight : 56; // 56px - стандартная высота
+
+                    document.querySelectorAll('.sticky-table-wrapper thead th').forEach(th => {
+                        th.style.top = navHeight + 'px';
+                    });
+                }
+
+                // Инициализация + обработка ресайза
+                adjustStickyHeader();
+                window.addEventListener('resize', adjustStickyHeader);
+
+                // Для динамических изменений в навигации
+                new MutationObserver(adjustStickyHeader).observe(
+                    document.querySelector('nav'),
+                    { attributes: true, attributeFilter: ['style'] }
+                );
+            });
+        </script>
+        </tbody>
+    </table>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="chartsTab">
+    <h4>Выплаты</h4>
+    <p>Выплаты за период <span th:text="${#temporals.format(dateFrom)}">...</span>
+        <span th:text="${#temporals.format(dateTo)}">...</span></p>
+
+    <div th:replace="~{fragments/filter-fragment_payments :: filter-form(tableId='payments')}"></div>
+
+    <div class="sticky-table-wrapper">
+        <table id="payments" class="table table-bordered">
+            <thead>
+            <tr>
+                <th scope="col">ФИО</th>
+                <th scope="col">Прозиция</th>
+                <th scope="col">Отдел</th>
+                <th scope="col">Бонус</th>
+                <th scope="col">Бонус KPI</th>
+                <th scope="col">Зарплата</th>
+                <th scope="col">Вся сумма</th>
+                <th scope="col">Вся сумма без коэффициента</th>
+                <th scope="col">Месяц</th>
+                <th scope="col">Год</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="userSalary : ${userSalaryList}">
+                <td th:text="${userSalary.userFio}"></td>
+                <td th:text="${userSalary.position}"></td>
+                <td th:text="${userSalary.department}"></td>
+                <td th:text="${userSalary.userBonus}"></td>
+                <td th:text="${userSalary.userBonusKPI}"></td>
+                <td th:text="${userSalary.userSalary}"></td>
+                <td th:text="${userSalary.userSalaryAll}"></td>
+                <td th:text="${userSalary.userSalaryAllWithOutCoef}"></td>
+                <td th:text="${userSalary.salaryMonthStr}"></td>
+                <td th:text="${userSalary.salaryYear}"></td>
+            </tr>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    function adjustStickyHeader() {
+                        const nav = document.querySelector('nav'); // Или ваш селектор навигации
+                        const navHeight = nav ? nav.offsetHeight : 56; // 56px - стандартная высота
+
+                        document.querySelectorAll('.sticky-table-wrapper thead th').forEach(th => {
+                            th.style.top = navHeight + 'px';
+                        });
+                    }
+
+                    // Инициализация + обработка ресайза
+                    adjustStickyHeader();
+                    window.addEventListener('resize', adjustStickyHeader);
+
+                    // Для динамических изменений в навигации
+                    new MutationObserver(adjustStickyHeader).observe(
+                        document.querySelector('nav'),
+                        { attributes: true, attributeFilter: ['style'] }
+                    );
+                });
+            </script>
+
+            </tbody>
+        </table>
+    </div>
+</div>
