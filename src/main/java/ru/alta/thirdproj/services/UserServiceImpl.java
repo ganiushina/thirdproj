@@ -48,6 +48,10 @@ public class UserServiceImpl implements UserService {
 
     public User findByUserName(String username) {
 
+        User user = userProvider.getUser(username);
+       // user.setRoles();
+
+
         return userProvider.getUser(username);
 
 //        User  user =  userRepository.findOneByUserName(username);

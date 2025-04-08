@@ -19,8 +19,8 @@ public class UserSalaryServiceImpl {
         this.userSalaryRepImpl = userSalaryRepImpl;
     }
 
-    public List<UserSalary> getUserSalaryList(LocalDate date1, LocalDate date2){
-        return userSalaryRepImpl.getAllUserSalary(date1, date2);
+    public List<UserSalary> getUserSalaryList(LocalDate date1, LocalDate date2, Integer departmentId){
+        return userSalaryRepImpl.getAllUserSalary(date1, date2, departmentId);
     }
 
 

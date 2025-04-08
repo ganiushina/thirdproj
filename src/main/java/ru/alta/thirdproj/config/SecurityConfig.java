@@ -68,8 +68,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/payment/confirm").hasRole("BUHADMIN")
                 .antMatchers("/act/allact").hasRole("BUHADMIN")
-                .antMatchers("/tabs/profile").hasAnyRole("BDM", "BUHADMIN")
- //               .antMatchers("/salary/*").hasAnyRole("BDM", "BUHADMIN") -- вернуть, когда доделаю вывод с бонусами
+                .antMatchers("/margin/detailed").hasAnyRole("BDM", "BUHADMIN", "MANAGER")
+                .antMatchers("/margin/charts").hasAnyRole("BDM", "BUHADMIN", "MANAGER")
+ //               .antMatchers("/salary/*").hasAnyRole("BDM", "BUHADMIN") -- вернуть, когда доделаю вывод с бонусами ROLE_BDM
                 .anyRequest()
                 .authenticated()
                 .and()

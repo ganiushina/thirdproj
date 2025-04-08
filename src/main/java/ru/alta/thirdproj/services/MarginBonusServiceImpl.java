@@ -25,7 +25,7 @@ public class MarginBonusServiceImpl implements iMarginBonusService {
     }
 
     @Override
-    public List<UserSalary> getUserSalary(LocalDate date1, LocalDate date2) {
-        return userSalaryRepImplRep.getAllUserSalary(date1, date2);
+    public List<UserSalary> getUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
+        return userSalaryRepImplRep.getAllUserSalary(date1, date2, departmentId);
     }
 }

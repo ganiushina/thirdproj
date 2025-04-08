@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface iMarginBonusService {
     List<MarginBonusBDM> getAllMarginBonus(LocalDate date1, LocalDate date2);
-    List<UserSalary> getUserSalary(LocalDate date1, LocalDate date2);
+    List<UserSalary> getUserSalary(LocalDate date1, LocalDate date2, Integer departmentId);
 
 }

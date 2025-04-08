@@ -31,17 +31,18 @@ public class UserSalaryRepImplRep  {
     }
 
 
-    private static final String SELECT_SALARY_PAYMENT_QUERY = "select * from fn_salary_for_all_user(:date1,:date2)\n";
+    private static final String SELECT_SALARY_PAYMENT_QUERY = "select * from fn_salary_for_all_user(:date1,:date2, :department_id)\n";
     private static final String SELECT_MARGIN_QUARTER_QUERY =  "select * from fn_margin_bonus_by_quarter (:date1,:date2)";
     private static final String SELECT_MARGIN_MONTH_QUERY =  "select * from fn_marginality_by_month (:date1,:date2)";
     private static final String SELECT_SALES_QUERY =  "select * from [fn_User_Sale] (:date1, :date2)";
 
 
-    public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2) {
+    public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
         try (Connection connection = sql2o.open()) {
             Query query = connection.createQuery(SELECT_SALARY_PAYMENT_QUERY, false)
                     .addParameter("date1", date1)
-                    .addParameter("date2", date2);
+                    .addParameter("date2", date2)
+                    .addParameter("department_id", departmentId);
 
             Table table = query.executeAndFetchTable();
             List<Map<String, Object>> list = table.asList();

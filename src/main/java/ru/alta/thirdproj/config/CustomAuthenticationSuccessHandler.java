@@ -26,6 +26,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 	//	UserLogin theUser = loginService.findLoginUserByUserName(userName);
 		HttpSession session = request.getSession();
 		session.setAttribute("user", userName);
+		//session.getAttribute("SPRING_SECURITY_CONTEXT").toString()
 
 		if(!request.getHeader("referer").contains("login")) {
 			response.sendRedirect(request.getHeader("referer"));

@@ -85,7 +85,9 @@ public class ReportController {
 
         processDateRange(dateFrom, dateTo, model);
         User user = userService.findByUserName(principal.getName());
-        List<UserSalary> userSalaryList = marginBonusService.getUserSalary(dateFrom,dateTo);
+
+        //user.getRoles()
+        List<UserSalary> userSalaryList = marginBonusService.getUserSalary(dateFrom,dateTo, user.getLoginDepartment());
         model.addAttribute("userSalaryList", userSalaryList);
         return "charts :: chartsTab"; // Fragment for AJAX
     }
