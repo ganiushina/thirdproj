@@ -32,7 +32,7 @@
                 }
             }
 
-            if(tableId == 'payments') {
+            if(tableId == 'payments' || tableId === 'interpreters') {
                 tr = table.getElementsByTagName("tr");
                 for (i = 0; i < tr.length; i++) {
                     td = tr[i].getElementsByTagName("td")[2];
@@ -83,6 +83,104 @@
                                       }
                     }
             }
+            if(tableId == 'interpreters'){
+                tr = table.getElementsByTagName("tr");
+                    for (i = 0; i < tr.length; i++) {
+                        td = tr[i].getElementsByTagName("td")[9];
+                              if (td) {
+                                          if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                              tr[i].style.display = "";
+                                          } else {
+                                              tr[i].style.display = "none";
+                                          }
+                                      }
+                    }
+            }
+        }
+
+         function filterByMonth(inputElement) {
+            const filter = inputElement.value.trim().toLowerCase();
+            const table = document.getElementById('interpreters');
+
+            // 1. Сначала скрываем ВСЕ строки
+            table.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = 'none';
+            });
+
+            // 2. Показываем только подходящие строки
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const monthText = row.getAttribute('data-month').toLowerCase();
+                if (!filter || monthText.includes(filter)) {
+                    row.style.display = '';
+                }
+            });
+
+            // 3. Восстанавливаем группы пользователей
+            rebuildUserGroups();
+        }
+
+        function rebuildUserGroups() {
+            const table = document.getElementById('interpreters');
+            const allRows = Array.from(table.querySelectorAll('tbody tr'));
+            const userGroups = {};
+
+            // 1. Группируем ВИДИМЫЕ строки по пользователям
+            allRows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const key = [
+                        row.getAttribute('data-user-fio'),
+                        row.getAttribute('data-position'),
+                        row.getAttribute('data-department')
+                    ].join('|');
+
+                    if (!userGroups[key]) {
+                        userGroups[key] = [];
+                    }
+                    userGroups[key].push(row);
+                }
+            });
+
+            // 2. Обновляем rowspan для каждой группы
+            Object.values(userGroups).forEach(rows => {
+                // Удаляем все объединенные ячейки
+                rows.forEach(row => {
+                    row.querySelectorAll('td[rowspan]').forEach(td => td.remove());
+                });
+
+                // Добавляем новые объединенные ячейки только в первую строку
+                const firstRow = rows[0];
+                const userFio = firstRow.getAttribute('data-user-fio');
+                const position = firstRow.getAttribute('data-position');
+                const department = firstRow.getAttribute('data-department');
+
+                // Создаем новые ячейки с rowspan
+                const fioCell = document.createElement('td');
+                fioCell.textContent = userFio;
+                fioCell.setAttribute('rowspan', rows.length);
+                firstRow.insertBefore(fioCell, firstRow.firstChild);
+
+                const positionCell = document.createElement('td');
+                positionCell.textContent = position;
+                positionCell.setAttribute('rowspan', rows.length);
+                firstRow.insertBefore(positionCell, firstRow.children[1]);
+
+                const departmentCell = document.createElement('td');
+                departmentCell.textContent = department;
+                departmentCell.setAttribute('rowspan', rows.length);
+                firstRow.insertBefore(departmentCell, firstRow.children[2]);
+            });
+        }
+
+        function resetMonthFilter() {
+            const table = document.getElementById('interpreters');
+
+            // 1. Показываем все строки
+            table.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = '';
+            });
+
+            // 2. Восстанавливаем исходные группы
+            rebuildUserGroups();
         }
 
         function nameFilter(inputElement) {
@@ -93,7 +191,7 @@
             const tableId = inputElement.getAttribute('data-table-id');
             const table = document.getElementById(tableId); // Get the table element
 
-            if(tableId == 'payments'){
+            if(tableId == 'payments' || tableId === 'interpreters'){
                 tr = table.getElementsByTagName("tr");
                     for (i = 0; i < tr.length; i++) {
                         td = tr[i].getElementsByTagName("td")[0];
@@ -129,6 +227,41 @@
         .sticky-table-wrapper table thead th {
             margin-top: 1px;
         }
+
+        .table-sortable th {
+            cursor: pointer;
+            position: relative;
+        }
+        .table-sortable th::after {
+            content: "↓↑";
+            opacity: 0.3;
+            position: absolute;
+            right: 8px;
+        }
+        .table-sortable th.sorted-asc::after {
+            content: "↑";
+            opacity: 1;
+        }
+        .table-sortable th.sorted-desc::after {
+            content: "↓";
+            opacity: 1;
+        }
+        .list-divider {
+        margin: 0.3rem 0;
+        border: 0;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Стиль для объединенных ячеек */
+    td {
+        vertical-align: middle;
+        padding: 0.5rem !important;
+    }
+
+    /* Подсветка строк */
+    tr:hover td {
+        background-color: #f8f9fa;
+    }
     </style>
 
 </head>
@@ -187,6 +320,14 @@
                 Выплаты
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="interpreter-tab" data-bs-toggle="tab"
+                    data-bs-target="#interpreter" type="button" role="tab"
+                    aria-controls="interpreter" aria-selected="true"
+                    onclick="loadTabContent('/margin/interpreters', 'interpreterTab')">
+                Детализация выплат
+            </button>
+        </li>
     </ul>
 
     <!-- Tab Contents -->
@@ -216,6 +357,12 @@
                 <!-- Content will be loaded via AJAX -->
             </div>
         </div>
+        <!-- Detailed Report Tab Content -->
+        <div class="tab-pane fade" id="interpreter" role="tabpanel" aria-labelledby="interpreter-tab">
+            <div id="interpreterContent">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
     </div>
 </div>
 
@@ -238,7 +385,7 @@
         if (dateFrom) params.append('dateFrom', dateFrom);
         if (dateTo) params.append('dateTo', dateTo);
 
-        const targetDiv = fragment === 'summaryTab' ? 'summaryContent' :
+        const targetDiv = fragment === 'summaryTab' ? 'summaryContent' : fragment === 'interpreterTab' ? 'interpreterContent' :
                         fragment === 'detailsTab' ? 'detailsContent' : 'chartsContent';
 
         fetch(`${url}?${params.toString()}`)
@@ -264,6 +411,8 @@
 
 </script>
 
+
+
 <script th:inline="javascript">
     /*<![CDATA[*/
     // Initialize charts with the data from controller
@@ -272,6 +421,75 @@
     // Chart.js initialization code would go here
     console.log('Chart data loaded:', chartData);
     /*]]>*/
+</script>
+
+<script>
+    // Общая функция сортировки (добавить в main.html)
+    function initTableSorting() {
+        document.querySelectorAll('.table-sortable').forEach(table => {
+            const headers = table.querySelectorAll('thead th');
+
+            headers.forEach((header, columnIndex) => {
+                header.addEventListener('click', () => {
+                    const direction = header.classList.contains('sorted-asc') ? 'desc' : 'asc';
+
+                    // Сброс предыдущей сортировки
+                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                    header.classList.add(`sorted-${direction}`);
+
+                    // Сортировка
+                    const rows = Array.from(table.querySelectorAll('tbody tr'));
+                    rows.sort((a, b) => {
+                        const aVal = a.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
+                        const bVal = b.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
+                        return compareValues(aVal, bVal, direction);
+                    });
+
+                    // Обновление таблицы
+                    table.querySelector('tbody').replaceChildren(...rows);
+                });
+            });
+        });
+    }
+
+    // Вспомогательная функция сравнения
+    function compareValues(a, b, direction) {
+        const isNumeric = !isNaN(a) && !isNaN(b);
+        const result = isNumeric ? parseFloat(a) - parseFloat(b) : a.localeCompare(b);
+        return direction === 'asc' ? result : -result;
+    }
+
+    // Инициализация при загрузке и после AJAX
+    document.addEventListener('DOMContentLoaded', initTableSorting);
+
+    // Для динамически загружаемых таблиц (например, во вкладках)
+    function onTabLoaded() {
+        setTimeout(initTableSorting, 50); // Небольшая задержка для гарантии загрузки DOM
+    }
+
+    function sortTable(table, columnIndex, direction) {
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.querySelector(`td:nth-child(${columnIndex + 1})`);
+            const cellB = rowB.querySelector(`td:nth-child(${columnIndex + 1})`);
+            let aValue = cellA ? cellA.textContent.trim() : '';
+            let bValue = cellB ? cellB.textContent.trim() : '';
+
+            // Для ячеек со списками берем первое значение
+            if (aValue.includes('\n')) {
+                aValue = aValue.split('\n')[0];
+            }
+            if (bValue.includes('\n')) {
+                bValue = bValue.split('\n')[0];
+            }
+
+            // Дальнейшая логика сортировки...
+    });
+
+
+
 </script>
 </body>
 </html>

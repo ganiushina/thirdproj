@@ -7,7 +7,7 @@
     <div th:replace="~{fragments/filter-fragment_payments :: filter-form(tableId='payments')}"></div>
 
     <div class="sticky-table-wrapper">
-        <table id="payments" class="table table-bordered">
+        <table id="payments" class="table table-bordered table-sortable">
             <thead>
             <tr>
                 <th scope="col">ФИО</th>
@@ -56,6 +56,20 @@
                         { attributes: true, attributeFilter: ['style'] }
                     );
                 });
+            </script>
+
+            <script th:inline="javascript">
+                /*<![CDATA[*/
+                // Инициализация сортировки для этой таблицы
+                document.addEventListener('DOMContentLoaded', function() {
+                    initTableSorting(); // Вызов функции из main.html
+                });
+
+                // Если таблица загружается через AJAX:
+                setTimeout(initTableSorting, 50);
+                /*]]>*/
+
+                console.log('Инициализация таблицы:', table.id);
             </script>
 
             </tbody>

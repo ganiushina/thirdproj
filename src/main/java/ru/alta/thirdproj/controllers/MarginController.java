@@ -6,10 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.alta.thirdproj.entites.MarginBonus;
-import ru.alta.thirdproj.entites.MarginBonusBDM;
-import ru.alta.thirdproj.entites.User;
-import ru.alta.thirdproj.entites.UserSalary;
+import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.services.MarginBonusServiceImpl;
 import ru.alta.thirdproj.services.UserSalaryServiceImpl;
 import ru.alta.thirdproj.services.UserSalesServiceImpl;
@@ -20,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Controller
-public class ReportController {
+public class MarginController {
     private UserSalaryServiceImpl userSalaryService;
     private MarginBonusServiceImpl marginBonusService;
     private UserSalesServiceImpl userSalesService;
@@ -91,4 +88,17 @@ public class ReportController {
         model.addAttribute("userSalaryList", userSalaryList);
         return "charts :: chartsTab"; // Fragment for AJAX
     }
+
+    @GetMapping("/margin/interpreters")
+    public String getInterpreterData(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo,
+            Model model) {
+        processDateRange(dateFrom, dateTo, model);
+        List<UserSalaryDetail> userSalaryDetailList = marginBonusService.getUserSalaryInterpreter(dateFrom,dateTo);
+        model.addAttribute("userSalaryList", userSalaryDetailList);
+        return "interpreter :: interpreterTab"; // Fragment for AJAX
+    }
+
+
 }
