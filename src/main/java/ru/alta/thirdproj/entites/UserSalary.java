@@ -10,6 +10,7 @@ public class UserSalary {
     private String userFio;
     private String userBonusKPI;
     private String userBonus;
+    private String userBonusBDMKPI;
     private String userSalary;
     private String userSalaryAll;
     private String userSalaryAllWithOutCoef;

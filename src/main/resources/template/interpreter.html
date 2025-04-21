@@ -15,6 +15,7 @@
                 <th>Отдел</th>
                 <th>Зарплата</th>
                 <th>Бонус</th>
+                <th>Бонус БДМ KPI</th>
                 <th>Бонус БДМ</th>
                 <th>НДФЛ</th>
                 <th>Бонус+НДФЛ</th>
@@ -50,6 +51,7 @@
                     <!-- Данные по зарплате -->
                     <td th:text="${salary.userSalaryRUB}" class="numeric"></td>
                     <td th:text="${salary.userBonusRUB}" class="numeric"></td>
+                    <td th:text="${salary.userBonusBDMKPI}" class="numeric"></td>
                     <td th:text="${salary.userBonusBDMRUB}" class="numeric"></td>
                     <td th:text="${salary.userSalaryNDFLRUB}" class="numeric"></td>
                     <td th:text="${salary.userSalarySingleRUB}" class="numeric"></td>
