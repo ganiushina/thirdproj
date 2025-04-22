@@ -32,7 +32,7 @@
                 }
             }
 
-            if(tableId == 'payments' || tableId === 'interpreters') {
+            if(tableId == 'payments') {
                 tr = table.getElementsByTagName("tr");
                 for (i = 0; i < tr.length; i++) {
                     td = tr[i].getElementsByTagName("td")[2];
@@ -73,7 +73,7 @@
             if(tableId == 'payments'){
                 tr = table.getElementsByTagName("tr");
                     for (i = 0; i < tr.length; i++) {
-                        td = tr[i].getElementsByTagName("td")[8];
+                        td = tr[i].getElementsByTagName("td")[9];
                               if (td) {
                                           if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
                                               tr[i].style.display = "";
@@ -86,7 +86,7 @@
             if(tableId == 'interpreters'){
                 tr = table.getElementsByTagName("tr");
                     for (i = 0; i < tr.length; i++) {
-                        td = tr[i].getElementsByTagName("td")[9];
+                        td = tr[i].getElementsByTagName("td")[10];
                               if (td) {
                                           if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
                                               tr[i].style.display = "";
@@ -98,90 +98,159 @@
             }
         }
 
-         function filterByMonth(inputElement) {
-            const filter = inputElement.value.trim().toLowerCase();
-            const table = document.getElementById('interpreters');
+                        // Функции фильтрации для таблицы interpreters
+        function nameFilterInterpreters(inputElement) {
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId);
+            const filter = inputElement.value.trim().toUpperCase();
 
-            // 1. Сначала скрываем ВСЕ строки
+            if (!filter) {
+                resetFiltersForTable(tableId);
+                return;
+            }
+
+            // Сначала скрываем все строки
             table.querySelectorAll('tbody tr').forEach(row => {
                 row.style.display = 'none';
             });
 
-            // 2. Показываем только подходящие строки
-            table.querySelectorAll('tbody tr').forEach(row => {
-                const monthText = row.getAttribute('data-month').toLowerCase();
-                if (!filter || monthText.includes(filter)) {
-                    row.style.display = '';
-                }
-            });
-
-            // 3. Восстанавливаем группы пользователей
-            rebuildUserGroups();
-        }
-
-        function rebuildUserGroups() {
-            const table = document.getElementById('interpreters');
-            const allRows = Array.from(table.querySelectorAll('tbody tr'));
+            // Показываем только группы, где имя соответствует фильтру
             const userGroups = {};
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const userKey = row.getAttribute('data-user-fio') + '|' +
+                              row.getAttribute('data-position') + '|' +
+                              row.getAttribute('data-department');
 
-            // 1. Группируем ВИДИМЫЕ строки по пользователям
-            allRows.forEach(row => {
-                if (row.style.display !== 'none') {
-                    const key = [
-                        row.getAttribute('data-user-fio'),
-                        row.getAttribute('data-position'),
-                        row.getAttribute('data-department')
-                    ].join('|');
-
-                    if (!userGroups[key]) {
-                        userGroups[key] = [];
-                    }
-                    userGroups[key].push(row);
+                if (!userGroups[userKey]) {
+                    userGroups[userKey] = {
+                        name: row.getAttribute('data-user-fio'),
+                        rows: []
+                    };
                 }
+                userGroups[userKey].rows.push(row);
             });
 
-            // 2. Обновляем rowspan для каждой группы
-            Object.values(userGroups).forEach(rows => {
-                // Удаляем все объединенные ячейки
-                rows.forEach(row => {
-                    row.querySelectorAll('td[rowspan]').forEach(td => td.remove());
+            // Применяем фильтр по имени
+            Object.values(userGroups).forEach(group => {
+                const isMatch = group.name.toUpperCase().includes(filter);
+                group.rows.forEach(row => {
+                    row.style.display = isMatch ? '' : 'none';
                 });
-
-                // Добавляем новые объединенные ячейки только в первую строку
-                const firstRow = rows[0];
-                const userFio = firstRow.getAttribute('data-user-fio');
-                const position = firstRow.getAttribute('data-position');
-                const department = firstRow.getAttribute('data-department');
-
-                // Создаем новые ячейки с rowspan
-                const fioCell = document.createElement('td');
-                fioCell.textContent = userFio;
-                fioCell.setAttribute('rowspan', rows.length);
-                firstRow.insertBefore(fioCell, firstRow.firstChild);
-
-                const positionCell = document.createElement('td');
-                positionCell.textContent = position;
-                positionCell.setAttribute('rowspan', rows.length);
-                firstRow.insertBefore(positionCell, firstRow.children[1]);
-
-                const departmentCell = document.createElement('td');
-                departmentCell.textContent = department;
-                departmentCell.setAttribute('rowspan', rows.length);
-                firstRow.insertBefore(departmentCell, firstRow.children[2]);
             });
+
+            rebuildRowspans(tableId);
         }
 
-        function resetMonthFilter() {
-            const table = document.getElementById('interpreters');
+        function departmentFilterInterpreters(inputElement) {
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId);
+            const filter = inputElement.value.trim().toUpperCase();
 
-            // 1. Показываем все строки
+            if (!filter) {
+                resetFiltersForTable(tableId);
+                return;
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const deptCell = row.querySelector('td:nth-child(3)');
+                if (deptCell) {
+                    const deptText = deptCell.textContent.toUpperCase();
+                    row.style.display = deptText.includes(filter) ? '' : 'none';
+                }
+            });
+            rebuildRowspans(tableId);
+        }
+
+        function filterByMonthInterpreters(inputElement) {
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId);
+            const filter = inputElement.value.trim().toLowerCase();
+
+            if (!filter) {
+                resetFiltersForTable(tableId);
+                return;
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const monthCell = row.querySelector('.month-cell');
+                if (monthCell) {
+                    const monthText = monthCell.textContent.toLowerCase();
+                    row.style.display = monthText.includes(filter) ? '' : 'none';
+                }
+            });
+            rebuildRowspans(tableId);
+        }
+
+        // Сброс фильтров для таблицы
+        function resetFiltersForTable(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
             table.querySelectorAll('tbody tr').forEach(row => {
                 row.style.display = '';
             });
-
-            // 2. Восстанавливаем исходные группы
-            rebuildUserGroups();
+            rebuildRowspans(tableId);
         }
+
+        // Перестроение rowspan для таблицы
+        function rebuildRowspans(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const userGroups = {};
+
+            // Группируем видимые строки по пользователям
+            table.querySelectorAll('tbody tr').forEach(row => {
+                if (row.style.display !== 'none') {
+                    const userKey = row.getAttribute('data-user-fio') + '|' +
+                                  row.getAttribute('data-position') + '|' +
+                                  row.getAttribute('data-department');
+
+                    if (!userGroups[userKey]) {
+                        userGroups[userKey] = [];
+                    }
+                    userGroups[userKey].push(row);
+                }
+            });
+
+            // Удаляем все существующие объединенные ячейки
+            table.querySelectorAll('td[rowspan]').forEach(cell => cell.remove());
+
+            // Создаем новые объединенные ячейки для каждой группы
+            Object.values(userGroups).forEach(group => {
+                if (group.length === 0) return;
+
+                const firstRow = group[0];
+
+                // Создаем и добавляем объединенные ячейки
+                const addMergedCell = (content, position) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = content;
+                    cell.setAttribute('rowspan', group.length);
+
+                    // Вставляем ячейку в правильную позицию
+                    if (firstRow.children.length > position) {
+                        firstRow.children[position].before(cell);
+                    } else {
+                        firstRow.appendChild(cell);
+                    }
+                };
+
+                addMergedCell(firstRow.getAttribute('data-user-fio'), 0);
+                addMergedCell(firstRow.getAttribute('data-position'), 1);
+                addMergedCell(firstRow.getAttribute('data-department'), 2);
+            });
+        }
+
+        // Debounce для оптимизации
+        let filterTimeout;
+        function debounceFilter(filterFunc, inputElement) {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => filterFunc(inputElement), 300);
+        }
+
 
         function nameFilter(inputElement) {
 
@@ -191,7 +260,7 @@
             const tableId = inputElement.getAttribute('data-table-id');
             const table = document.getElementById(tableId); // Get the table element
 
-            if(tableId == 'payments' || tableId === 'interpreters'){
+            if(tableId == 'payments' ){
                 tr = table.getElementsByTagName("tr");
                     for (i = 0; i < tr.length; i++) {
                         td = tr[i].getElementsByTagName("td")[0];
@@ -205,6 +274,9 @@
                     }
             }
         }
+        console.log('Name filter:', nameFilter);
+        console.log('Month filter:', monthFilter);
+        console.log('Department filter:', departmentFilter);
 
     </script>
     <style>

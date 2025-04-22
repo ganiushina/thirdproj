@@ -7,9 +7,20 @@
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
             <div class="row">
-                <input type="text" th:attr="data-table-id=${tableId}" id="nameFilter" placeholder="Искать по имени" th:onkeyup="nameFilter(this)" />
-                <input type="text" th:attr="data-table-id=${tableId}" id="monthFilter" placeholder="Искать по месяцу" th:onkeyup="filterByMonth(this)" />
-                <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter" placeholder="Искать по отделу" th:onkeyup="departmentFilter(this)" />
+                <input type="text" th:attr="data-table-id=${tableId}" id="nameFilter"
+                       placeholder="Искать по имени"
+                       th:oninput="debounceFilter(nameFilterInterpreters, this)" />
+
+                <input type="text" th:attr="data-table-id=${tableId}" id="monthFilter"
+                       placeholder="Искать по месяцу"
+                       th:oninput="debounceFilter(filterByMonthInterpreters, this)" />
+
+                <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter"
+                       placeholder="Искать по отделу"
+                       th:oninput="debounceFilter(departmentFilterInterpreters, this)" />
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="nameFilter" placeholder="Искать по имени" th:onkeyup="nameFilterInterpreters(this)" />-->
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="monthFilter" placeholder="Искать по месяцу" th:onkeyup="filterByMonthInterpreters(this)" />-->
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter" placeholder="Искать по отделу" th:onkeyup="departmentFilterInterpreters(this)" />-->
             </div>
         </div>
     </div>
