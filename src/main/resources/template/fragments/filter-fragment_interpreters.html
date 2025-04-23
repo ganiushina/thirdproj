@@ -18,9 +18,11 @@
                 <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter"
                        placeholder="Искать по отделу"
                        th:oninput="debounceFilter(departmentFilterInterpreters, this)" />
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="nameFilter" placeholder="Искать по имени" th:onkeyup="nameFilterInterpreters(this)" />-->
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="monthFilter" placeholder="Искать по месяцу" th:onkeyup="filterByMonthInterpreters(this)" />-->
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter" placeholder="Искать по отделу" th:onkeyup="departmentFilterInterpreters(this)" />-->
+                <button type="button" class="btn btn-success"
+                        onclick="exportToExcel('interpreters')">
+                    <i class="bi bi-file-excel"></i> Excel
+                </button>
+
             </div>
         </div>
     </div>

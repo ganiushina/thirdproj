@@ -252,6 +252,128 @@
         }
 
 
+        function exportToExcel(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            // Создаем временную таблицу для экспорта
+            const tempTable = document.createElement('table');
+
+            // Копируем заголовки
+            const thead = table.querySelector('thead');
+            if (thead) {
+                tempTable.appendChild(thead.cloneNode(true));
+            }
+
+            // Обрабатываем строки данных
+            const tbody = document.createElement('tbody');
+            const visibleRows = Array.from(table.querySelectorAll('tbody tr'))
+                .filter(row => row.style.display !== 'none');
+
+            // Группируем строки по пользователям
+            const userGroups = {};
+            visibleRows.forEach(row => {
+                const userKey = row.getAttribute('data-user-fio') + '|' +
+                              row.getAttribute('data-position') + '|' +
+                              row.getAttribute('data-department');
+
+                if (!userGroups[userKey]) {
+                    userGroups[userKey] = {
+                        userFio: row.getAttribute('data-user-fio'),
+                        position: row.getAttribute('data-position'),
+                        department: row.getAttribute('data-department'),
+                        rows: []
+                    };
+                }
+                userGroups[userKey].rows.push(row);
+            });
+
+            // Создаем строки для экспорта
+            Object.values(userGroups).forEach(group => {
+                group.rows.forEach((row, index) => {
+                    const newRow = document.createElement('tr');
+
+                    // Добавляем объединенные ячейки только для первой строки группы
+                    if (index === 0) {
+                        const fioCell = document.createElement('td');
+                        fioCell.textContent = group.userFio;
+                        newRow.appendChild(fioCell);
+
+                        const positionCell = document.createElement('td');
+                        positionCell.textContent = group.position;
+                        newRow.appendChild(positionCell);
+
+                        const deptCell = document.createElement('td');
+                        deptCell.textContent = group.department;
+                        newRow.appendChild(deptCell);
+                    } else {
+                        // Пустые ячейки для объединенных полей
+                        newRow.appendChild(document.createElement('td'));
+                        newRow.appendChild(document.createElement('td'));
+                        newRow.appendChild(document.createElement('td'));
+                    }
+
+                    // Копируем остальные ячейки
+                    const cells = row.querySelectorAll('td:not([rowspan])');
+                    cells.forEach(cell => {
+                        const newCell = document.createElement('td');
+                        newCell.textContent = cell.textContent;
+                        newRow.appendChild(newCell);
+                    });
+
+                    tbody.appendChild(newRow);
+                });
+            });
+
+            tempTable.appendChild(tbody);
+
+            // Создаем HTML для экспорта
+            const html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                      xmlns:x="urn:schemas-microsoft-com:office:excel"
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>Детализация выплат</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:DisplayGridlines/>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <meta charset="UTF-8">
+                    <style>
+                        td {
+                            mso-number-format:"\@";
+                            padding: 2px 5px;
+                            border: 1px solid #ddd;
+                        }
+                        .numeric {
+                            mso-number-format:"#,##0.00";
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${tempTable.outerHTML}
+                </body>
+                </html>
+            `;
+
+            // Создаем и скачиваем файл
+            const blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Детализация_выплат_${new Date().toLocaleDateString()}.xls`;
+            link.click();
+        }
+
+
         function nameFilter(inputElement) {
 
             var tr, td, i, j;
