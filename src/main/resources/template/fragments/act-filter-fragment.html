@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Act filter fragment -->
+<div th:fragment="filter-form">
+    <div class="card mb-3">
+        <div class="card-header">Фильтры</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">
+                </div>
+                <button class="btn btn-success" onclick="exportFilteredActsToExcel()">
+                    <i class="bi bi-file-excel"></i> Экспорт актов за период
+                </button>
+<!--                <button class="btn btn-success mb-3" onclick="exportTableToExcel()">-->
+<!--                    <i class="bi bi-file-excel"></i> Выгрузить в Excel-->
+<!--                </button>-->
+            </div>
+        </div>
+    </div>
+<!--    <div class="card mb-3">-->
+<!--        <div class="filter-container mb-4 p-3 bg-light rounded">-->
+<!--            <div class="row">-->
+<!--                <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">-->
+<!--                <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">-->
+<!--                <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">-->
+<!--                <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+</div>
+
+</body>
+</html>
+
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<body>-->
+
+<!--&lt;!&ndash; Act filter fragment &ndash;&gt;-->
+<!--<div th:fragment="filter-form(tableId)">-->
+
+<!--    <div class="card mb-3">-->
+<!--        <div class="filter-container mb-4 p-3 bg-light rounded">-->
+<!--            <div class="row">-->
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="actNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта" th:onkeyup="actNumFilter(this)" >-->
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="candidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату" th:onkeyup="candidateFilter(this)" >-->
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="projectSearch" class="form-control mb-2" placeholder="Поиск по проекту" th:onkeyup="projectFilter(this)" >-->
+<!--                <input type="text" th:attr="data-table-id=${tableId}" id="companySearch" class="form-control mb-2" placeholder="Поиск по компании" th:onkeyup="companyFilter(this)" >-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--</body>-->
+<!--</html>-->

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="actExpectedTab">
+
+    <div class="table-responsive sticky-table-wrapper">
+        <table id="expectedTable" class="table table-bordered table-hover table-sortable" data-numeric-cols="Гонорар">
+            <thead class="table-light">
+            <tr>
+                <th>Компания</th>
+                <th>Кандидат</th>
+                <th>Гонорар</th>
+                <th>Проект</th>
+                <th>Дата выхода</th>
+                <th>Отсрочка платежа</th>
+                <th>Оплата до</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="finalist : ${moneyByFinalists}">
+                <td th:text="${finalist.companyName}"></td>
+                <td th:text="${finalist.manFio}"></td>
+                <td th:text="${finalist.projectFeeRUB}" class="numeric"></td>
+                <td th:text="${finalist.projectName}"></td>
+                <td th:text="${finalist.recruitingToWorkString}"></td>
+                <td th:text="${finalist.projectDelayPay}"></td>
+                <td th:text="${finalist.recruitingMoneyToWork}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

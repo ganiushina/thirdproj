@@ -313,11 +313,21 @@
                         newRow.appendChild(document.createElement('td'));
                     }
 
-                    // Копируем остальные ячейки
+                    // Копируем остальные ячейки с учетом числового формата
                     const cells = row.querySelectorAll('td:not([rowspan])');
-                    cells.forEach(cell => {
+                    cells.forEach((cell, cellIndex) => {
                         const newCell = document.createElement('td');
-                        newCell.textContent = cell.textContent;
+
+                        // Для числовых ячеек убираем форматирование и преобразуем в число
+                        if (cell.classList.contains('numeric')) {
+                            const numValue = parseFloat(cell.textContent.replace(/\s/g, '').replace(',', '.'));
+                            newCell.textContent = isNaN(numValue) ? cell.textContent : numValue;
+                            newCell.setAttribute('style', 'mso-number-format:#,##0.00');
+                        } else {
+                            newCell.textContent = cell.textContent;
+                            newCell.setAttribute('style', 'mso-number-format:"\@"');
+                        }
+
                         newRow.appendChild(newCell);
                     });
 
@@ -350,12 +360,8 @@
                     <meta charset="UTF-8">
                     <style>
                         td {
-                            mso-number-format:"\@";
                             padding: 2px 5px;
                             border: 1px solid #ddd;
-                        }
-                        .numeric {
-                            mso-number-format:"#,##0.00";
                         }
                     </style>
                 </head>

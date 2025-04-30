@@ -47,9 +47,9 @@
 
 </form>
 
-    <form th:action="@{/actPut/actAll}" method="get">
-        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
-        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+    <form th:action="@{/acts}" method="get">
+<!--        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">-->
+<!--        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">-->
 
         <button type="submit" class="btn btn-primary">Акты</button>
 
