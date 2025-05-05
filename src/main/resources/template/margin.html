@@ -462,13 +462,31 @@
     tr:hover td {
         background-color: #f8f9fa;
     }
+
+        /* Добавляем новые стили для блока с общей маржой */
+        .margin-summary-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .margin-summary-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
     </style>
 
 </head>
 <div th:replace="~{navigation :: navi(Home)}" />
 
 <body>
-<div class="container mt-4">
+<!--<div class="container mt-4">-->
+<div class="main-content">
+    <div class="container-fluid mt-4 px-3">
+        <div class="row justify-content-center">
+            <div class="col-12 table-width-limiter">
     <h2>Маржинальная прибыль</h2>
 
 
@@ -562,6 +580,9 @@
             <div id="interpreterContent">
                 <!-- Content will be loaded via AJAX -->
             </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>

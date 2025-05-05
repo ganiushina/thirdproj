@@ -12,6 +12,7 @@ public class MarginBonusBDM {
     private List<String> earnedMoneyDivision;
     private List<String> paidMoney;
     private List<String> marginDepartment;
+    private List<Double> marginDepartmentSum;
     private List<String> marginDivision   ;
     private List<String> marginBonusBDM;
     private int marginYear;

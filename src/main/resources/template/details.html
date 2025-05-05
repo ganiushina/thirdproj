@@ -5,6 +5,11 @@
     <h4>Маржа поквартально</h4>
     <p>Маржа за период <span th:text="${#temporals.format(dateFrom)}">...</span>
          <span th:text="${#temporals.format(dateTo)}">...</span></p>
+    <!-- Добавленный блок с общей маржой -->
+    <div class="alert alert-info" th:if="${totalMargin != null}">
+        <strong>Общая маржа за период:</strong>
+        <span th:text="${totalMargin}">0,00 ₽</span>
+    </div>
 
     <div th:replace="~{fragments/filter-fragment_quarter :: filter-form(tableId='salesTable')}"></div>
 

@@ -171,6 +171,7 @@ public class UserSalaryRepImplRep  {
                 List<String> earnedMoneyDivisionList = new ArrayList<>();
                 List<String> paidMoneyList = new ArrayList<>();
                 List<String> marginDepartment = new ArrayList<>();
+                List<Double> marginDepartmentSum = new ArrayList<>();
                 List<String> marginDivision = new ArrayList<>();
                 List<String> marginBonusBDMList = new ArrayList<>();
                 List<Integer> marginQuarter = new ArrayList<>();
@@ -226,8 +227,10 @@ public class UserSalaryRepImplRep  {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
                         if (d != 0.0) {
+                            marginDepartmentSum.add(d);
                             marginDepartment.add(currencyInstance.format(d));
                             marginBonus.setMarginDepartment(marginDepartment);
+                            marginBonus.setMarginDepartmentSum(marginDepartmentSum);
                         }
                     }
                     if (entry.getKey().equals("margin_division")) {
@@ -283,10 +286,13 @@ public class UserSalaryRepImplRep  {
                         }
                     }
                     if (marginBonus.getMarginDepartment() != null) {
-                        if (result.get(0).getMarginDepartment() == null)
+                        if (result.get(0).getMarginDepartment() == null) {
                             result.get(0).setMarginDepartment(marginBonus.getMarginDepartment());
+                            result.get(0).setMarginDepartmentSum(marginBonus.getMarginDepartmentSum());
+                        }
                         else if (!result.get(0).getMarginDepartment().contains(marginBonus.getMarginDepartment().get(0))) {
                             result.get(0).getMarginDepartment().add(marginBonus.getMarginDepartment().get(0));
+                            result.get(0).getMarginDepartmentSum().add(marginBonus.getMarginDepartmentSum().get(0));
                         }
                     }
 

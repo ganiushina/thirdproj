@@ -13,8 +13,12 @@ import ru.alta.thirdproj.services.UserSalesServiceImpl;
 import ru.alta.thirdproj.services.UserService;
 
 import java.security.Principal;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Controller
 public class MarginController {
@@ -55,8 +59,16 @@ public class MarginController {
 
         processDateRange(dateFrom, dateTo, model);
         List<MarginBonus> marginBonuses = userSalesService.getMarginBonusByMonth(dateFrom,dateTo);
+        Double totalMargin = marginBonuses.stream()
+                .mapToDouble(bonus -> bonus.getMargin() != null ? bonus.getMargin() : 0.0)
+                .sum();
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("ru", "RU"));
+        formatter.setMinimumFractionDigits(2);
+        formatter.setMaximumFractionDigits(2);
 
+        String allMargin = formatter.format(totalMargin) + " ₽";
         model.addAttribute("marginBonusByMonth", marginBonuses);
+        model.addAttribute("allMargin", allMargin);
         model.addAttribute("dateFrom", dateFrom);
         model.addAttribute("dateTo", dateTo);
         return "summary :: summaryTab"; // Fragment for AJAX
@@ -70,7 +82,22 @@ public class MarginController {
 
         processDateRange(dateFrom, dateTo, model);
         List<MarginBonusBDM> marginBonusList = marginBonusService.getAllMarginBonus(dateFrom,dateTo);
+        Double allMargin = marginBonusList.stream()
+                .filter(Objects::nonNull)
+                .flatMap(bdm -> bdm.getMarginDepartmentSum() != null ?
+                        bdm.getMarginDepartmentSum().stream() :
+                        Stream.empty())
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("ru", "RU"));
+        formatter.setMinimumFractionDigits(2);
+        formatter.setMaximumFractionDigits(2);
+
+        String formattedMargin = formatter.format(allMargin) + " ₽";
         model.addAttribute("marginBonusList", marginBonusList);
+        model.addAttribute("totalMargin", formattedMargin);
         return "details :: detailsTab"; // Fragment for AJAX
     }
 

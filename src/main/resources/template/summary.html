@@ -7,6 +7,12 @@
     <p>Маржа за период <span th:text="${dateFrom != null} ? ${#temporals.format(dateFrom)}">...</span>
          <span th:text="${dateTo != null} ? ${#temporals.format(dateTo)}">...</span></p>
 
+    <!-- Добавленный блок с общей маржой -->
+    <div class="alert alert-info" th:if="${allMargin != null}">
+        <strong>Общая маржа за период:</strong>
+        <span th:text="${allMargin}">0,00 ₽</span>
+    </div>
+
 
     <div th:replace="~{fragments/filter-fragment :: filter-form('myTable')}"></div>
 

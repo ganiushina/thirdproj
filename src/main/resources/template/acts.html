@@ -42,18 +42,39 @@
         tr:hover td { background-color: #f8f9fa !important; }
 
         .stats-block {
-            background-color: #f8f9fa;
-            padding: 15px;
+            background-color: transparent;
+            padding: 0;
             margin-bottom: 20px;
+            border-radius: 0;
+            border: none;
+        }
+
+        .stats-block .col-md-4 {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .stats-block .bg-light {
+            background-color: #f8f9fa !important;
+            padding: 15px;
             border-radius: 5px;
             border: 1px solid #dee2e6;
+            height: 100%;
         }
 
         .stats-block p {
             margin-bottom: 0.5rem;
-            padding: 0.5rem;
+            padding: 0.3rem 0.5rem;
             background-color: white;
             border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        .table-width-limiter {
+            max-width: 100%;
+            padding-left: 15px;
+            padding-right: 15px;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
@@ -85,18 +106,24 @@
                     </div>
                 </div>
             </form>
-            <div class="stats-block row" th:if="${allActMoney != null}">
-                <div class="col-md-4">
-                    <p th:text="'Всего неоплачено актов: ' + ${allActMoney}"></p>
-                    <p th:text="'Всего выставлено актов: ' + ${allActForClientMoneyPeriod}"></p>
+            <div class="stats-block row mx-0" th:if="${allActMoney != null}">
+                <div class="col-md-4 px-2">
+                    <div class="bg-light p-2 rounded border">
+                        <p class="mb-1" th:text="'Всего неоплачено актов: ' + ${allActMoney}"></p>
+                        <p class="mb-0" th:text="'Всего выставлено актов: ' + ${allActForClientMoneyPeriod}"></p>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <p th:text="'Неоплачено за период: ' + ${allActMoneyPeriod}"></p>
-                    <p th:text="'Оплачено за период: ' + ${allActMoneyPeriodPaid}"></p>
+                <div class="col-md-4 px-2">
+                    <div class="bg-light p-2 rounded border">
+                        <p class="mb-1" th:text="'Неоплачено за период: ' + ${allActMoneyPeriod}"></p>
+                        <p class="mb-0" th:text="'Оплачено за период: ' + ${allActMoneyPeriodPaid}"></p>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <p th:text="'По компаниям: ' + ${allActForClientMoneyPeriodByCompanyString}"></p>
-                    <p th:text="'Ожидается выходов: ' + ${allFinalistMoneyPeriodPaid}"></p>
+                <div class="col-md-4 px-2">
+                    <div class="bg-light p-2 rounded border">
+                        <p class="mb-1" th:text="'По компаниям: ' + ${allActForClientMoneyPeriodByCompanyString}"></p>
+                        <p class="mb-0" th:text="'Ожидается выходов: ' + ${allFinalistMoneyPeriodPaid}"></p>
+                    </div>
                 </div>
             </div>
 
