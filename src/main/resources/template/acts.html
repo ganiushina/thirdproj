@@ -161,450 +161,518 @@
         actNum: '',
         candidate: '',
         project: '',
-        company: ''
+        company: '',
+        filterByCreationDate: false, // По умолчанию не отмечено
+        paymentStatus: 'all'
     };
 
-    // Функция загрузки активной вкладки
-    function loadActiveTab() {
-        const activeTab = document.querySelector('#reportTabs .nav-link.active');
-        if (activeTab) {
-            const tabId = activeTab.id;
-            const tabMap = {
-                'actPeriod-tab': ['/acts/actAll', 'actPeriodTab'],
-                'actUnpaid-tab': ['/acts/unpaidActs', 'actUnpaidTab'],
-                'actExpected-tab': ['/acts/expectedExits', 'actExpectedTab']
-            };
+     // Функция загрузки активной вкладки
+     function loadActiveTab() {
+         const activeTab = document.querySelector('#reportTabs .nav-link.active');
+         if (activeTab) {
+             const tabId = activeTab.id;
+             const tabMap = {
+                 'actPeriod-tab': ['/acts/actAll', 'actPeriodTab'],
+                 'actUnpaid-tab': ['/acts/unpaidActs', 'actUnpaidTab'],
+                 'actExpected-tab': ['/acts/expectedExits', 'actExpectedTab']
+             };
 
-            if (tabMap[tabId]) {
-                loadTabContent(...tabMap[tabId]);
-            }
-        }
-    }
+             if (tabMap[tabId]) {
+                 loadTabContent(...tabMap[tabId]);
+             }
+         }
+     }
 
-    // Функция загрузки контента вкладки
+     // Функция загрузки контента вкладки
+     // В функции loadTabContent обновим значения полей фильтра после загрузки данных
     function loadTabContent(url, fragment) {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
 
-    // Загружаем сначала основную страницу с обновлённой статистикой
-    fetch(`/acts?dateFrom=${dateFrom}&dateTo=${dateTo}`)
-        .then(response => response.text())
-        .then(html => {
-            // Обновляем только статистический блок, не перезагружая всю страницу
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newStats = doc.querySelector('.stats-block');
-            if (newStats) {
-                const currentStats = document.querySelector('.stats-block');
-                if (currentStats) {
-                    currentStats.innerHTML = newStats.innerHTML;
+        // Загружаем сначала основную страницу с обновлённой статистикой
+        fetch(`/acts?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+            .then(response => response.text())
+            .then(html => {
+                // Обновляем только статистический блок, не перезагружая всю страницу
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newStats = doc.querySelector('.stats-block');
+                if (newStats) {
+                    const currentStats = document.querySelector('.stats-block');
+                    if (currentStats) {
+                        currentStats.innerHTML = newStats.innerHTML;
+                    }
                 }
-            }
 
-            // Затем загружаем содержимое вкладки
-            return fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`);
-        })
-        .then(response => response.text())
-        .then(html => {
-            const targetDiv = {
-                'actPeriodTab': 'actPeriodContent',
-                'actUnpaidTab': 'actUnpaidContent',
-                'actExpectedTab': 'actExpectedContent'
-            }[fragment];
+                // Затем загружаем содержимое вкладки
+                return fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+            })
+            .then(response => response.text())
+            .then(html => {
+                const targetDiv = {
+                    'actPeriodTab': 'actPeriodContent',
+                    'actUnpaidTab': 'actUnpaidContent',
+                    'actExpectedTab': 'actExpectedContent'
+                }[fragment];
 
-            if (targetDiv) {
-                document.getElementById(targetDiv).innerHTML = html;
-                initTableFeatures();
-                adjustStickyHeaders();
-                applyFilters(); // Применяем текущие фильтры после загрузки
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById(targetDiv).innerHTML =
-                '<div class="alert alert-danger">Ошибка загрузки данных</div>';
-        });
+                if (targetDiv) {
+                    document.getElementById(targetDiv).innerHTML = html;
+                    initTableFeatures();
+                    adjustStickyHeaders();
+
+                    // Обновляем значения полей фильтра дат
+                    document.getElementById('dateFromFilter').value = dateFrom;
+                    document.getElementById('dateToFilter').value = dateTo;
+
+                    applyFilters(); // Применяем текущие фильтры после загрузки
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById(targetDiv).innerHTML =
+                    '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+            });
     }
+      // Функция фильтрации таблиц
+    function applyFilters() {
+        const { actNum, candidate, project, company, filterByCreationDate, paymentStatus } = currentFilters;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
 
-        // Функция фильтрации таблиц
-        function applyFilters() {
-            const { actNum, candidate, project, company } = currentFilters;
+        // Получаем активную таблицу
+        const table = document.querySelector('.tab-pane.active table');
+        if (!table) return;
 
-            // Получаем активную таблицу
-            const table = document.querySelector('.tab-pane.active table');
-            if (!table) return;
+        const rows = table.querySelectorAll('tbody tr');
 
-            const rows = table.querySelectorAll('tbody tr');
-
-            // Определяем индексы столбцов
-            const headers = table.querySelectorAll('thead th');
-            const columnIndexes = {
+        // Определяем индексы столбцов
+        const headers = table.querySelectorAll('thead th');
+        const columnIndexes = {
             actNum: findColumnIndex(headers, ['номер акта']),
             candidate: findColumnIndex(headers, ['кандидат']),
             project: findColumnIndex(headers, ['проект']),
-            company: findColumnIndex(headers, ['компания', 'организация'])
-            };
+            company: findColumnIndex(headers, ['компания', 'организация']),
+            actDate: findColumnIndex(headers, ['дата акта']),
+            paymentStatus: findColumnIndex(headers, ['оплата', 'статус оплаты'])
+        };
 
-            rows.forEach(row => {
+        rows.forEach(row => {
             const cells = row.querySelectorAll('td');
+
+            // Проверка текстовых фильтров
             const actNumText = columnIndexes.actNum !== -1 ? cells[columnIndexes.actNum]?.textContent.toLowerCase() : '';
             const candidateText = columnIndexes.candidate !== -1 ? cells[columnIndexes.candidate]?.textContent.toLowerCase() : '';
             const projectText = columnIndexes.project !== -1 ? cells[columnIndexes.project]?.textContent.toLowerCase() : '';
             const companyText = columnIndexes.company !== -1 ? cells[columnIndexes.company]?.textContent.toLowerCase() : '';
 
+            // Проверка фильтра по дате создания
+            let dateMatch = true;
+            if (filterByCreationDate && columnIndexes.actDate !== -1) {
+                const dateText = cells[columnIndexes.actDate]?.textContent.trim();
+                const actDate = parseTableDate(dateText);
+                dateMatch = isDateInPeriod(actDate, dateFrom, dateTo);
+            }
+
+            // Проверка фильтра по оплате
+            let paymentMatch = true;
+            if (paymentStatus !== 'all' && columnIndexes.paymentStatus !== -1) {
+                const isPaid = cells[columnIndexes.paymentStatus]?.textContent.toLowerCase().includes('да');
+                paymentMatch = (paymentStatus === 'paid' && isPaid) ||
+                              (paymentStatus === 'unpaid' && !isPaid);
+            }
+
+            // Комбинированная проверка всех фильтров
             const matches = [
-            columnIndexes.actNum === -1 || actNumText.includes(actNum),
-            columnIndexes.candidate === -1 || candidateText.includes(candidate),
-            columnIndexes.project === -1 || projectText.includes(project),
-            columnIndexes.company === -1 || companyText.includes(company)
+                columnIndexes.actNum === -1 || actNumText.includes(actNum),
+                columnIndexes.candidate === -1 || candidateText.includes(candidate),
+                columnIndexes.project === -1 || projectText.includes(project),
+                columnIndexes.company === -1 || companyText.includes(company),
+                dateMatch,
+                paymentMatch
             ].every(Boolean);
 
             row.style.display = matches ? '' : 'none';
-            });
-        }
-
-        // Поиск индекса столбца по ключевым словам
-        function findColumnIndex(headers, keywords) {
-            for (let i = 0; i < headers.length; i++) {
-                const headerText = headers[i].textContent.toLowerCase();
-                    if (keywords.some(keyword => headerText.includes(keyword))) {
-                        return i;
-                    }
-                }
-            return -1;
-        }
-
-        // Инициализация фильтров
-        function initFilters() {
-            document.getElementById('globalActNumSearch').addEventListener('input', function() {
-                currentFilters.actNum = this.value.toLowerCase();
-                applyFilters();
-            });
-
-            document.getElementById('globalCandidateSearch').addEventListener('input', function() {
-                currentFilters.candidate = this.value.toLowerCase();
-                applyFilters();
-            });
-
-            document.getElementById('globalProjectSearch').addEventListener('input', function() {
-                currentFilters.project = this.value.toLowerCase();
-                applyFilters();
-            });
-
-            document.getElementById('globalCompanySearch').addEventListener('input', function() {
-                currentFilters.company = this.value.toLowerCase();
-                applyFilters();
-            });
-        }
-
-
-    // Инициализация функций таблицы
-    function initTableFeatures() {
-        initTableSorting();
-        applyPaidRowStyles();
-        adjustStickyHeaders();
-    }
-
-    function adjustStickyHeaders() {
-        // Вычисляем общую высоту всех фиксированных элементов над таблицей
-        const navbarHeight = document.querySelector('.navbar').offsetHeight;
-        const filterHeight = document.querySelector('#dateFilterForm').offsetHeight;
-        const tabsHeight = document.querySelector('#reportTabs').offsetHeight;
-
-        const totalOffset = navbarHeight + filterHeight + tabsHeight;
-
-        // Применяем вычисленное значение ко всем заголовкам таблиц
-        document.querySelectorAll('.sticky-header-table thead th').forEach(th => {
-            th.style.top = totalOffset + 'px';
         });
     }
+    // Вспомогательная функция для проверки даты в периоде
+    function isDateInPeriod(date, dateFrom, dateTo) {
+        if (!date) return false;
+        const from = dateFrom ? new Date(dateFrom) : null;
+        const to = dateTo ? new Date(dateTo) : null;
+        if (to) to.setHours(23, 59, 59); // Учитываем весь день
 
-    // Сортировка таблицы
-    function initTableSorting() {
-        document.querySelectorAll('.sortable').forEach(table => {
-            const headers = table.querySelectorAll('thead th');
+        return (!from || date >= from) && (!to || date <= to);
+    }
 
-            headers.forEach((header, columnIndex) => {
-                header.addEventListener('click', () => {
-                    const direction = header.classList.contains('sorted-asc') ? 'desc' : 'asc';
 
-                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
-                    header.classList.add(`sorted-${direction}`);
+    // Поиск индекса столбца по ключевым словам
+    function findColumnIndex(headers, keywords) {
+        for (let i = 0; i < headers.length; i++) {
+            const headerText = headers[i].textContent.toLowerCase();
+            if (keywords.some(keyword => headerText.includes(keyword))) {
+                return i;
+            }
+        }
+        return -1;
+    }
 
-                    const rows = Array.from(table.querySelectorAll('tbody tr'));
-                    rows.sort((a, b) => {
-                        const aVal = a.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
-                        const bVal = b.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
-                        return compareValues(aVal, bVal, direction);
-                    });
-
-                    const tbody = table.querySelector('tbody');
-                    rows.forEach(row => tbody.appendChild(row));
-                });
-            });
+    // Инициализация фильтров
+    function initFilters() {
+        // Текстовые фильтры
+        document.getElementById('globalActNumSearch').addEventListener('input', function() {
+            currentFilters.actNum = this.value.toLowerCase();
+            applyFilters();
         });
-    }
 
-    // Сравнение значений для сортировки
-    function compareValues(a, b, direction) {
-        const aNum = parseFloat(a?.replace(/[^\d.,]/g, '').replace(',', '.'));
-        const bNum = parseFloat(b?.replace(/[^\d.,]/g, '').replace(',', '.'));
-
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-            return direction === 'asc' ? aNum - bNum : bNum - aNum;
-        }
-        return direction === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
-    }
-
-    function applyPaidRowStyles() {
-        document.querySelectorAll('#periodTable tbody tr').forEach(row => {
-            const paidCell = row.querySelector('td:nth-child(8)');
-            if (paidCell) {
-                row.classList.remove('paid-true', 'paid-false');
-                row.classList.add(paidCell.textContent.trim() === 'Да' ? 'paid-true' : 'paid-false');
-            }
+        document.getElementById('globalCandidateSearch').addEventListener('input', function() {
+            currentFilters.candidate = this.value.toLowerCase();
+            applyFilters();
         });
+
+        document.getElementById('globalProjectSearch').addEventListener('input', function() {
+            currentFilters.project = this.value.toLowerCase();
+            applyFilters();
+        });
+
+        document.getElementById('globalCompanySearch').addEventListener('input', function() {
+            currentFilters.company = this.value.toLowerCase();
+            applyFilters();
+        });
+
+        // Фильтр по дате создания
+        document.getElementById('filterByCreationDate').addEventListener('change', function() {
+            currentFilters.filterByCreationDate = this.checked;
+            applyFilters();
+        });
+
+        // Фильтр по оплате
+        document.getElementById('filterByPayment').addEventListener('change', function() {
+            const enabled = this.checked;
+            document.getElementById('paymentStatus').disabled = !enabled;
+            if (!enabled) {
+                currentFilters.paymentStatus = 'all';
+            }
+            applyFilters();
+        });
+
+        document.getElementById('paymentStatus').addEventListener('change', function() {
+            currentFilters.paymentStatus = this.value;
+            applyFilters();
+        });
+
+        // При изменении дат тоже применяем фильтры
+        document.getElementById('dateFrom').addEventListener('change', applyFilters);
+        document.getElementById('dateTo').addEventListener('change', applyFilters);
     }
 
 
-     function exportFilteredActsToExcel() {
-        // 1. Получаем выбранный период
-        const dateFromInput = document.getElementById('dateFrom').value;
-        const dateToInput = document.getElementById('dateTo').value;
+     // Инициализация функций таблицы
+     function initTableFeatures() {
+         initTableSorting();
+         applyPaidRowStyles();
+         adjustStickyHeaders();
+     }
 
-        const wb = XLSX.utils.book_new();
-        let ws; // Объявляем переменную здесь, чтобы она была доступна во всей функции
+     function adjustStickyHeaders() {
+         // Вычисляем общую высоту всех фиксированных элементов над таблицей
+         const navbarHeight = document.querySelector('.navbar').offsetHeight;
+         const filterHeight = document.querySelector('#dateFilterForm').offsetHeight;
+         const tabsHeight = document.querySelector('#reportTabs').offsetHeight;
 
-        const dateFrom = dateFromInput ? new Date(dateFromInput) : null;
-        const dateTo = dateToInput ? new Date(dateToInput) : null;
-        if (dateTo) dateTo.setHours(23, 59, 59);
+         const totalOffset = navbarHeight + filterHeight + tabsHeight;
 
-        // 2. Находим активную таблицу
-        const table = document.querySelector('.tab-pane.active table');
-        if (!table) {
-            alert('Таблица не найдена');
-            return;
-        }
+         // Применяем вычисленное значение ко всем заголовкам таблиц
+         document.querySelectorAll('.sticky-header-table thead th').forEach(th => {
+             th.style.top = totalOffset + 'px';
+         });
+     }
 
-        const tableId = table.id;
+     // Сортировка таблицы
+     function initTableSorting() {
+         document.querySelectorAll('.sortable').forEach(table => {
+             const headers = table.querySelectorAll('thead th');
 
-        // 3. Обработка periodTable с фильтрацией по дате
-        if (tableId === 'periodTable') {
-            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-            const dateColumnIndex = headers.findIndex(h => h === 'Дата акта');
+             headers.forEach((header, columnIndex) => {
+                 header.addEventListener('click', () => {
+                     const direction = header.classList.contains('sorted-asc') ? 'desc' : 'asc';
 
-            if (dateColumnIndex === -1) {
-                alert('Колонка "Дата акта" не найдена');
-                return;
-            }
+                     headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                     header.classList.add(`sorted-${direction}`);
 
-            // Собираем данные с фильтрацией по дате
-            const data = [];
-            const rows = table.querySelectorAll('tbody tr:not([style*="display: none"])');
+                     const rows = Array.from(table.querySelectorAll('tbody tr'));
+                     rows.sort((a, b) => {
+                         const aVal = a.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
+                         const bVal = b.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
+                         return compareValues(aVal, bVal, direction);
+                     });
 
-            rows.forEach(row => {
-                const dateCell = row.querySelector(`td:nth-child(${dateColumnIndex + 1})`);
-                if (!dateCell) return;
+                     const tbody = table.querySelector('tbody');
+                     rows.forEach(row => tbody.appendChild(row));
+                 });
+             });
+         });
+     }
 
-                const dateText = dateCell.textContent.trim();
-                const actDate = parseTableDate(dateText);
+     // Сравнение значений для сортировки
+     function compareValues(a, b, direction) {
+         const aNum = parseFloat(a?.replace(/[^\d.,]/g, '').replace(',', '.'));
+         const bNum = parseFloat(b?.replace(/[^\d.,]/g, '').replace(',', '.'));
 
-                if ((!dateFrom || actDate >= dateFrom) && (!dateTo || actDate <= dateTo)) {
-                    const rowData = {};
-                    row.querySelectorAll('td').forEach((cell, i) => {
-                        const header = headers[i];
-                        if (header) {
-                            rowData[header] = formatCellValue(cell, header);
-                        }
-                    });
-                    data.push(rowData);
-                }
-            });
+         if (!isNaN(aNum) && !isNaN(bNum)) {
+             return direction === 'asc' ? aNum - bNum : bNum - aNum;
+         }
+         return direction === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
+     }
 
-            if (data.length === 0) {
-                alert('Нет данных для экспорта в выбранном периоде');
-                return;
-            }
-
-            ws = XLSX.utils.json_to_sheet(data);
-
-            // Форматирование числовых колонок
-            headers.forEach((header, colIndex) => {
-                if (['Сумма', 'Бонус', 'Сумма бонуса'].includes(header)) {
-                    for (let rowIndex = 1; rowIndex <= data.length; rowIndex++) {
-                        const cell = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
-                        if (ws[cell]) {
-                            ws[cell].t = 'n';
-                            ws[cell].z = '#,##0.00';
-                        }
-                    }
-                }
-            });
-        }
-        // 4. Обработка остальных таблиц
-        else {
-            const numericCols = table.dataset.numericCols?.split(',') || [];
-            ws = XLSX.utils.table_to_sheet(table);
-
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const header = XLSX.utils.encode_col(C) + "1";
-                if (ws[header] && numericCols.includes(ws[header].v)) {
-                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                        const cell = XLSX.utils.encode_cell({r: R, c: C});
-                        if (ws[cell]) {
-                            const value = ws[cell].v;
-                            if (typeof value === 'string') {
-                                const num = parseFloat(value.replace(/\s+/g, '').replace(',', '.'));
-                                if (!isNaN(num)) {
-                                    ws[cell].v = num;
-                                    ws[cell].t = 'n';
-                                    ws[cell].z = '#,##0.00';
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 5. Сохраняем файл
-        XLSX.utils.book_append_sheet(wb, ws, "Акты");
-        XLSX.writeFile(wb, `Акты_${dateFromInput || ''}_${dateToInput || ''}.xlsx`);
-    }
+     function applyPaidRowStyles() {
+         document.querySelectorAll('#periodTable tbody tr').forEach(row => {
+             const paidCell = row.querySelector('td:nth-child(8)');
+             if (paidCell) {
+                 row.classList.remove('paid-true', 'paid-false');
+                 row.classList.add(paidCell.textContent.trim() === 'Да' ? 'paid-true' : 'paid-false');
+             }
+         });
+     }
 
 
-        // Функция для парсинга дат из таблицы
-        function parseTableDate(dateStr) {
-            if (!dateStr || typeof dateStr !== 'string') return null;
+      function exportFilteredActsToExcel() {
+         // 1. Получаем выбранный период
+         const dateFromInput = document.getElementById('dateFrom').value;
+         const dateToInput = document.getElementById('dateTo').value;
 
-            // Удаляем лишние пробелы и возможные HTML-сущности
-            dateStr = dateStr.trim().replace(/&nbsp;/g, ' ');
+         const wb = XLSX.utils.book_new();
+         let ws; // Объявляем переменную здесь, чтобы она была доступна во всей функции
 
-            // 1. Формат dd.mm.yyyy (01.01.2023)
-            let match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-            if (match) {
-                return new Date(
-                    parseInt(match[3], 10),
-                    parseInt(match[2], 10) - 1,
-                    parseInt(match[1], 10)
-                );
-            }
+         const dateFrom = dateFromInput ? new Date(dateFromInput) : null;
+         const dateTo = dateToInput ? new Date(dateToInput) : null;
+         if (dateTo) dateTo.setHours(23, 59, 59);
 
-            // 2. Формат dd-mm-yyyy (01-01-2023)
-            match = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-            if (match) {
-                return new Date(
-                    parseInt(match[3], 10),
-                    parseInt(match[2], 10) - 1,
-                    parseInt(match[1], 10)
-                );
-            }
+         // 2. Находим активную таблицу
+         const table = document.querySelector('.tab-pane.active table');
+         if (!table) {
+             alert('Таблица не найдена');
+             return;
+         }
 
-            // 3. Формат yyyy-mm-dd (2023-01-01)
-            match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (match) {
-                return new Date(
-                    parseInt(match[1], 10),
-                    parseInt(match[2], 10) - 1,
-                    parseInt(match[3], 10)
-                );
-            }
+         const tableId = table.id;
 
-            // 4. Формат dd/mm/yyyy (01/01/2023)
-            match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (match) {
-                return new Date(
-                    parseInt(match[3], 10),
-                    parseInt(match[2], 10) - 1,
-                    parseInt(match[1], 10)
-                );
-            }
+         // 3. Обработка periodTable с фильтрацией по дате
+         if (tableId === 'periodTable') {
+             const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+             const dateColumnIndex = headers.findIndex(h => h === 'Дата акта');
 
-            // 5. Пробуем стандартный парсинг Date (для других форматов)
-            const parsedDate = new Date(dateStr);
-            if (!isNaN(parsedDate.getTime())) {
-                return parsedDate;
-            }
+             if (dateColumnIndex === -1) {
+                 alert('Колонка "Дата акта" не найдена');
+                 return;
+             }
 
-            // 6. Попробуем разобрать дату с текстовым месяцем (01 янв 2023)
-            const months = {
-                'янв': 0, 'фев': 1, 'мар': 2, 'апр': 3, 'май': 4, 'июн': 5,
-                'июл': 6, 'авг': 7, 'сен': 8, 'окт': 9, 'ноя': 10, 'дек': 11
-            };
+             // Собираем данные с фильтрацией по дате
+             const data = [];
+             const rows = table.querySelectorAll('tbody tr:not([style*="display: none"])');
 
-            match = dateStr.match(/^(\d{1,2})\s+([а-яa-z]{3})\s+(\d{4})$/i);
-            if (match) {
-                const monthName = match[2].toLowerCase().substr(0, 3);
-                if (months.hasOwnProperty(monthName)) {
-                    return new Date(
-                        parseInt(match[3], 10),
-                        months[monthName],
-                        parseInt(match[1], 10)
-                    );
-                }
-            }
+             rows.forEach(row => {
+                 const dateCell = row.querySelector(`td:nth-child(${dateColumnIndex + 1})`);
+                 if (!dateCell) return;
 
-            console.warn(`Не удалось распознать дату: ${dateStr}`);
-            return null; // или return new Date(0); если нужно вернуть минимальную дату
-        }
+                 const dateText = dateCell.textContent.trim();
+                 const actDate = parseTableDate(dateText);
 
-        // Форматирование значения ячейки
-        function formatCellValue(cell, header) {
-            const text = cell.textContent.trim();
+                 if ((!dateFrom || actDate >= dateFrom) && (!dateTo || actDate <= dateTo)) {
+                     const rowData = {};
+                     row.querySelectorAll('td').forEach((cell, i) => {
+                         const header = headers[i];
+                         if (header) {
+                             rowData[header] = formatCellValue(cell, header);
+                         }
+                     });
+                     data.push(rowData);
+                 }
+             });
 
-            // Числовые колонки
-            if (['Сумма', 'Бонус', 'Сумма бонуса'].includes(header)) {
-                const num = parseFloat(text.replace(/\s+/g, '').replace(',', '.'));
-                return isNaN(num) ? 0 : num;
-            }
+             if (data.length === 0) {
+                 alert('Нет данных для экспорта в выбранном периоде');
+                 return;
+             }
 
-            // Колонка с датой
-            if (header === 'Дата акта') {
-                return parseTableDate(text);
-            }
+             ws = XLSX.utils.json_to_sheet(data);
 
-            // Все остальные колонки - как текст
-            return text;
-        }
+             // Форматирование числовых колонок
+             headers.forEach((header, colIndex) => {
+                 if (['Сумма', 'Бонус', 'Сумма бонуса'].includes(header)) {
+                     for (let rowIndex = 1; rowIndex <= data.length; rowIndex++) {
+                         const cell = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
+                         if (ws[cell]) {
+                             ws[cell].t = 'n';
+                             ws[cell].z = '#,##0.00';
+                         }
+                     }
+                 }
+             });
+         }
+         // 4. Обработка остальных таблиц
+         else {
+             const numericCols = table.dataset.numericCols?.split(',') || [];
+             ws = XLSX.utils.table_to_sheet(table);
 
-        // Установка числовых форматов
-        function setNumericFormats(ws, headers) {
-            const range = XLSX.utils.decode_range(ws['!ref']);
+             const range = XLSX.utils.decode_range(ws['!ref']);
+             for (let C = range.s.c; C <= range.e.c; ++C) {
+                 const header = XLSX.utils.encode_col(C) + "1";
+                 if (ws[header] && numericCols.includes(ws[header].v)) {
+                     for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                         const cell = XLSX.utils.encode_cell({r: R, c: C});
+                         if (ws[cell]) {
+                             const value = ws[cell].v;
+                             if (typeof value === 'string') {
+                                 const num = parseFloat(value.replace(/\s+/g, '').replace(',', '.'));
+                                 if (!isNaN(num)) {
+                                     ws[cell].v = num;
+                                     ws[cell].t = 'n';
+                                     ws[cell].z = '#,##0.00';
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+         }
 
-            headers.forEach((header, colIndex) => {
-                const headerText = header.textContent.trim();
-
-                if (headerText === 'Сумма' || headerText === 'Бонус') {
-                    for (let rowIndex = range.s.r + 1; rowIndex <= range.e.r; rowIndex++) {
-                        const cell = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
-                        if (ws[cell]) {
-                            ws[cell].t = 'n';
-                            ws[cell].z = '#,##0.00';
-                        }
-                    }
-                }
-
-                if (headerText === 'Дата акта' || headerText === 'Дата оплаты') {
-                    for (let rowIndex = range.s.r + 1; rowIndex <= range.e.r; rowIndex++) {
-                        const cell = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
-                        if (ws[cell]) {
-                            ws[cell].t = 'd';
-                            ws[cell].z = 'dd.mm.yyyy';
-                        }
-                    }
-                }
-            });
-        }
+         // 5. Сохраняем файл
+         XLSX.utils.book_append_sheet(wb, ws, "Акты");
+         XLSX.writeFile(wb, `Акты_${dateFromInput || ''}_${dateToInput || ''}.xlsx`);
+     }
 
 
+         // Функция для парсинга дат из таблицы
+         function parseTableDate(dateStr) {
+             if (!dateStr || typeof dateStr !== 'string') return null;
+
+             // Удаляем лишние пробелы и возможные HTML-сущности
+             dateStr = dateStr.trim().replace(/&nbsp;/g, ' ');
+
+             // 1. Формат dd.mm.yyyy (01.01.2023)
+             let match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+             if (match) {
+                 return new Date(
+                     parseInt(match[3], 10),
+                     parseInt(match[2], 10) - 1,
+                     parseInt(match[1], 10)
+                 );
+             }
+
+             // 2. Формат dd-mm-yyyy (01-01-2023)
+             match = dateStr.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+             if (match) {
+                 return new Date(
+                     parseInt(match[3], 10),
+                     parseInt(match[2], 10) - 1,
+                     parseInt(match[1], 10)
+                 );
+             }
+
+             // 3. Формат yyyy-mm-dd (2023-01-01)
+             match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+             if (match) {
+                 return new Date(
+                     parseInt(match[1], 10),
+                     parseInt(match[2], 10) - 1,
+                     parseInt(match[3], 10)
+                 );
+             }
+
+             // 4. Формат dd/mm/yyyy (01/01/2023)
+             match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+             if (match) {
+                 return new Date(
+                     parseInt(match[3], 10),
+                     parseInt(match[2], 10) - 1,
+                     parseInt(match[1], 10)
+                 );
+             }
+
+             // 5. Пробуем стандартный парсинг Date (для других форматов)
+             const parsedDate = new Date(dateStr);
+             if (!isNaN(parsedDate.getTime())) {
+                 return parsedDate;
+             }
+
+             // 6. Попробуем разобрать дату с текстовым месяцем (01 янв 2023)
+             const months = {
+                 'янв': 0, 'фев': 1, 'мар': 2, 'апр': 3, 'май': 4, 'июн': 5,
+                 'июл': 6, 'авг': 7, 'сен': 8, 'окт': 9, 'ноя': 10, 'дек': 11
+             };
+
+             match = dateStr.match(/^(\d{1,2})\s+([а-яa-z]{3})\s+(\d{4})$/i);
+             if (match) {
+                 const monthName = match[2].toLowerCase().substr(0, 3);
+                 if (months.hasOwnProperty(monthName)) {
+                     return new Date(
+                         parseInt(match[3], 10),
+                         months[monthName],
+                         parseInt(match[1], 10)
+                     );
+                 }
+             }
+
+             console.warn(`Не удалось распознать дату: ${dateStr}`);
+             return null; // или return new Date(0); если нужно вернуть минимальную дату
+         }
+
+         // Форматирование значения ячейки
+         function formatCellValue(cell, header) {
+             const text = cell.textContent.trim();
+
+             // Числовые колонки
+             if (['Сумма', 'Бонус', 'Сумма бонуса'].includes(header)) {
+                 const num = parseFloat(text.replace(/\s+/g, '').replace(',', '.'));
+                 return isNaN(num) ? 0 : num;
+             }
+
+             // Колонка с датой
+             if (header === 'Дата акта') {
+                 return parseTableDate(text);
+             }
+
+             // Все остальные колонки - как текст
+             return text;
+         }
+
+         // Установка числовых форматов
+         function setNumericFormats(ws, headers) {
+             const range = XLSX.utils.decode_range(ws['!ref']);
+
+             headers.forEach((header, colIndex) => {
+                 const headerText = header.textContent.trim();
+
+                 if (headerText === 'Сумма' || headerText === 'Бонус') {
+                     for (let rowIndex = range.s.r + 1; rowIndex <= range.e.r; rowIndex++) {
+                         const cell = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
+                         if (ws[cell]) {
+                             ws[cell].t = 'n';
+                             ws[cell].z = '#,##0.00';
+                         }
+                     }
+                 }
+
+                 if (headerText === 'Дата акта' || headerText === 'Дата оплаты') {
+                     for (let rowIndex = range.s.r + 1; rowIndex <= range.e.r; rowIndex++) {
+                         const cell = XLSX.utils.encode_cell({r: rowIndex, c: colIndex});
+                         if (ws[cell]) {
+                             ws[cell].t = 'd';
+                             ws[cell].z = 'dd.mm.yyyy';
+                         }
+                     }
+                 }
+             });
+         }
 
 
-    // Инициализация при загрузке страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        initFilters();
-        loadTabContent('/acts/actAll', 'actPeriodTab');
-    });
+
+
+     // Инициализация при загрузке страницы
+     document.addEventListener('DOMContentLoaded', function() {
+         initFilters();
+         loadTabContent('/acts/actAll', 'actPeriodTab');
+     });
 </script>
 </body>
 </html>

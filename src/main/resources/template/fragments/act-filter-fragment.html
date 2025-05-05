@@ -1,68 +1,130 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
+    <!-- Act filter fragment -->
+    <div th:fragment="filter-form">
+        <div class="card mb-3">
+            <div class="card-header">Фильтры</div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Поисковые фильтры -->
+                    <div class="col-md-3">
+                        <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">
+                    </div>
 
-<!-- Act filter fragment -->
-<div th:fragment="filter-form">
-    <div class="card mb-3">
-        <div class="card-header">Фильтры</div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">
+                    <!-- Фильтр по типу периода (только один чекбокс) -->
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="filterByCreationDate">
+                            <label class="form-check-label" for="filterByCreationDate">
+                                Только акты созданные в период
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Фильтр по оплате -->
+                    <div class="col-md-4">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="filterByPayment">
+                            <label class="form-check-label" for="filterByPayment">
+                                Фильтровать по оплате
+                            </label>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-control" id="paymentStatus" disabled>
+                                    <option value="all">Все</option>
+                                    <option value="paid">Оплаченные</option>
+                                    <option value="unpaid">Неоплаченные</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопка экспорта -->
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-success" onclick="exportFilteredActsToExcel()">
+                            <i class="bi bi-file-excel"></i> Экспорт
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">
-                </div>
-                <button class="btn btn-success" onclick="exportFilteredActsToExcel()">
-                    <i class="bi bi-file-excel"></i> Экспорт актов за период
-                </button>
-<!--                <button class="btn btn-success mb-3" onclick="exportTableToExcel()">-->
-<!--                    <i class="bi bi-file-excel"></i> Выгрузить в Excel-->
-<!--                </button>-->
             </div>
         </div>
     </div>
-<!--    <div class="card mb-3">-->
-<!--        <div class="filter-container mb-4 p-3 bg-light rounded">-->
-<!--            <div class="row">-->
-<!--                <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">-->
-<!--                <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">-->
-<!--                <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">-->
-<!--                <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">-->
+
+<!--    <div th:fragment="filter-form">-->
+<!--        <div class="card mb-3">-->
+<!--            <div class="card-header">Фильтры</div>-->
+<!--            <div class="card-body">-->
+<!--                <div class="row">-->
+<!--                    &lt;!&ndash; Поисковые фильтры &ndash;&gt;-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Новый фильтр по типу периода &ndash;&gt;-->
+<!--                    <div class="col-md-4">-->
+<!--                        <div class="form-check mb-2">-->
+<!--                            <input class="form-check-input" type="radio" name="actPeriodFilter" id="filterByCreationDate" value="creation" checked>-->
+<!--                            <label class="form-check-label" for="filterByCreationDate">-->
+<!--                                Акты созданы в период-->
+<!--                            </label>-->
+<!--                        </div>-->
+<!--                        <div class="form-check mb-2">-->
+<!--                            <input class="form-check-input" type="radio" name="actPeriodFilter" id="filterByPaymentDate" value="payment">-->
+<!--                            <label class="form-check-label" for="filterByPaymentDate">-->
+<!--                                Акты оплачены в период-->
+<!--                            </label>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Фильтр по оплате &ndash;&gt;-->
+<!--                    <div class="col-md-4">-->
+<!--                        <div class="form-check mb-2">-->
+<!--                            <input class="form-check-input" type="checkbox" id="filterByPayment">-->
+<!--                            <label class="form-check-label" for="filterByPayment">-->
+<!--                                Фильтровать по оплате-->
+<!--                            </label>-->
+<!--                        </div>-->
+<!--                        <div class="row">-->
+<!--                            <div class="col-md-6">-->
+<!--                                <select class="form-control" id="paymentStatus" disabled>-->
+<!--                                    <option value="all">Все</option>-->
+<!--                                    <option value="paid">Оплаченные</option>-->
+<!--                                    <option value="unpaid">Неоплаченные</option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Кнопка экспорта &ndash;&gt;-->
+<!--                    <div class="col-md-4 d-flex align-items-end">-->
+<!--                        <button class="btn btn-success" onclick="exportFilteredActsToExcel()">-->
+<!--                            <i class="bi bi-file-excel"></i> Экспорт-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                </div>-->
 <!--            </div>-->
 <!--        </div>-->
 <!--    </div>-->
-</div>
-
 </body>
 </html>
 
-
-<!--<!DOCTYPE html>-->
-<!--<html xmlns:th="http://www.thymeleaf.org">-->
-<!--<body>-->
-
-<!--&lt;!&ndash; Act filter fragment &ndash;&gt;-->
-<!--<div th:fragment="filter-form(tableId)">-->
-
-<!--    <div class="card mb-3">-->
-<!--        <div class="filter-container mb-4 p-3 bg-light rounded">-->
-<!--            <div class="row">-->
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="actNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта" th:onkeyup="actNumFilter(this)" >-->
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="candidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату" th:onkeyup="candidateFilter(this)" >-->
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="projectSearch" class="form-control mb-2" placeholder="Поиск по проекту" th:onkeyup="projectFilter(this)" >-->
-<!--                <input type="text" th:attr="data-table-id=${tableId}" id="companySearch" class="form-control mb-2" placeholder="Поиск по компании" th:onkeyup="companyFilter(this)" >-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
-
-<!--</body>-->
-<!--</html>-->
