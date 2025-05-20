@@ -63,8 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-//                .csrf()
-//                .disable()
+                .csrf().disable() // Отключаем CSRF
                 .authorizeRequests()
                 .antMatchers("/payment/confirm").hasRole("BUHADMIN")
                 .antMatchers("/act/allact").hasRole("BUHADMIN")

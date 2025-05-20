@@ -1,221 +1,400 @@
-
-<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>-->
-<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>-->
-<!--<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />-->
 <!DOCTYPE html>
-
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Bonus</title>
     <style>
-        * {
-            box-sizing: border-box;
+        body {
+            margin: 0;
+            padding: 3px;
+            font-family: Arial, sans-serif;
         }
-
-        #myTable {
-            table-layout: auto;
-            border-collapse: collapse;
-            width: 100%;
-
-            border: 1px solid #ddd;
-            font-size: 18px;
-
-        }
-        tr:hover td {background: #e8edff;}
-
-        #myTable th, #myTable td {
-            text-align: left;
-            padding: 12px;
-        }
-
-        #myTable tr {
-            border-bottom: 1px solid #ddd;
-
-        }
-
-        #myTable tr.header, #myTable tr:hover {
-            background-color: #f1f1f1;
-        }
-        .container {
+        .filter-container {
             display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        table {
+            width: calc(100% - 6px);
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            word-wrap: break-word;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .summary {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .act-table {
+            width: 100%;
+            margin-top: 5px;
+            border-collapse: collapse;
+        }
+        .act-table th, .act-table td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            font-size: 0.9em;
+        }
+        .hidden-row {
+            display: none;
+        }
+        .bonus-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 100%;
         }
 
+        .bonus-checkbox {
+            margin: 0;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
 
+        .bonus-amount {
+            flex-grow: 1;
+        }
+        .act-table {
+            table-layout: fixed; /* Фиксированная ширина колонок */
+        }
+
+        .act-table th:nth-child(5),
+        .act-table td:nth-child(5) {
+            width: 150px; /* Ширина колонки с бонусом */
+        }
+        .stats-block {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            min-width: 200px;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #495057;
+        }
+
+        .stat-value {
+            color: #212529;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
     </style>
-    <meta charset="utf-8"/>
-
-    <title>Выплаты</title>
-
-    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-
-    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-
-
 </head>
-
 <body>
+<h1>Payment Bonus</h1>
 
-<div th:replace="~{navigation :: navi(Cart)}"/>
+<div class="filter-container">
+    <div class="filter-group">
+        <label for="date1">Date From</label>
+        <input type="date" id="date1" th:value="${date1}">
+    </div>
 
-<div class="container" xmlns:th="http://www.w3.org/1999/xhtml" style="margin-right:auto;margin-left:0px">
-    <div class="col-md-12">
+    <div class="filter-group">
+        <label for="date2">Date To</label>
+        <input type="date" id="date2" th:value="${date2}">
+    </div>
 
-            <h1 th:text="Выплаты" />
+    <div class="filter-group">
+        <label for="searchFio">Search by Name</label>
+        <input type="text" id="searchFio" placeholder="Enter name..." oninput="filterTable()">
+    </div>
 
-            <form th:action="@{/payment/allpayment1}" method="get">
-                <input required th:value="${date1 != null} ? ${date1}" th:name="date1"  type="date"  placeholder="Дата от ">
-                <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">
+    <div class="filter-group">
+        <label for="searchDepartment">Search by Department</label>
+        <input type="text" id="searchDepartment" placeholder="Enter department..." oninput="filterTable()">
+    </div>
 
-                <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.." title="Find in a name">
-                <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Find in a department">
-
-                <button type="submit" class="btn btn-primary">Фильтровать</button>
-
-            </form>
-
-
-
-            <div class="panel-body">
-                    <table id="myTable" class="table table-bordered border-primary">
-                    <thead>
-                    <tr>
-                        <th>ФИО</th>
-                        <th>Департамент</th>
-                        <th>Всего Бонус</th>
-                        <th>Бонус за кандидата</th>
-                        <th>Имя кандидата</th>
-                        <th>Компания</th>
-                        <th>Номер акта</th>
-                        <th>Процент</th>
-                        <th>Дата акта</th>
-                        <th>Дата выплаты бонуса</th>
-                        <th>Дата оплаты клиентом</th>
-                    </thead>
-
-                    <tbody>
-
-
-
-                        <tr th:each="userPaymentBonuses,iterStat : ${userPaymentBonuses}" >
-                            <form th:action="@{/payment/confirm}" method="post" th:object="${userPaymentBonuses}">
-
-
-                        <td th:text="${userPaymentBonuses.fio}" type="text" name="fio"  th:value="${userPaymentBonuses.fio}"/>
-<!--                                <input type="text" name="fio"  th:value="${userPaymentBonuses.fio}" />-->
-                        <td th:text="${userPaymentBonuses.department}"/>
-                        <td th:text="${userPaymentBonuses.allBonus}"/>
-
-
-                            <td>
-
-<!--                                <form th:action="@{/payment/confirm}" th:object="${userPaymentBonus}" method="post" >-->
-<!--                                    <a href="/payment/confirm?param1=bonus¶m2=value2" method="post">-->
-                                    <span th:each="bonus : ${userPaymentBonuses.bonus}" >
-                                        <input th:value="${bonus}" th:name="paymentSum" type="checkbox">
-
-
-<!--                                        th:value="${userPaymentBonuses}" th:name="userPaymentBonus"-->
-
-                                    <!--
-
-                                    <span th:each="bonus : ${userPaymentBonuses.bonus}" >
-                                        <input th:value="${bonus}" th:name="paymentSum"   type="checkbox">
-                                        <input th:value="${userPaymentBonuses}" th:name="userPaymentBonus">
-                                        <form type="checkbox"  th:action="@{/payment/edit}" th:object="${userPaymentBonuses}" method="post" enctype="multipart/form-data"/>-->
-                                <span th:text="${bonus}" /></span>
-
-
-
-
-
-                        <td>
-                            <span th:each="candidateName : ${userPaymentBonuses.candidateName}">
-                                <span th:text="${candidateName}" /></span>
-                        </td>
-
-                        <td>
-                            <span th:each="companyName : ${userPaymentBonuses.companyName}">
-                                <span th:text="${companyName}" /></span>
-                        </td>
-                        <td>
-                            <span th:each="actNum : ${userPaymentBonuses.actNum}">
-                                <span th:text="${actNum}" /></span>
-                        </td>
-
-                        <td th:text="${userPaymentBonuses.percent}"/>
-                        <td th:text="${userPaymentBonuses.dateAct}"/>
-                        <td th:text="${userPaymentBonuses.dateForPay}"/>
-                        <td th:text="${userPaymentBonuses.paymentDate}"/>
-
-                    </tr>
-                    <button type="submit" class="btn btn-primary">Применить</button>
-
-                    </form>
-
-                </tbody>
-
-            </table>
-
-
-        </div>
-    </td>
-</tr>
-
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-
+    <div class="filter-group">
+        <button type="button" onclick="applyDateFilter()">Apply Date Filter</button>
     </div>
 </div>
 
+<!-- Статический блок статистики -->
+<div class="stats-block">
+    <div class="summary">
+        <div>Всего к оплате: <span th:text="${allMoney}"></span></div>
+        <div>Оплачено: <span th:text="${allPaymentMoney}" id="paidTotal"></span></div>
+        <div>Осталось: <span th:text="${allNotPaymentMoney}" id="notPaidTotal"></span></div>
+        <div>Из них: <span th:text="${moneyByDate}"></span></div>
+    </div>
+</div>
+
+<table id="mainTable">
+    <thead>
+    <tr>
+        <th style="width: 8%;">ФИО</th>
+        <th style="width: 8%;">Отдел</th>
+        <th style="width: 10%;">Всего Бонус</th>
+        <th style="width: 74%;">Акты</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="employer : ${employerList}" class="employer-row"
+        th:attr="data-fio=${employer.manFIO}, data-department=${employer.userDepartment}">
+        <td th:text="${employer.manFIO}"></td>
+        <td th:text="${employer.userDepartment}"></td>
+        <td th:text="${employer.allBonusRUB}"></td>
+        <td>
+            <table class="act-table">
+                <thead>
+                <tr>
+                    <th>Кандидат</th>
+                    <th>Компания</th>
+                    <th>Номер акта</th>
+                    <th>Дата акта</th>
+                    <th>Бонус</th>
+                    <th>Процент</th>
+                    <th>Дата выплаты бонуса</th>
+                    <th>Дата оплаты клиентом</th>
+                    <th>Дата оплаты компанией</th>
+                    <th>Оплативший сотрудник</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="act,actIter : ${employer.actList}">
+                    <td th:text="${act.candidate}"></td>
+                    <td th:text="${act.companies}"></td>
+                    <td th:text="${act.num}"></td>
+                    <td th:text="${act.date}"></td>
+                    <td>
+                        <div class="bonus-container">
+                            <input type="checkbox" class="bonus-checkbox"
+                                   th:checked="${act.paid}"
+                                   th:data-act-id="${act.id}"
+                                   th:data-employer-id="${employer.manId}"
+                                   th:data-candidate="${act.candidate}"
+                                   th:data-projects="${act.projects}"
+                                   th:data-bonus="${act.bonus}"
+                                   th:data-paid="${act.paid}"
+                                   onchange="updatePaymentStatus(this)">
+                            <span class="bonus-amount" th:text="${act.bonusRUB}"></span>
+                        </div>
+                    </td>
+                    <td th:with="percentValue=${employer.percent != null and actIter.index < #lists.size(employer.percent) ? employer.percent[actIter.index] : null}"
+                        th:text="${percentValue != null} ? ${percentValue} : ''"></td>
+                    <td th:text="${act.dateForPay}"></td>
+                    <td th:text="${act.datePayment}"></td>
+                    <td th:text="${act.paymentRealDate}"></td> <!-- Будет пусто, если null -->
+                    <td th:text="${act.employerPaid}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
 <script>
-    function myFunction() {
-        var input, filter, table, tr, td, i;
-        input = document.getElementById("inputName");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("myTable");
-        tr = table.getElementsByTagName("tr");
+    function filterTable() {
+        const nameFilter = document.getElementById('searchFio').value.toLowerCase();
+        const deptFilter = document.getElementById('searchDepartment').value.toLowerCase();
 
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0];
-            if (td) {
-                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
+        document.querySelectorAll('.employer-row').forEach(row => {
+            const fio = row.getAttribute('data-fio').toLowerCase();
+            const department = row.getAttribute('data-department').toLowerCase();
+
+            const nameMatch = fio.includes(nameFilter);
+            const deptMatch = department.includes(deptFilter);
+
+            if (nameMatch && deptMatch) {
+                row.classList.remove('hidden-row');
+            } else {
+                row.classList.add('hidden-row');
+            }
+        });
+    }
+
+    function applyDateFilter() {
+        const date1 = document.getElementById('date1').value;
+        const date2 = document.getElementById('date2').value;
+
+        if (!date1 || !date2) {
+            alert('Please select both date ranges');
+            return;
+        }
+
+        window.location.href = `/payment/allpayment3?date1=${date1}&date2=${date2}`;
+    }
+
+    // Initialize filters from URL parameters if present
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchFio = urlParams.get('searchFio');
+        const searchDepartment = urlParams.get('searchDepartment');
+
+        if (searchFio) {
+            document.getElementById('searchFio').value = searchFio;
+        }
+
+        if (searchDepartment) {
+            document.getElementById('searchDepartment').value = searchDepartment;
+        }
+
+        if (searchFio || searchDepartment) {
+            filterTable();
+        }
+    });
+
+     function updatePaymentStatus(checkbox) {
+        try {
+            const isChecked = checkbox.checked;
+            const bonus = parseFloat(checkbox.getAttribute('data-bonus'));
+            const row = checkbox.closest('tr');
+
+            const paidSpan = document.getElementById('paidTotal');
+            const notPaidSpan = document.getElementById('notPaidTotal');
+
+            // Проверяем, что элементы существуют
+            if (!paidSpan || !notPaidSpan) {
+                throw new Error("Не найдены элементы для отображения сумм");
+            }
+
+            // Получаем текущие значения с проверкой
+            const paidText = paidSpan.textContent || "0";
+            const notPaidText = notPaidSpan.textContent || "0";
+
+            let paidTotal = parseFloat(paidText.replace(/\s+/g, '')) || 0;
+            let notPaidTotal = parseFloat(notPaidText.replace(/\s+/g, '')) || 0;
+
+            // Формируем данные для отправки
+            const data = {
+                actId: parseInt(checkbox.getAttribute('data-act-id')),
+                employerId: parseInt(checkbox.getAttribute('data-employer-id')),
+                candidate: checkbox.getAttribute('data-candidate'),
+                bonus: bonus,
+                paid: isChecked
+            };
+
+            // Оптимистичное обновление UI
+            if (isChecked) {
+                paidTotal += bonus;
+                notPaidTotal -= bonus;
+            } else {
+                paidTotal -= bonus;
+                notPaidTotal += bonus;
+            }
+
+            paidSpan.textContent = formatMoney(paidTotal);
+            notPaidSpan.textContent = formatMoney(notPaidTotal);
+
+            // Обновляем дату и сотрудника, если элементы существуют
+            if (row) {
+                const paymentDateCell = row.querySelector('td:nth-child(9)');
+                const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                if (paymentDateCell) {
+                    paymentDateCell.textContent = isChecked ? new Date().toLocaleDateString() : '';
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = isChecked ? "Обновление..." : '';
                 }
             }
+
+            // Отправка на сервер
+            fetch('/payment/updatePaymentStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || "Ошибка сервера") });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Финализируем обновление
+                if (data.allPaymentMoney) {
+                    paidSpan.textContent = data.allPaymentMoney;
+                }
+                if (data.allNotPaymentMoney) {
+                    notPaidSpan.textContent = data.allNotPaymentMoney;
+                }
+
+                if (row) {
+                    const paymentDateCell = row.querySelector('td:nth-child(9)');
+                    const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                    if (paymentDateCell && data.paymentRealDate !== undefined) {
+                        paymentDateCell.textContent = data.paymentRealDate || '';
+                    }
+                    if (employerPaidCell && data.employerPaid !== undefined) {
+                        employerPaidCell.textContent = data.employerPaid || '';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+                // Откатываем изменения
+                checkbox.checked = !isChecked;
+                paidSpan.textContent = paidText;
+                notPaidSpan.textContent = notPaidText;
+
+                if (row) {
+                    const paymentDateCell = row.querySelector('td:nth-child(9)');
+                    const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                    if (paymentDateCell) {
+                        paymentDateCell.textContent = isChecked ? '' : (data?.paymentRealDate || '');
+                    }
+                    if (employerPaidCell) {
+                        employerPaidCell.textContent = isChecked ? '' : (data?.employerPaid || '');
+                    }
+                }
+
+                alert('Ошибка при обновлении: ' + error.message);
+            });
+
+        } catch (error) {
+            console.error("Критическая ошибка:", error);
+            checkbox.checked = !checkbox.checked;
+            alert('Произошла ошибка: ' + error.message);
         }
     }
 
-    function searchDep() {
-        var input, filter, table, tr, td, i;
-        input = document.getElementById("inputDepartment");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("myTable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[1];
-            if (td) {
-                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
+    function formatMoney(amount) {
+        return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ');
     }
+
+
 </script>
-
-
 </body>
 </html>

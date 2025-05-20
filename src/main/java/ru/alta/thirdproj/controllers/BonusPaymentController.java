@@ -12,9 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.web.bind.annotation.*;
-import ru.alta.thirdproj.entites.EmployerNew;
-import ru.alta.thirdproj.entites.User;
-import ru.alta.thirdproj.entites.UserPaymentBonus;
+import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.export.ExcelGenerator;
 import ru.alta.thirdproj.response.JsonResponse;
@@ -27,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
+import java.time.*;
 import java.util.*;
 
 //@RestController
@@ -40,10 +38,16 @@ public class BonusPaymentController {
     private UserPaymentBonusServiceImpl paymentBonusService;
     private BonusPaymentSuccessServiceImpl paymentSuccessService;
     private UserService userService;
-    private List<EmployerNew> employerList;
     private LocalDate dateS;
     private LocalDate dateF;
     private List<List<Object>> objectList;
+    private String allMoney;
+    private String allPaymentMoney;
+    private String allNotPaymentMoney;
+    private String moneyByDate;
+
+    private double allPaymentAmount;
+    private double allNotPaymentAmount;
 
     @Autowired
     public BonusPaymentController(UserPaymentBonusServiceImpl paymentBonusService) {
@@ -58,6 +62,11 @@ public class BonusPaymentController {
     @Autowired
     public void setPaymentSuccessService(BonusPaymentSuccessServiceImpl paymentSuccessService){
         this.paymentSuccessService = paymentSuccessService;
+    }
+
+    @GetMapping("/amount")
+    public String showTabs() {
+        return "payment"; // Renders the main tabs.html template tabs_2 - остается все по старому
     }
 
     @PostMapping("/allpayment") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
@@ -78,46 +87,6 @@ public class BonusPaymentController {
         return new ResponseEntity(userPaymentBonuses, HttpStatus.OK);
     }
 
-    @GetMapping("/allpayment1") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
-    @ApiOperation("Returns list of all products data transfer objects")
-    public String showAll(Model model, Principal principal,
-                                  @RequestParam(value = "date1")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                  @RequestParam(value = "date2")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
-
-    ) {
-
-
-        User user = userService.findByUserName(principal.getName());
-
-
-        List<HashMap<String, Object>> userPaymentBonuses;
-
-            userPaymentBonuses = paymentBonusService.findAll(date1, date2);
-
-        HashMap<String,Object> mapActNum = paymentBonusService.getMapActNum();
-        HashMap<String,Object> mapBonus = paymentBonusService.getMapBonus();
-        HashMap<String,Object> mapCandidate =  paymentBonusService.getMapCandidate();
-        HashMap<String,Object> mapCompany =  paymentBonusService.getMapCompany();
-        List<String> employers = paymentBonusService.getEmployers();
-        List<String> department = paymentBonusService.getDepartment();
-
-
-        model.addAttribute("userPaymentBonuses", userPaymentBonuses);
-        model.addAttribute("actNum", mapActNum);
-        model.addAttribute("bonus", mapBonus);
-        model.addAttribute("candidateName", mapCandidate);
-        model.addAttribute("companyName", mapCompany);
-        model.addAttribute("employers", employers);
-        model.addAttribute("department", department);
-        model.addAttribute("date1", date1);
-        model.addAttribute("date2", date2);
-        return "payment";
-    }
-
-
-
     @GetMapping("/allpayment3") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
     @ApiOperation("Returns list of all products data transfer objects")
     public String showAll3(Model model, Principal principal,
@@ -130,12 +99,17 @@ public class BonusPaymentController {
     ) {
         dateS = date1;
         dateF = date2;
-        employerList = paymentBonusService.getEmployerList(date1, date2);
-        String allMoney = paymentBonusService.getAllMoney(employerList);
+        List<EmployerNew> employerList = paymentBonusService.getEmployerList(date1, date2);
+        this.allMoney = paymentBonusService.getAllMoney(employerList);
         String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
         String allNotPaymentMoney = paymentBonusService.getAllNotPaymentMoney(employerList);
 
-        String moneyByDate = paymentBonusService.getMoneyByDate(employerList);
+
+        this.allPaymentAmount = paymentBonusService.getAllPaymentMoneyDouble(employerList);
+
+        this.allNotPaymentAmount = paymentBonusService.getAllNotPaymentMoneyDouble(employerList);
+
+        this.moneyByDate = paymentBonusService.getMoneyByDate(employerList);
 
         objectList = new ArrayList<>();
 
@@ -148,77 +122,83 @@ public class BonusPaymentController {
         model.addAttribute("allNotPaymentMoney", allNotPaymentMoney);
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
-        return "paymentNew1";
-   //   return "ajax";
+        return "payment";
     }
 
-    @GetMapping("/allpaymentAjax") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
-    @ApiOperation("Returns list of all products data transfer objects")
-    public  @ResponseBody JsonResponse showAllAjax(Model model, Principal principal,
-                                                   @RequestParam(value = "date1")
-                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                                   @RequestParam(value = "date2")
-                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
-            , BindingResult result
+
+    @PostMapping("/updatePaymentStatus")
+    @ResponseBody
+    public ResponseEntity<?> updatePaymentStatus(@RequestBody PaymentUpdateRequest request, Principal principal) {
+        try {
+//            if (request.getActId() == null) {
+//                throw new IllegalArgumentException("ID акта обязательно");
+//            }
+
+            LocalDate paymentDate = null;
+            System.out.println("Received payment update request: " + request);
+            User user = userService.findByUserName(principal.getName());
+            if (request.getPaymentRealDate() != null) {
+             paymentDate = request.getPaymentRealDate() != null ?
+                    request.getPaymentRealDate() :
+                    LocalDate.now();//            //    date = format.parse(request.getPaymentRealDate());
 
 
-    ) {
+//            Calendar cal = Calendar.getInstance();
+//            cal.setTime(paymentDate);
+//            int month = cal.get(Calendar.MONTH);
+            }
+            if (request.isPaid()) {
+
+                paymentSuccessService.addPayment(user.getUserId(), request.getEmployerId(), request.getBonus(),
+                        request.getActId(), request.getCandidate(), 0, "", 1);
+            } else {
+                paymentSuccessService.deletePayment(user.getUserId(), request.getEmployerId(),
+                        paymentDate,
+                        request.getBonus(),
+                        request.getActId(), request.getCandidate(), request.getBonus());
+            }
+            Optional<PaymentSuccess> act =  paymentSuccessService.findByActId(user.getUserId(), request.getActId(),
+                    request.getCandidate(), request.getBonus());
+
+            double bonus = request.getBonus();
+            if (request.isPaid()) {
+                allPaymentAmount += bonus;
+                if (allNotPaymentAmount != 0.0) {
+                    allNotPaymentAmount -= bonus;
+                }
+            } else {
+                allPaymentAmount -= bonus;
+                allNotPaymentAmount += bonus;
+            }
+
+            // Форматируем для отображения
+            String formattedPayment = formatMoney(allPaymentAmount);
+            String formattedNotPayment = formatMoney(allNotPaymentAmount);
 
 
-        dateS = date1;
-        dateF = date2;
-        employerList = paymentBonusService.getEmployerList(date1, date2);
-        String allMoney = paymentBonusService.getAllMoney(employerList);
-        String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
-        String allNotPaymentMoney = paymentBonusService.getAllNotPaymentMoney(employerList);
 
-        String moneyByDate = paymentBonusService.getMoneyByDate(employerList);
-
-        objectList = new ArrayList<>();
-
-        objectList.add(Collections.singletonList(employerList));
-        JsonResponse res = new JsonResponse();
-        ValidationUtils.rejectIfEmpty(result, "name", "Name can not be empty.");
-        ValidationUtils.rejectIfEmpty(result, "education", "Educatioan not be empty");
-        if(!result.hasErrors()){
-            objectList.add(Collections.singletonList(employerList));
-            res.setStatus("SUCCESS");
-            res.setResult(objectList);
-        }else{
-            res.setStatus("FAIL");
-            res.setResult(result.getAllErrors());
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "paid", request.isPaid(),
+                    "paymentRealDate", !act.isEmpty() ?
+                            act.get().getPaymentDateOnly() : "",
+                    "employerPaid", !act.isEmpty() ?
+                            user.getUserFIOShot() + ' ' +request.getBonus() : "",
+                    "allPaymentMoney", formattedPayment,
+                    "allNotPaymentMoney", formattedNotPayment
+            ));
+        } catch (Exception e) {
+            System.err.println("Error updating payment status: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", e.getMessage()));
         }
-
-        return res;
-
-//        model.addAttribute("employerList", employerList);
-//        model.addAttribute("allMoney", allMoney);
-//        model.addAttribute("allPaymentMoney", allPaymentMoney);
-//        model.addAttribute("moneyByDate", moneyByDate);
-//        model.addAttribute("allNotPaymentMoney", allNotPaymentMoney);
-//        model.addAttribute("date1", date1);
-//        model.addAttribute("date2", date2);
-//        return "paymentNew1";
-        //   return "ajax";
+    }
+    private double parseMoney(String moneyStr) {
+        return Double.parseDouble(moneyStr.replaceAll("[^\\d.]", ""));
     }
 
-
-
-    @PostMapping(value = "/confirm")
-    @ApiOperation("Confirm payment")
-    public @ResponseBody String paymentConfirm (
-            @RequestParam (value = "fio", required = false) String fio,
-            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Principal principal, Model model)  {
-
-        User user = userService.findByUserName(principal.getName());
-
-        paymentSuccessService.findActInList(fio, user.getUserId(), employerList);
-
-        String allPaymentMoney = paymentBonusService.getAllPaymentMoney(employerList);
-        String referrer = httpServletRequest.getHeader("referer");
-        model.addAttribute("allPaymentMoney", allPaymentMoney);
-//        return "success" ;
-        return "redirect:" + referrer;
+    private String formatMoney(double amount) {
+        return String.format("%,.2f", amount).replace(",", " ");
     }
 
     @GetMapping("/export-to-excel")

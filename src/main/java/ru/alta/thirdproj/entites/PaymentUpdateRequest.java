@@ -1,0 +1,32 @@
+package ru.alta.thirdproj.entites;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
+
+import java.time.LocalDate;
+
+@Data
+public class PaymentUpdateRequest {
+    private Integer actId;
+    private Integer employerId;
+    private String candidate;
+    private Integer projects;
+    private Double bonus;
+    private boolean paid;
+    //private String paymentRealDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate paymentRealDate; // Используем LocalDate для SQL Server
+    // Проверка валидности запроса
+//    public boolean isValid() {
+//        return actId != null && employerId != null && bonus != null && paid != null;
+//    }
+
+
+    @Override
+    public String toString() {
+        return String.format(
+                "PaymentUpdateRequest[actId=%d, paid=%b, paymentDate=%s]",
+                actId, paid, paymentRealDate
+        );
+    }
+}

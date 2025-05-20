@@ -168,10 +168,6 @@ public class BonusPaymentRepositoryImpl {
                                     act.setDate(formatter1.format((Date) entry.getValue()));
                             }
 
-//                            if (entry.getKey().equals("project_id")) {
-//                                if ((Integer) entry.getValue() != 0)
-//                                act.setProjects((Integer) entry.getValue());
-//                            }
 
                             if (entry.getKey().equals("emploeduser")) {
                                 if (entry.getValue() != null)

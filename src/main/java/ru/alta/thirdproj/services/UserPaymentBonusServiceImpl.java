@@ -158,6 +158,23 @@ public class UserPaymentBonusServiceImpl {
         return currencyInstance.format(doublesSum);
     }
 
+    public double getAllPaymentMoneyDouble(List<EmployerNew> employerNews) {
+        ArrayList<Double> doubleArrayList = new ArrayList<>();
+
+
+        for (int i = 0; i < employerNews.size(); i++) {
+            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+                if (employerNews.get(i).getActList().get(j).isPaid()) {
+                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+                }
+            }
+        }
+
+        return doubleArrayList.stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
+    }
+
     public String getAllNotPaymentMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
@@ -177,6 +194,21 @@ public class UserPaymentBonusServiceImpl {
                 .mapToDouble(Double::doubleValue)
                 .sum();
         return currencyInstance.format(doublesSum);
+    }
+
+    public double getAllNotPaymentMoneyDouble(List<EmployerNew> employerNews) {
+        ArrayList<Double> doubleArrayList = new ArrayList<>();
+
+        for (int i = 0; i < employerNews.size(); i++) {
+            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+                if (!employerNews.get(i).getActList().get(j).isPaid()) {
+                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+                }
+            }
+        }
+        return doubleArrayList.stream()
+                .mapToDouble(Double::doubleValue)
+                .sum();
     }
 
     private List<HashMap<String, Object>> getHashMapsUserBonusPayment(List<UserPaymentBonus> userPaymentBonuses){

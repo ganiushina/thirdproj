@@ -8,6 +8,7 @@ import ru.alta.thirdproj.entites.PaymentSuccess;
 import ru.alta.thirdproj.repositories.IBonusPaymentSuccess;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -254,7 +255,7 @@ public class BonusPaymentSuccessServiceImpl {
         }
     }
 
-    public void deletePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate, Double summ){
+    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId, String candidate, Double summ){
 
         if (findByActId(userId, actId, candidate, summ) != null) {
             bonusPaymentSuccess.deletePayment(employerId, paymentRealSum, actId, candidate);

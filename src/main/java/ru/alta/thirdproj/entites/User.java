@@ -16,6 +16,7 @@ public class User {
     private String userName;
 
     private String userFIO;
+    private String userFIOShot;
 
     private String userPosition;
 
@@ -32,6 +33,7 @@ public class User {
     static {
         COLUMN_MAPPINGS.put("man_id", "userId");
         COLUMN_MAPPINGS.put("man_fio", "userFIO");
+        COLUMN_MAPPINGS.put("man_fio_short", "userFIOShot");
         COLUMN_MAPPINGS.put("login_name", "userName");
         COLUMN_MAPPINGS.put("user_position", "userPosition");
         COLUMN_MAPPINGS.put("user_department", "loginDepartment");

@@ -2,6 +2,8 @@ package ru.alta.thirdproj.entites;
 
 import lombok.Data;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +21,10 @@ public class PaymentSuccess {
     private int projectId;
     private String monthKPI;
     private int type;
+    public String getPaymentDateOnly() {
+        if (paymentDate == null) return null;
+        return new SimpleDateFormat("dd-MM-yyyy").format(paymentDate);
+    }
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 

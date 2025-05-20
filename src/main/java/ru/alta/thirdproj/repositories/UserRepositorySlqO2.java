@@ -20,7 +20,7 @@ public class UserRepositorySlqO2
 
     private static final String SELECT_USER_QUERY =
             "SELECT DISTINCT man_id \n" +
-                    "      ,man_fio, l.login_name      \n" +
+                    "      ,man_fio, m.man_fio_short, l.login_name      \n" +
 
                     "\t  , isnull(ubm.user_position, 0) user_position, \n" +
                     "\t   isnull(ubm.user_department, 0) user_department, \n" +
