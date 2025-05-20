@@ -19,7 +19,7 @@ public class PaymentSuccess {
     private Date paymentDate;
     private String candidate;
     private int projectId;
-    private String monthKPI;
+    private int monthKPI;
     private int type;
     public String getPaymentDateOnly() {
         if (paymentDate == null) return null;

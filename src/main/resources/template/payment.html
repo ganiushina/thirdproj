@@ -116,31 +116,36 @@
     </style>
 </head>
 <body>
-<h1>Payment Bonus</h1>
+<h1>Бонусы к выплате</h1>
 
 <div class="filter-container">
     <div class="filter-group">
-        <label for="date1">Date From</label>
+        <label for="date1">Дата от</label>
         <input type="date" id="date1" th:value="${date1}">
     </div>
 
     <div class="filter-group">
-        <label for="date2">Date To</label>
+        <label for="date2">Дата до</label>
         <input type="date" id="date2" th:value="${date2}">
     </div>
 
     <div class="filter-group">
-        <label for="searchFio">Search by Name</label>
-        <input type="text" id="searchFio" placeholder="Enter name..." oninput="filterTable()">
+        <label for="searchFio">Поиск по ФИО</label>
+        <input type="text" id="searchFio" placeholder="Введите имя..." oninput="filterTable()">
     </div>
 
     <div class="filter-group">
-        <label for="searchDepartment">Search by Department</label>
-        <input type="text" id="searchDepartment" placeholder="Enter department..." oninput="filterTable()">
+        <label for="searchDepartment">Поиск по отделу</label>
+        <input type="text" id="searchDepartment" placeholder="Введите отдел..." oninput="filterTable()">
     </div>
 
     <div class="filter-group">
-        <button type="button" onclick="applyDateFilter()">Apply Date Filter</button>
+        <button type="button" onclick="applyDateFilter()">Применить</button>
+    </div>
+    <div class="export-actions">
+        <button onclick="exportToExcel()" class="btn btn-success">
+            <i class="fas fa-file-excel"></i> Выгрузить в Excel
+        </button>
     </div>
 </div>
 
@@ -201,6 +206,7 @@
                                    th:data-projects="${act.projects}"
                                    th:data-bonus="${act.bonus}"
                                    th:data-paid="${act.paid}"
+                                   th:data-date-payment="${act.datePayment}"
                                    onchange="updatePaymentStatus(this)">
                             <span class="bonus-amount" th:text="${act.bonusRUB}"></span>
                         </div>
@@ -248,7 +254,7 @@
             return;
         }
 
-        window.location.href = `/payment/allpayment3?date1=${date1}&date2=${date2}`;
+        window.location.href = `/amount/allpayment3?date1=${date1}&date2=${date2}`;
     }
 
     // Initialize filters from URL parameters if present
@@ -275,6 +281,7 @@
             const isChecked = checkbox.checked;
             const bonus = parseFloat(checkbox.getAttribute('data-bonus'));
             const row = checkbox.closest('tr');
+            const datePaymentValue = checkbox.getAttribute('data-date-payment');
 
             const paidSpan = document.getElementById('paidTotal');
             const notPaidSpan = document.getElementById('notPaidTotal');
@@ -297,7 +304,8 @@
                 employerId: parseInt(checkbox.getAttribute('data-employer-id')),
                 candidate: checkbox.getAttribute('data-candidate'),
                 bonus: bonus,
-                paid: isChecked
+                paid: isChecked,
+                datePayment: datePaymentValue
             };
 
             // Оптимистичное обновление UI
@@ -326,7 +334,7 @@
             }
 
             // Отправка на сервер
-            fetch('/payment/updatePaymentStatus', {
+            fetch('/amount/updatePaymentStatus', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -392,6 +400,50 @@
 
     function formatMoney(amount) {
         return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ');
+    }
+    function exportToExcel() {
+        // Загружаем библиотеку динамически
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = function() {
+            // Создаем рабочую книгу
+            const wb = XLSX.utils.book_new();
+
+            // Получаем данные таблицы
+            const table = document.getElementById('mainTable');
+            const ws = XLSX.utils.table_to_sheet(table, {
+                raw: true, // Берем исходные значения (не форматированные)
+                dateNF: 'dd.mm.yyyy', // Формат дат
+                cellDates: true // Интерпретировать даты как объекты Date
+            });
+
+            // Применяем числовые форматы для денежных колонок
+            const moneyColumns = [4, 5, 6]; // Индексы денежных колонок (начиная с 0)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                if (moneyColumns.includes(C)) {
+                    for (let R = range.s.r; R <= range.e.r; ++R) {
+                        const cell_address = {c:C, r:R};
+                        const cell_ref = XLSX.utils.encode_cell(cell_address);
+                        if (ws[cell_ref] && ws[cell_ref].t === 'n') {
+                            // Форматируем как число с 2 знаками после запятой
+                            ws[cell_ref].z = '#,##0.00';
+                        }
+                    }
+                }
+            }
+
+            // Добавляем лист в книгу
+            XLSX.utils.book_append_sheet(wb, ws, "Платежи");
+
+            // Генерируем и скачиваем файл
+            XLSX.writeFile(wb, 'payments_report.xlsx', {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+        };
+        document.head.appendChild(script);
     }
 
 

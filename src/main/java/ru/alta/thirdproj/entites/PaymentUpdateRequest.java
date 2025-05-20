@@ -13,7 +13,8 @@ public class PaymentUpdateRequest {
     private Integer projects;
     private Double bonus;
     private boolean paid;
-    //private String paymentRealDate;
+    private String datePayment;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate paymentRealDate; // Используем LocalDate для SQL Server
     // Проверка валидности запроса

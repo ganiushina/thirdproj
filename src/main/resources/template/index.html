@@ -38,38 +38,20 @@
     <button type="submit" class="btn btn-primary">Бонусы</button>
 </form>
 
-<form th:action="@{/payment/allpayment3}" method="get">
-    <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
-    <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
-
-
+<form th:action="@{/amount}" method="get">
     <button type="submit" class="btn btn-primary">Выплаты</button>
 
 </form>
 
     <form th:action="@{/acts}" method="get">
-<!--        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">-->
-<!--        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">-->
-
         <button type="submit" class="btn btn-primary">Акты</button>
 
     </form>
 
     <form th:action="@{/margin}" method="get">
-<!--        <input required th:value="${date1 != null} ? ${date1}" th:name="dateFrom" type="date" placeholder="Дата от ">-->
-<!--        <input required th:value="${date2 != null} ? ${date2}" th:name="dateTo" type="date" placeholder="Дата до">-->
-
         <button type="submit" class="btn btn-primary">Маржинальная прибыль</button>
 
     </form>
-
-<!--    <form th:action="@{/salary/getSalaryAll}" method="get">-->
-<!--        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">-->
-<!--        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">-->
-
-<!--        <button type="submit" class="btn btn-primary">Маржинальная прибыль</button>-->
-
-<!--    </form>-->
 </div>
 
 </body>

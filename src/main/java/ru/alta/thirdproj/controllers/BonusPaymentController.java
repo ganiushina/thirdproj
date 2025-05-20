@@ -31,7 +31,6 @@ import java.util.*;
 //@RestController
 @Controller
 @CrossOrigin("*")
-@RequestMapping("/payment") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 @Tag(name="RestBonusPaymentController", description="Выплаты по бонусам")
 public class BonusPaymentController {
 
@@ -87,7 +86,7 @@ public class BonusPaymentController {
         return new ResponseEntity(userPaymentBonuses, HttpStatus.OK);
     }
 
-    @GetMapping("/allpayment3") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
+    @GetMapping("/amount/allpayment3") //http://localhost:8181/userbonus/allpayment?date1=2021-12-01&date2=2021-12-31
     @ApiOperation("Returns list of all products data transfer objects")
     public String showAll3(Model model, Principal principal,
                           @RequestParam(value = "date1")
@@ -126,7 +125,7 @@ public class BonusPaymentController {
     }
 
 
-    @PostMapping("/updatePaymentStatus")
+    @PostMapping("/amount/updatePaymentStatus")
     @ResponseBody
     public ResponseEntity<?> updatePaymentStatus(@RequestBody PaymentUpdateRequest request, Principal principal) {
         try {
@@ -135,22 +134,38 @@ public class BonusPaymentController {
 //            }
 
             LocalDate paymentDate = null;
+            LocalDate dateForKpi = null;
+            int type = 0;
+            int month = 0;
             System.out.println("Received payment update request: " + request);
             User user = userService.findByUserName(principal.getName());
+
+
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+
+
+
+
+
             if (request.getPaymentRealDate() != null) {
              paymentDate = request.getPaymentRealDate() != null ?
-                    request.getPaymentRealDate() :
-                    LocalDate.now();//            //    date = format.parse(request.getPaymentRealDate());
-
-
-//            Calendar cal = Calendar.getInstance();
-//            cal.setTime(paymentDate);
-//            int month = cal.get(Calendar.MONTH);
+                     request.getPaymentRealDate() :
+                     LocalDate.now();
             }
             if (request.isPaid()) {
-
+                if (request.getActId() == 0){
+                    Date date = format.parse(request.getDatePayment());
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(date);
+                    month = cal.get(Calendar.MONTH) + 1;
+                    type = 2;
+                }
+                else {
+                    type =1;
+                    month = 0;
+                }
                 paymentSuccessService.addPayment(user.getUserId(), request.getEmployerId(), request.getBonus(),
-                        request.getActId(), request.getCandidate(), 0, "", 1);
+                        request.getActId(), request.getCandidate(), 0, month, type);
             } else {
                 paymentSuccessService.deletePayment(user.getUserId(), request.getEmployerId(),
                         paymentDate,
