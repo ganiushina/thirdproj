@@ -4,209 +4,219 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Bonus</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body {
-            margin: 0;
-            padding: 3px;
-            font-family: Arial, sans-serif;
-        }
-        /* Общие стили для фильтров */
-        .filter-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
-            align-items: flex-end;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            border: 1px solid #dee2e6;
-        }
+       body {
+           padding-top: 70px;
+           margin: 0;
+           padding: 3px;
+           font-family: Arial, sans-serif;
+       }
+       /* Общие стили для фильтров */
+       .filter-container {
+           display: flex;
+           flex-wrap: wrap;
+           gap: 15px;
+           margin-bottom: 15px;
+           align-items: flex-end;
+           padding: 15px;
+           background-color: #f8f9fa;
+           border-radius: 5px;
+           border: 1px solid #dee2e6;
+       }
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
-        }
+       .filter-group {
+           display: flex;
+           flex-direction: column;
+           min-width: 200px;
+       }
 
-        .filter-group label {
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #495057;
-        }
+       .filter-group label {
+           margin-bottom: 5px;
+           font-weight: bold;
+           color: #495057;
+       }
 
-        .filter-group input,
-        .filter-group select {
-            padding: 8px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
+       .filter-group input,
+       .filter-group select {
+           padding: 8px 12px;
+           border: 1px solid #ced4da;
+           border-radius: 4px;
+           font-size: 0.9rem;
+       }
 
-        .filter-group button {
-            padding: 8px 16px;
-            background-color: #007bff; /* Синий цвет для кнопки Применить */
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
+       .filter-group button {
+           padding: 8px 16px;
+           background-color: #007bff; /* Синий цвет для кнопки Применить */
+           color: white;
+           border: none;
+           border-radius: 4px;
+           cursor: pointer;
+           font-size: 0.9rem;
+       }
 
-        .filter-group button:hover {
-            background-color: #0069d9;
-        }
+       .filter-group button:hover {
+           background-color: #0069d9;
+       }
 
-        /* Стили для статистического блока */
-        .stats-block {
-            background-color: transparent;
-            padding: 0;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
+       /* Стили для статистического блока */
+       .stats-block {
+           background-color: transparent;
+           padding: 0;
+           margin-bottom: 20px;
+           display: flex;
+           flex-wrap: wrap;
+           gap: 15px;
+       }
 
-        .stats-block .stat-card {
-            flex: 1;
-            min-width: 250px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 15px;
-        }
+       .stats-block .stat-card {
+           flex: 1;
+           min-width: 250px;
+           background-color: #f8f9fa;
+           border: 1px solid #dee2e6;
+           border-radius: 5px;
+           padding: 15px;
+       }
 
-        .stats-block .stat-item {
-            margin-bottom: 10px;
-        }
+       .stats-block .stat-item {
+           margin-bottom: 10px;
+       }
 
-        .stats-block .stat-label {
-            font-weight: bold;
-            color: #495057;
-            margin-right: 8px;
-        }
+       .stats-block .stat-label {
+           font-weight: bold;
+           color: #495057;
+           margin-right: 8px;
+       }
 
-        .stats-block .stat-value {
-            color: #212529;
-            font-family: monospace;
-            font-size: 1.1em;
-        }
+       .stats-block .stat-value {
+           color: #212529;
+           font-family: monospace;
+           font-size: 1.1em;
+       }
 
-        /* Кнопка экспорта */
-        .export-container {
-            margin: 15px 0;
-            text-align: left;
-        }
+       /* Кнопка экспорта */
+       .export-container {
+           margin: 15px 0;
+           text-align: left;
+       }
 
-        .btn-export {
-            background-color: #28a745; /* Зеленый цвет для кнопки экспорта */
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
+       .btn-export {
+           background-color: #28a745; /* Зеленый цвет для кнопки экспорта */
+           color: white;
+           padding: 8px 16px;
+           border-radius: 4px;
+           border: none;
+           cursor: pointer;
+           font-size: 0.9rem;
+       }
 
-        .btn-export:hover {
-            background-color: #218838;
-        }
+       .btn-export:hover {
+           background-color: #218838;
+       }
 
-        .fas {
-            margin-right: 8px;
-        }
+       .fas {
+           margin-right: 8px;
+       }
 
-        /* Адаптация для мобильных устройств */
-        @media (max-width: 768px) {
-            .filter-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
+       /* Адаптация для мобильных устройств */
+       @media (max-width: 768px) {
+           .filter-container {
+               flex-direction: column;
+               align-items: stretch;
+           }
 
-            .filter-group {
-                width: 100%;
-            }
+           .filter-group {
+               width: 100%;
+           }
 
-            .stats-block .stat-card {
-                min-width: 100%;
-            }
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            word-wrap: break-word;
-        }
-        th {
-            background-color: #f2f2f2;
-            position: sticky;
-            top: 0;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .summary {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        .act-table {
-            width: 100%;
-            margin-top: 5px;
-            border-collapse: collapse;
-        }
-        .act-table th, .act-table td {
-            border: 1px solid #ccc;
-            padding: 5px;
-            font-size: 0.9em;
-        }
-        .hidden-row {
-            display: none;
-        }
-        .bonus-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            height: 100%;
-        }
+           .stats-block .stat-card {
+               min-width: 100%;
+           }
+       }
+       th, td {
+           border: 1px solid #ddd;
+           padding: 8px;
+           text-align: left;
+           word-wrap: break-word;
+       }
+       th {
+           background-color: #f2f2f2;
+           position: sticky;
+           top: 0;
+       }
+       tr:nth-child(even) {
+           background-color: #f9f9f9;
+       }
+       .summary {
+           margin-top: 15px;
+           font-weight: bold;
+       }
+       .act-table {
+           width: 100%;
+           margin-top: 5px;
+           border-collapse: collapse;
+       }
+       .act-table th, .act-table td {
+           border: 1px solid #ccc;
+           padding: 5px;
+           font-size: 0.9em;
+       }
+       .hidden-row {
+           display: none;
+       }
+       .bonus-container {
+           display: flex;
+           align-items: center;
+           gap: 8px;
+           height: 100%;
+       }
 
-        .bonus-checkbox {
-            margin: 0;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
+       .bonus-checkbox {
+           margin: 0;
+           cursor: pointer;
+           flex-shrink: 0;
+       }
 
-        .bonus-amount {
-            flex-grow: 1;
-        }
-        .act-table {
-            table-layout: fixed; /* Фиксированная ширина колонок */
-        }
+       .bonus-amount {
+           flex-grow: 1;
+       }
+       .act-table {
+           table-layout: fixed; /* Фиксированная ширина колонок */
+       }
 
-        .act-table th:nth-child(5),
-        .act-table td:nth-child(5) {
-            width: 150px; /* Ширина колонки с бонусом */
-        }
-        .act-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-        }
+       .act-table th:nth-child(5),
+       .act-table td:nth-child(5) {
+           width: 150px; /* Ширина колонки с бонусом */
+       }
+       .act-table {
+           width: 100%;
+           border-collapse: collapse;
+           margin-top: 5px;
+       }
 
-        .act-table th, .act-table td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            font-size: 0.9em;
-        }
+       .act-table th, .act-table td {
+           border: 1px solid #ddd;
+           padding: 5px;
+           font-size: 0.9em;
+       }
 
-        /* Скрываем вложенные таблицы при экспорте */
-        @media print {
-            .act-table {
-                display: none;
-            }
-        }
+       /* Скрываем вложенные таблицы при экспорте */
+       @media print {
+           .act-table {
+               display: none;
+           }
+       }
+
     </style>
 </head>
+
 <body>
+
+<!-- Замените div на nav для правильного отображения -->
+<nav th:replace="~{navigation :: navi(Home)}"></nav>
+
+<div class="container-fluid"> <!-- Добавьте этот контейнер -->
 <h1>Бонусы к выплате</h1>
 
 <div class="filter-container">
@@ -652,5 +662,9 @@
     }
 
 </script>
+</div>
+<!-- Добавьте скрипты в конец body -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 </body>
 </html>
