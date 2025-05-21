@@ -10,25 +10,126 @@
             padding: 3px;
             font-family: Arial, sans-serif;
         }
+        /* Общие стили для фильтров */
         .filter-container {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 15px;
             align-items: flex-end;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
         }
+
         .filter-group {
             display: flex;
             flex-direction: column;
+            min-width: 200px;
         }
+
         .filter-group label {
             margin-bottom: 5px;
             font-weight: bold;
+            color: #495057;
         }
-        table {
-            width: calc(100% - 6px);
-            border-collapse: collapse;
-            table-layout: fixed;
+
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .filter-group button {
+            padding: 8px 16px;
+            background-color: #007bff; /* Синий цвет для кнопки Применить */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filter-group button:hover {
+            background-color: #0069d9;
+        }
+
+        /* Стили для статистического блока */
+        .stats-block {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stats-block .stat-card {
+            flex: 1;
+            min-width: 250px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .stats-block .stat-item {
+            margin-bottom: 10px;
+        }
+
+        .stats-block .stat-label {
+            font-weight: bold;
+            color: #495057;
+            margin-right: 8px;
+        }
+
+        .stats-block .stat-value {
+            color: #212529;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+
+        /* Кнопка экспорта */
+        .export-container {
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .btn-export {
+            background-color: #28a745; /* Зеленый цвет для кнопки экспорта */
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-export:hover {
+            background-color: #218838;
+        }
+
+        .fas {
+            margin-right: 8px;
+        }
+
+        /* Адаптация для мобильных устройств */
+        @media (max-width: 768px) {
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .stats-block .stat-card {
+                min-width: 100%;
+            }
         }
         th, td {
             border: 1px solid #ddd;
@@ -85,33 +186,23 @@
         .act-table td:nth-child(5) {
             width: 150px; /* Ширина колонки с бонусом */
         }
-        .stats-block {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
+        .act-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
         }
 
-        .stat-item {
-            display: flex;
-            align-items: center;
-            min-width: 200px;
+        .act-table th, .act-table td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            font-size: 0.9em;
         }
 
-        .stat-label {
-            font-weight: bold;
-            margin-right: 10px;
-            color: #495057;
-        }
-
-        .stat-value {
-            color: #212529;
-            font-family: monospace;
-            font-size: 1.1em;
+        /* Скрываем вложенные таблицы при экспорте */
+        @media print {
+            .act-table {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -142,22 +233,40 @@
     <div class="filter-group">
         <button type="button" onclick="applyDateFilter()">Применить</button>
     </div>
-    <div class="export-actions">
-        <button onclick="exportToExcel()" class="btn btn-success">
-            <i class="fas fa-file-excel"></i> Выгрузить в Excel
-        </button>
+</div>
+
+<!-- Статистика -->
+<div class="stats-block">
+    <div class="stat-card">
+        <div class="stat-item">
+            <span class="stat-label">Всего к оплате:</span>
+            <span class="stat-value" th:text="${allMoney}"></span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Оплачено:</span>
+            <span class="stat-value" id="paidTotal" th:text="${allPaymentMoney}"></span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-item">
+            <span class="stat-label">Осталось:</span>
+            <span class="stat-value" id="notPaidTotal" th:text="${allNotPaymentMoney}"></span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Из них:</span>
+            <span class="stat-value" th:text="${moneyByDate}"></span>
+        </div>
     </div>
 </div>
 
-<!-- Статический блок статистики -->
-<div class="stats-block">
-    <div class="summary">
-        <div>Всего к оплате: <span th:text="${allMoney}"></span></div>
-        <div>Оплачено: <span th:text="${allPaymentMoney}" id="paidTotal"></span></div>
-        <div>Осталось: <span th:text="${allNotPaymentMoney}" id="notPaidTotal"></span></div>
-        <div>Из них: <span th:text="${moneyByDate}"></span></div>
-    </div>
+<!-- Кнопка экспорта -->
+<div class="export-container">
+    <button onclick="exportToExcel()" class="btn-export">
+        <i class="fas fa-file-excel"></i> Выгрузить в Excel
+    </button>
 </div>
+
 
 <table id="mainTable">
     <thead>
@@ -173,7 +282,8 @@
         th:attr="data-fio=${employer.manFIO}, data-department=${employer.userDepartment}">
         <td th:text="${employer.manFIO}"></td>
         <td th:text="${employer.userDepartment}"></td>
-        <td th:text="${employer.allBonusRUB}"></td>
+        <td th:text="${#numbers.formatDecimal(employer.allBonus, 1, 2, 'COMMA')}"
+            th:attr="data-value=${employer.allBonus}"></td>
         <td>
             <table class="act-table">
                 <thead>
@@ -208,7 +318,8 @@
                                    th:data-paid="${act.paid}"
                                    th:data-date-payment="${act.datePayment}"
                                    onchange="updatePaymentStatus(this)">
-                            <span class="bonus-amount" th:text="${act.bonusRUB}"></span>
+                            <span th:text="${#numbers.formatDecimal(act.bonus, 1, 2, 'COMMA')}"
+                                  th:attr="data-value=${act.bonus}"></span>
                         </div>
                     </td>
                     <td th:with="percentValue=${employer.percent != null and actIter.index < #lists.size(employer.percent) ? employer.percent[actIter.index] : null}"
@@ -401,34 +512,51 @@
     function formatMoney(amount) {
         return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ');
     }
+
     function exportToExcel() {
-        // Загружаем библиотеку динамически
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
         script.onload = function() {
-            // Создаем рабочую книгу
+            // Создаем новую книгу Excel
             const wb = XLSX.utils.book_new();
 
-            // Получаем данные таблицы
-            const table = document.getElementById('mainTable');
-            const ws = XLSX.utils.table_to_sheet(table, {
-                raw: true, // Берем исходные значения (не форматированные)
-                dateNF: 'dd.mm.yyyy', // Формат дат
-                cellDates: true // Интерпретировать даты как объекты Date
+            // Подготавливаем данные в плоском формате
+            const excelData = prepareExcelData();
+            // Преобразуем данные перед созданием листа
+
+            const formattedData = excelData.map(item => {
+                return {
+                    ...item,
+                    "Общий бонус": convertToExcelNumber(item["Общий бонус"]),
+                    "Бонус": convertToExcelNumber(item["Бонус"])
+                };
             });
 
-            // Применяем числовые форматы для денежных колонок
-            const moneyColumns = [4, 5, 6]; // Индексы денежных колонок (начиная с 0)
+            // Создаем рабочий лист
+            const ws = XLSX.utils.json_to_sheet(excelData, {
+                header: ["ФИО", "Отдел", "Общий бонус", "Акт №", "Кандидат", "Компания",
+                        "Дата акта", "Бонус", "Процент", "Дата выплаты бонуса",
+                    "Дата оплаты клиентом",
+                    "Дата оплаты компанией",
+                    "Оплативший сотрудник"],
+                skipHeader: false
+            });
+
+            // Устанавливаем форматы для денежных колонок
+            const moneyColumns = ["Общий бонус", "Бонус"];
             const range = XLSX.utils.decode_range(ws['!ref']);
 
             for (let C = range.s.c; C <= range.e.c; ++C) {
-                if (moneyColumns.includes(C)) {
-                    for (let R = range.s.r; R <= range.e.r; ++R) {
-                        const cell_address = {c:C, r:R};
-                        const cell_ref = XLSX.utils.encode_cell(cell_address);
-                        if (ws[cell_ref] && ws[cell_ref].t === 'n') {
-                            // Форматируем как число с 2 знаками после запятой
+                const header = XLSX.utils.encode_col(C) + "1";
+                if (ws[header] && moneyColumns.includes(ws[header].v)) {
+                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                        const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
+                        if (ws[cell_ref]) {
                             ws[cell_ref].z = '#,##0.00';
+                            if (ws[cell_ref].t !== 'n') {
+                                ws[cell_ref].v = parseFloat(ws[cell_ref].v.replace(/[^\d.,]/g, '').replace(',', '.'));
+                                ws[cell_ref].t = 'n';
+                            }
                         }
                     }
                 }
@@ -437,15 +565,91 @@
             // Добавляем лист в книгу
             XLSX.utils.book_append_sheet(wb, ws, "Платежи");
 
-            // Генерируем и скачиваем файл
-            XLSX.writeFile(wb, 'payments_report.xlsx', {
-                bookType: 'xlsx',
-                type: 'array'
-            });
+            // Скачиваем файл
+            XLSX.writeFile(wb, 'bonus_report.xlsx');
         };
         document.head.appendChild(script);
     }
 
+     function prepareExcelData() {
+        const excelData = [];
+        const rows = document.querySelectorAll('#mainTable tbody tr.employer-row');
+
+        rows.forEach(row => {
+            const employerName = row.querySelector('td:nth-child(1)').textContent.trim();
+            const department = row.querySelector('td:nth-child(2)').textContent.trim();
+            const totalBonus = parseFloat(row.querySelector('td:nth-child(3)').getAttribute('data-value')) || 0;
+
+            const actTables = row.querySelectorAll('.act-table tbody tr');
+
+            if (actTables.length > 0) {
+                actTables.forEach(actRow => {
+                    const bonusContainer = actRow.querySelector('td:nth-child(5) .bonus-container');
+                    const bonusValue = bonusContainer ? bonusContainer.querySelector('span').getAttribute('data-value') : '0';
+
+                    const actData = {
+                        "ФИО": employerName,
+                        "Отдел": department,
+                        "Общий бонус": totalBonus,
+                        "Акт №": actRow.querySelector('td:nth-child(3)').textContent.trim(),
+                        "Кандидат": actRow.querySelector('td:nth-child(1)').textContent.trim(),
+                        "Компания": actRow.querySelector('td:nth-child(2)').textContent.trim(),
+                        "Дата акта": actRow.querySelector('td:nth-child(4)').textContent.trim(),
+                        "Бонус": parseFloat(bonusValue) || 0,
+                        "Процент": actRow.querySelector('td:nth-child(6)').textContent.trim(),
+                        "Дата выплаты бонуса": actRow.querySelector('td:nth-child(7)').textContent.trim(),
+                        "Дата оплаты клиентом": actRow.querySelector('td:nth-child(8)').textContent.trim(),
+                        "Дата оплаты компанией": actRow.querySelector('td:nth-child(9)').textContent.trim(),
+                        "Оплативший сотрудник": actRow.querySelector('td:nth-child(10)').textContent.trim()
+                    };
+                    excelData.push(actData);
+                });
+            } else {
+                excelData.push({
+                    "ФИО": employerName,
+                    "Отдел": department,
+                    "Общий бонус": totalBonus,
+                    "Акт №": "Нет данных",
+                    "Кандидат": "",
+                    "Компания": "",
+                    "Дата акта": "",
+                    "Бонус": 0,
+                    "Процент": "",
+                    "Дата выплаты бонуса": "",
+                    "Дата оплаты клиентом": "",
+                    "Дата оплаты компанией": "",
+                    "Оплативший сотрудник": ""
+                });
+            }
+        });
+
+        return excelData;
+    }
+    // Добавьте в скрипт
+    function parseExcelDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('.');
+        if (parts.length === 3) {
+            return new Date(parts[2], parts[1]-1, parts[0]).toISOString();
+        }
+        return null;
+    }
+    function convertToExcelNumber(value) {
+        if (typeof value === 'number') return value;
+        if (!value) return 0;
+
+        // Преобразуем разные форматы чисел
+        const num = parseFloat(
+            value.toString()
+                .replace(/[^\d,.-]/g, '')
+                .replace(',', '.')
+        );
+        return isNaN(num) ? 0 : num;
+    }
+
+    function formatExcelNumber(value) {
+        return parseFloat(value.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
+    }
 
 </script>
 </body>
