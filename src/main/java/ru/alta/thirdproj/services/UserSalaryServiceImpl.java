@@ -3,6 +3,7 @@ package ru.alta.thirdproj.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.UserSalary;
+import ru.alta.thirdproj.entites.UserSalarySuccess;
 import ru.alta.thirdproj.repositories.BonusPaymentRepositoryImpl;
 import ru.alta.thirdproj.repositories.UserSalaryRepImplRep;
 import ru.alta.thirdproj.repositories.iUserSalaryRep;
@@ -21,6 +22,10 @@ public class UserSalaryServiceImpl {
 
     public List<UserSalary> getUserSalaryList(LocalDate date1, LocalDate date2, Integer departmentId){
         return userSalaryRepImpl.getAllUserSalary(date1, date2, departmentId);
+    }
+
+    public List<UserSalarySuccess>  getUserSalarySuccess(LocalDate dateFrom, LocalDate dateTo){
+        return userSalaryRepImpl.getUserSalarySuccess(dateFrom, dateTo);
     }
 
 

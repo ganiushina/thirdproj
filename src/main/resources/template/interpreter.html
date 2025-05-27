@@ -1,8 +1,37 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <div th:fragment="interpreterTab">
+    <div id="verification-container">
     <h4>Детализация выплат</h4>
     <p>Выплаты за период <span th:text="${#temporals.format(dateFrom)}">...</span> -
         <span th:text="${#temporals.format(dateTo)}">...</span></p>
+
+    <!-- Блок статуса проверки -->
+    <div class="verification-info mb-3 p-3 border rounded">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Статус проверки выплат:</h5>
+            <button id="send-verification-btn" class="btn btn-primary btn-sm"
+                    onclick="sendVerificationEmails()">
+                Отправить проверку
+            </button>
+        </div>
+
+        <div class="status-details">
+            <p class="mb-1">
+                Текущий статус:
+                <span id="verification-status" class="fw-bold"
+                      th:classappend="${userSalarySuccesses != null} ? 'text-success' : 'text-secondary'"
+                      th:text="${userSalarySuccesses != null} ? 'Проверено' : 'Не проверено'">
+                    Не проверено
+                </span>
+            </p>
+            <p class="mb-0">
+                Информация:
+                <span id="verification-period-info" th:text="${userSalarySuccesses ?: 'Нет данных о проверке'}">
+                    Нет данных о проверке
+                </span>
+            </p>
+        </div>
+    </div>
 
     <div th:replace="~{fragments/filter-fragment_interpreters :: filter-form(tableId='interpreters')}"></div>
 
@@ -63,6 +92,7 @@
             </th:block>
             </tbody>
         </table>
+    </div>
     </div>
 
     <script>

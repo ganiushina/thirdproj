@@ -2,29 +2,66 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Email with Embedded Image</title>
+    <title>День рождения коллег</title>
 </head>
 <body>
 
 <div style="text-align: center;">
-    <p>
     <h1>Привет, коллега!</h1>
-    </p>
+
     <p>
-       Завтра, <b> <span style="color:red; font-size: 16pt;" th:text="${date}"></span></b> День рождения отмечает
+        Завтра, <b><span style="color:red; font-size: 16pt;" th:text="${date}"></span></b>
+        <span th:if="${#lists.size(userBirthday) == 1}">День рождения отмечает</span>
+        <span th:if="${#lists.size(userBirthday) > 1}">День рождения отмечают</span>
     </p>
 
-    <ul style="list-style:none;">
-
-        <li style="list-style:none;" th:each="user : ${userBirthday}">
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+        <div th:each="user, iterStat : ${userBirthday}"
+             style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; max-width: 250px;">
             <hr>
-            <p>  <b>Именинник:</b>  <span style="color:blue; font-size: 16pt;" th:text="${user.manFIO}"></span> </p>
-            <img src="cid:logo" alt="Logo" style="width: 200px; height: 200px;">
-            <p> <b>Команда\Должность:</b> <span th:text="| ${user.companyName}, ${user.position}|"></span> </p>
-        </li>
-    </ul>
+            <p><b>Именинник:</b> <span style="color:blue; font-size: 16pt;" th:text="${user.manFIO}"></span></p>
 
+            <!-- Изображение с уникальным CID для каждого пользователя -->
+            <img th:if="${user.imageBytes != null}"
+                 th:src="'cid:img_' + ${iterStat.index}"
+                 alt="Фото сотрудника"
+                 style="width: 200px; height: 200px; object-fit: cover; border-radius: 4px;">
+
+            <p><b>Команда/Должность:</b> <span th:text="|${user.companyName}, ${user.position}|"></span></p>
+        </div>
+    </div>
 
 </div>
 </body>
 </html>
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Email with Embedded Image</title>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<div style="text-align: center;">-->
+<!--    <p>-->
+<!--    <h1>Привет, коллега!</h1>-->
+<!--    </p>-->
+<!--    <p>-->
+<!--       Завтра, <b> <span style="color:red; font-size: 16pt;" th:text="${date}"></span></b> День рождения отмечает-->
+<!--    </p>-->
+
+<!--    <ul style="list-style:none;">-->
+
+<!--        <li style="list-style:none;" th:each="user : ${userBirthday}">-->
+<!--            <hr>-->
+<!--            <p>  <b>Именинник:</b>  <span style="color:blue; font-size: 16pt;" th:text="${user.manFIO}"></span> </p>-->
+<!--            <img src="cid:logo" alt="Logo" style="width: 200px; height: 200px;">-->
+<!--            <p> <b>Команда\Должность:</b> <span th:text="| ${user.companyName}, ${user.position}|"></span> </p>-->
+<!--        </li>-->
+<!--    </ul>-->
+
+
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->

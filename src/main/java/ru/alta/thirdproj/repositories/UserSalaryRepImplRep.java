@@ -1,5 +1,6 @@
 package ru.alta.thirdproj.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
@@ -24,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static org.thymeleaf.util.NumberUtils.formatCurrency;
 
 @Component
+@Slf4j
 public class UserSalaryRepImplRep  {
 
     private final Sql2o sql2o;
@@ -38,6 +40,11 @@ public class UserSalaryRepImplRep  {
     private static final String SELECT_MARGIN_MONTH_QUERY =  "select * from fn_marginality_by_month (:date1,:date2)";
     private static final String SELECT_SALES_QUERY =  "select * from [fn_User_Sale] (:date1, :date2)";
     private static final String SELECT_SALARY_PAYMENT_INTERPRETER_QUERY = "select * from fn_salary_for_all_user_sverka(:date1,:date2) order by dep_name, salary_month, man_fio\n";
+
+    private static final String SELECT_SALARY_PAYMENT_SUCCESS_QUERY =
+            "select ps.user_id, m.man_fio, ps.dateFrom, ps.dateTo, ps.success from paymentPeriodSuccess ps\n" +
+            "join man m on m.man_id = ps.user_id " +
+                    "where convert(date, ps.dateFrom) = convert(date,:dateFrom) and convert(date,ps.dateTo) = convert(date,:dateTo)";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -649,6 +656,33 @@ public class UserSalaryRepImplRep  {
 
             // Преобразуем Map обратно в List
             return new ArrayList<>(userMap.values());
+        }
+
+    }
+
+    public List<UserSalarySuccess> getUserSalarySuccess(LocalDate dateFrom, LocalDate dateTo) {
+        try (Connection connection = sql2o.open()) {
+            List<Map<String, Object>> rows = connection.createQuery(SELECT_SALARY_PAYMENT_SUCCESS_QUERY)
+                    .addParameter("dateFrom", dateFrom)
+                    .addParameter("dateTo", dateTo)
+                    .executeAndFetchTable()
+                    .asList();
+
+            return rows.stream().map(row -> {
+                UserSalarySuccess item = new UserSalarySuccess();
+                item.setUserId((Integer) row.get("user_id"));
+                item.setUserFio((String) row.get("man_fio"));
+
+                // Конвертируем java.sql.Date в LocalDate
+                java.sql.Date sqlDateFrom = (java.sql.Date) row.get("datefrom");
+                java.sql.Date sqlDateTo = (java.sql.Date) row.get("dateto");
+
+                item.setDateFrom(sqlDateFrom != null ? sqlDateFrom.toLocalDate() : null);
+                item.setDateTo(sqlDateTo != null ? sqlDateTo.toLocalDate() : null);
+
+                item.setSuccess((Integer) row.get("success"));
+                return item;
+            }).collect(Collectors.toList());
         }
     }
 

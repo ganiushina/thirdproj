@@ -127,29 +127,69 @@ public class ScheduledConfiguration {
         return email;
 
     }
-    private Email getEmailUsersDaily(List<UserBirthDay> userBirthDayList, String subject){
+
+    private Email getEmailUsersDaily(List<UserBirthDay> userBirthDayList, String subject) {
         List<String> emails = new ArrayList<>();
         Email email = new Email();
 
-        for (int i = 0; i < userBirthDayList.size(); i++) {
-            emails.add(userBirthDayList.get(i).getUserEmail());
+        // Собираем все email
+        for (UserBirthDay user : userBirthDayList) {
+            emails.add(user.getUserEmail());
         }
+
         email.setTo(emails);
         email.setFrom("it@altapersonnel.ru");
         email.setSubject(subject);
         email.setTemplate("user-emailDaily.html");
+
         Map<String, Object> properties = new HashMap<>();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEEE dd MMMM");
         Date date = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         String currentDateTime = simpleDateFormat.format(date);
-        properties.put("userBirthday", userBirthDayList.get(0).getBirthdayManList());
-        properties.put("date", currentDateTime); //LocalDate.now().plusDays(1));
-        properties.put("welcomestr", "День Рождения отмечает");
-        properties.put("img", userBirthDayList.get(0).getBirthdayManList().get(0).getImageBytes());
+
+        // Собираем список всех именинников
+        List<BirthdayMan> allBirthdayMen = new ArrayList<>();
+        for (UserBirthDay user : userBirthDayList) {
+            allBirthdayMen.addAll(user.getBirthdayManList());
+        }
+
+        properties.put("userBirthday", allBirthdayMen);
+        properties.put("date", currentDateTime);
+        properties.put("welcomestr", "День Рождения отмечают");
+
+        // Добавляем все изображения с уникальными ID
+        for (int i = 0; i < allBirthdayMen.size(); i++) {
+            if (allBirthdayMen.get(i).getImageBytes() != null) {
+                properties.put("img_" + i, allBirthdayMen.get(i).getImageBytes());
+            }
+        }
+
         email.setProperties(properties);
         return email;
-
     }
+//    private Email getEmailUsersDaily(List<UserBirthDay> userBirthDayList, String subject){
+//        List<String> emails = new ArrayList<>();
+//        Email email = new Email();
+//
+//        for (int i = 0; i < userBirthDayList.size(); i++) {
+//            emails.add(userBirthDayList.get(i).getUserEmail());
+//        }
+//        email.setTo(emails);
+//        email.setFrom("it@altapersonnel.ru");
+//        email.setSubject(subject);
+//        email.setTemplate("user-emailDaily.html");
+//        Map<String, Object> properties = new HashMap<>();
+//        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEEE dd MMMM");
+//        Date date = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+//        String currentDateTime = simpleDateFormat.format(date);
+//        properties.put("userBirthday", userBirthDayList.get(0).getBirthdayManList());
+//        properties.put("date", currentDateTime); //LocalDate.now().plusDays(1));
+//        properties.put("welcomestr", "День Рождения отмечает");
+//        properties.put("img", userBirthDayList.get(0).getBirthdayManList().get(0).getImageBytes());
+//        email.setProperties(properties);
+//        return email;
+//
+//    }
 
     private Email getEmailUsersMonthly(List<BirthdayMan> manBirthDayList, String subject, String userName, String emailAdr){
         List<String> emails = new ArrayList<>();

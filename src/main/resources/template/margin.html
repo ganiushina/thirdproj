@@ -379,6 +379,190 @@
             link.click();
         }
 
+        async function sendVerificationEmails() {
+            try {
+                // 1. Получаем текущие даты
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
+                if (!dateFrom || !dateTo) {
+                    showAlert('Укажите период для сверки', 'danger');
+                    return;
+                }
+
+                // 2. Находим элементы в текущем контексте
+                const statusElement = document.querySelector('#interpreterContent #verification-status') ||
+                                     document.getElementById('verification-status');
+
+                const infoElement = document.querySelector('#interpreterContent #verification-period-info') ||
+                                   document.getElementById('verification-period-info');
+
+                const sendBtn = document.querySelector('#interpreterContent #send-verification-btn') ||
+                               document.getElementById('send-verification-btn');
+
+                if (!statusElement || !infoElement || !sendBtn) {
+                    throw new Error('Не удалось найти элементы управления на странице');
+                }
+
+                // 3. Блокируем кнопку и показываем статус
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Отправка...';
+                statusElement.textContent = 'Отправка запроса...';
+                statusElement.className = 'fw-bold text-info';
+
+                // 4. Отправляем запрос
+                const response = await fetch('/margin/send-verification-emails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dateFrom, dateTo })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Ошибка сервера');
+                }
+
+                // 5. Обновляем данные
+                const data = await response.json();
+
+                // 6. Обновляем UI
+                statusElement.textContent = 'Проверено';
+                statusElement.className = 'fw-bold text-success';
+                infoElement.textContent = data.successInfo;
+
+                // 7. Показываем уведомление
+                showAlert(data.message || 'Проверка успешно отправлена', 'success');
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showAlert(error.message, 'danger');
+            } finally {
+                // 8. Разблокируем кнопку (если она найдена)
+                const sendBtn = document.querySelector('#interpreterContent #send-verification-btn') ||
+                               document.getElementById('send-verification-btn');
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Отправить проверку';
+                }
+            }
+        }
+
+        // Вспомогательная функция для уведомлений
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts-container') ||
+                                  document.createElement('div');
+
+            if (!alertsContainer.id) {
+                alertsContainer.id = 'alerts-container';
+                alertsContainer.style.position = 'fixed';
+                alertsContainer.style.top = '20px';
+                alertsContainer.style.right = '20px';
+                alertsContainer.style.zIndex = '1000';
+                document.body.appendChild(alertsContainer);
+            }
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            alertsContainer.prepend(alert);
+
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }, 5000);
+        }
+
+        function updateVerificationElements() {
+            return {
+                status: document.querySelector('#verification-container #verification-status'),
+                info: document.querySelector('#verification-container #verification-period-info'),
+                btn: document.querySelector('#verification-container #send-verification-btn')
+            };
+        }
+
+<!--        async function sendVerificationEmails() {-->
+<!--            // Получаем элементы DOM-->
+<!--            const dateFrom = document.getElementById('dateFrom').value;-->
+<!--            const dateTo = document.getElementById('dateTo').value;-->
+<!--            const statusElement = document.getElementById('verification-status');-->
+<!--            const sendBtn = document.getElementById('send-verification-btn');-->
+
+<!--            // Проверка дат-->
+<!--            if (!dateFrom || !dateTo) {-->
+<!--                alert('Пожалуйста, укажите период для сверки');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            // Блокируем кнопку на время отправки-->
+<!--            sendBtn.disabled = true;-->
+<!--            sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Отправка...';-->
+<!--            statusElement.textContent = 'Отправка запроса...';-->
+<!--            statusElement.className = 'text-info';-->
+
+<!--            try {-->
+<!--                // Отправляем запрос-->
+<!--                const response = await fetch('/margin/send-verification-emails', {-->
+<!--                    method: 'POST',-->
+<!--                    headers: {-->
+<!--                        'Content-Type': 'application/json',-->
+<!--                        'X-Requested-With': 'XMLHttpRequest'-->
+<!--                    },-->
+<!--                    body: JSON.stringify({ dateFrom, dateTo })-->
+<!--                });-->
+
+<!--                if (!response.ok) {-->
+<!--                    const error = await response.json();-->
+<!--                    throw new Error(error.message || 'Ошибка сервера');-->
+<!--                }-->
+
+<!--                const data = await response.json();-->
+
+<!--                // Обновляем статус проверки-->
+<!--                document.getElementById('verification-period-info').textContent = data.successInfo;-->
+
+<!--                // Показываем уведомление-->
+<!--                showAlert('success', data.message || 'Письма успешно отправлены');-->
+
+<!--                // Обновляем статус-->
+<!--                statusElement.textContent = 'Проверка отправлена';-->
+<!--                statusElement.className = 'text-success';-->
+
+<!--            } catch (error) {-->
+<!--                console.error('Ошибка:', error);-->
+<!--                statusElement.textContent = 'Ошибка: ' + error.message;-->
+<!--                statusElement.className = 'text-danger';-->
+<!--                showAlert('danger', error.message);-->
+<!--            } finally {-->
+<!--                // Разблокируем кнопку-->
+<!--                sendBtn.disabled = false;-->
+<!--                sendBtn.textContent = 'Отправить проверку';-->
+<!--            }-->
+<!--        }-->
+
+<!--        // Вспомогательная функция для показа уведомлений-->
+<!--        function showAlert(type, message) {-->
+<!--            const alertDiv = document.createElement('div');-->
+<!--            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;-->
+<!--            alertDiv.role = 'alert';-->
+<!--            alertDiv.innerHTML = `-->
+<!--                ${message}-->
+<!--                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>-->
+<!--            `;-->
+
+<!--            const container = document.getElementById('alerts-container');-->
+<!--            container.prepend(alertDiv);-->
+
+<!--            // Автоматическое закрытие через 5 секунд-->
+<!--            setTimeout(() => {-->
+<!--                alertDiv.classList.remove('show');-->
+<!--                setTimeout(() => alertDiv.remove(), 150);-->
+<!--            }, 5000);-->
+<!--        }-->
+
 
         function nameFilter(inputElement) {
 
@@ -475,6 +659,38 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: #0d6efd;
+        }
+
+        .verification-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .status-details {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        #send-verification-btn {
+            transition: all 0.3s ease;
+        }
+
+        #verification-status.text-success {
+            color: #198754 !important;
+        }
+
+        #verification-status.text-secondary {
+            color: #6c757d !important;
+        }
+
+        #verification-status.text-danger {
+            color: #dc3545 !important;
+        }
+
+        #verification-status.text-info {
+            color: #0dcaf0 !important;
         }
     </style>
 
@@ -596,31 +812,149 @@
     // Load content when page first loads
     document.addEventListener('DOMContentLoaded', function() {
         loadTabContent('/margin/summary', 'summaryTab');
+        const urlParams = new URLSearchParams(window.location.search);
+        const dateFrom = urlParams.get('dateFrom');
+        const dateTo = urlParams.get('dateTo');
+
+        if (dateFrom && dateTo) {
+            updateVerificationInfo(dateFrom, dateTo);
+        }
+
+         if (e.target.closest('#send-verification-btn')) {
+              sendVerificationEmails();
+    }
     });
 
     // Function to load tab content via AJAX
-    function loadTabContent(url, fragment) {
-        const dateFrom = document.getElementById('dateFrom').value;
-        const dateTo = document.getElementById('dateTo').value;
+<!--    function loadTabContent(url, fragment) {-->
+<!--        const dateFrom = document.getElementById('dateFrom').value;-->
+<!--        const dateTo = document.getElementById('dateTo').value;-->
 
-        let params = new URLSearchParams();
-        if (dateFrom) params.append('dateFrom', dateFrom);
-        if (dateTo) params.append('dateTo', dateTo);
+<!--        let params = new URLSearchParams();-->
+<!--        if (dateFrom) params.append('dateFrom', dateFrom);-->
+<!--        if (dateTo) params.append('dateTo', dateTo);-->
 
-        const targetDiv = fragment === 'summaryTab' ? 'summaryContent' : fragment === 'interpreterTab' ? 'interpreterContent' :
-                        fragment === 'detailsTab' ? 'detailsContent' : 'chartsContent';
+<!--        const targetDiv = fragment === 'summaryTab' ? 'summaryContent' : fragment === 'interpreterTab' ? 'interpreterContent' :-->
+<!--                        fragment === 'detailsTab' ? 'detailsContent' : 'chartsContent';-->
 
-        fetch(`${url}?${params.toString()}`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById(targetDiv).innerHTML = html;
-            })
-            .catch(error => {
+<!--        fetch(`${url}?${params.toString()}`)-->
+<!--            .then(response => response.text())-->
+<!--            .then(html => {-->
+<!--                document.getElementById(targetDiv).innerHTML = html;-->
+<!--            })-->
+<!--            .catch(error => {-->
+<!--                console.error('Error loading tab content:', error);-->
+<!--                document.getElementById(targetDiv).innerHTML =-->
+<!--                    '<div class="alert alert-danger">Error loading content</div>';-->
+<!--            });-->
+<!--    }-->
+
+        async function loadTabContent(url, fragment) {
+            try {
+                // 1. Получаем параметры дат
+                const dateFrom = document.getElementById('dateFrom')?.value;
+                const dateTo = document.getElementById('dateTo')?.value;
+
+                // 2. Определяем целевой div для контента
+                const targetDiv = getTargetDiv(fragment);
+                if (!targetDiv) throw new Error('Target container not found');
+
+                // 3. Показываем индикатор загрузки
+                showLoadingIndicator(targetDiv);
+
+                // 4. Формируем параметры запроса
+                const params = new URLSearchParams();
+                if (dateFrom) params.append('dateFrom', dateFrom);
+                if (dateTo) params.append('dateTo', dateTo);
+
+                // 5. Выполняем запрос
+                const response = await fetch(`${url}?${params.toString()}`);
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                // 6. Вставляем полученный HTML
+                const html = await response.text();
+                targetDiv.innerHTML = html;
+
+                // 7. Специальная обработка для вкладки интерпретатора
+                if (fragment === 'interpreterTab') {
+                    await handleInterpreterTabLoaded(targetDiv);
+                }
+
+                // 8. Инициализация дополнительных компонентов
+                initializeComponents(fragment);
+
+            } catch (error) {
                 console.error('Error loading tab content:', error);
-                document.getElementById(targetDiv).innerHTML =
-                    '<div class="alert alert-danger">Error loading content</div>';
-            });
-    }
+                showErrorInTargetDiv(targetDiv, error);
+            }
+        }
+
+        // Вспомогательные функции
+        function getTargetDiv(fragment) {
+            const divMap = {
+                'summaryTab': 'summaryContent',
+                'interpreterTab': 'interpreterContent',
+                'detailsTab': 'detailsContent',
+                'chartsTab': 'chartsContent'
+            };
+            const divId = divMap[fragment] || 'summaryContent';
+            return document.getElementById(divId);
+        }
+
+        function showLoadingIndicator(targetDiv) {
+            targetDiv.innerHTML = `
+                <div class="text-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Загрузка данных...</p>
+                </div>
+            `;
+        }
+
+        async function handleInterpreterTabLoaded(targetDiv) {
+            // 1. Находим элементы статуса проверки
+            const statusElement = targetDiv.querySelector('#verification-status');
+            const infoElement = targetDiv.querySelector('#verification-period-info');
+            const sendBtn = targetDiv.querySelector('#send-verification-btn');
+
+            // 2. Проверяем наличие данных о выплатах
+            const paymentsData = targetDiv.querySelector('#interpreters tbody tr');
+            if (!paymentsData) {
+                console.warn('No payments data found in interpreter tab');
+                if (infoElement) {
+                    infoElement.textContent = 'Данные о выплатах не загружены';
+                }
+            }
+
+            // 3. Обновляем обработчики событий
+            if (sendBtn) {
+                sendBtn.onclick = sendVerificationEmails;
+            }
+        }
+
+        function initializeComponents(fragment) {
+            // Инициализация сортировки таблиц и других компонентов
+            if (fragment === 'interpreterTab' || fragment === 'summaryTab') {
+                setTimeout(initTableSorting, 100);
+            }
+        }
+
+        function showErrorInTargetDiv(targetDiv, error) {
+            if (!targetDiv) return;
+
+            targetDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Ошибка загрузки данных</h5>
+                    <p>${error.message || 'Неизвестная ошибка'}</p>
+                    <button class="btn btn-sm btn-outline-secondary"
+                            onclick="loadTabContent('${url}', '${fragment}')">
+                        Повторить попытку
+                    </button>
+                </div>
+            `;
+        }
 
     // Reload active tab when filter changes
     function loadActiveTab() {
