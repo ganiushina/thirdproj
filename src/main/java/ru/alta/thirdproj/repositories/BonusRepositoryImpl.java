@@ -455,6 +455,63 @@ public class BonusRepositoryImpl {
 
     }
 
+    public List<UserBonusMain> getUserBonuses(LocalDate date1, LocalDate date2) {
+
+        try (Connection connection = sql2o.open()) {
+            // Выполняем запрос и получаем список строк
+            List<Map<String, Object>> rows = connection.createQuery(SELECT_USER_QUERY, false)
+                    .addParameter("date1", date1)
+                    .addParameter("date2", date2)
+                    .addParameter("user_id", "")
+                    .addParameter("department_id", "")
+                    .executeAndFetchTable()
+                    .asList();
+
+            // Группируем данные по пользователям
+            Map<Integer, UserBonusMain> userBonusMap = new HashMap<>();
+
+            for (Map<String, Object> row : rows) {
+                Integer userId = (Integer) row.get("man_id");
+
+                UserBonusMain userBonus = userBonusMap.computeIfAbsent(userId, id -> {
+                    UserBonusMain ub = new UserBonusMain();
+                    ub.setUserId(id);
+                    ub.setFio((String) row.get("man_fio"));
+                    ub.setPosition((String) row.get("pos_name"));
+                    ub.setDepartment((String) row.get("dep_name"));
+                    BigDecimal sumTotal = (BigDecimal) row.get("summ_total");
+                    ub.setSumTotal(sumTotal.doubleValue());
+                    BigDecimal moneyItog = (BigDecimal) row.get("money_itog");
+                    ub.setMoneyAll(moneyItog.doubleValue());
+
+                    ub.setUserBonusDetails(new ArrayList<>());
+                    return ub;
+                });
+
+                // Добавляем детали
+                UserBonusDetail detail = new UserBonusDetail();
+                BigDecimal moneyCandidate = (BigDecimal) row.get("money_by_candidate");
+                detail.setMoneyByCandidate(moneyCandidate.doubleValue());
+                detail.setPercent((Integer) row.get("persent"));
+                BigDecimal sumUser = (BigDecimal) row.get("money_by_candidate");
+                detail.setSumUser(sumUser.doubleValue());
+                detail.setCompanyName((String) row.get("company_name"));
+                detail.setCandidateName((String) row.get("candidate"));
+                detail.setMonth((Integer) row.get("mon"));
+                detail.setMonthName((String) row.get("mont"));
+                detail.setYear((Integer) row.get("ya"));
+                detail.setActId((Integer) row.get("act_id"));
+
+                userBonus.getUserBonusDetails().add(detail);
+            }
+
+            return new ArrayList<>(userBonusMap.values());
+        }
+
+
+
+    }
+
     public Double getCompanyMoney(LocalDate date1, LocalDate date2) {
         try (Connection connection = sql2o.open()) {
             return   connection.createQuery(SELECT_ALL_COMPANY_MONEY, false)

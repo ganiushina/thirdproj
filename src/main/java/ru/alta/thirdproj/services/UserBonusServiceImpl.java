@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.entites.UserBonus;
+import ru.alta.thirdproj.entites.UserBonusMain;
 import ru.alta.thirdproj.entites.UserBonusNew;
 import ru.alta.thirdproj.repositories.BonusRepositoryImpl;
 import ru.alta.thirdproj.repositories.iUserBonusRepository;
@@ -74,6 +75,11 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
     public List<UserBonusNew> getUserBonusList(LocalDate date1, LocalDate date12){
         return userBonusProvider.getUserBonusList(date1, date12);
     }
+
+    public  List<UserBonusMain> getUserBonuses  (LocalDate date1, LocalDate date12){
+        return userBonusProvider.getUserBonuses(date1, date12);
+    }
+
 
     private List<HashMap<String, Object>> getHashMapsUserBonus(List<UserBonus> userBonuses) {
 

@@ -825,29 +825,6 @@
     }
     });
 
-    // Function to load tab content via AJAX
-<!--    function loadTabContent(url, fragment) {-->
-<!--        const dateFrom = document.getElementById('dateFrom').value;-->
-<!--        const dateTo = document.getElementById('dateTo').value;-->
-
-<!--        let params = new URLSearchParams();-->
-<!--        if (dateFrom) params.append('dateFrom', dateFrom);-->
-<!--        if (dateTo) params.append('dateTo', dateTo);-->
-
-<!--        const targetDiv = fragment === 'summaryTab' ? 'summaryContent' : fragment === 'interpreterTab' ? 'interpreterContent' :-->
-<!--                        fragment === 'detailsTab' ? 'detailsContent' : 'chartsContent';-->
-
-<!--        fetch(`${url}?${params.toString()}`)-->
-<!--            .then(response => response.text())-->
-<!--            .then(html => {-->
-<!--                document.getElementById(targetDiv).innerHTML = html;-->
-<!--            })-->
-<!--            .catch(error => {-->
-<!--                console.error('Error loading tab content:', error);-->
-<!--                document.getElementById(targetDiv).innerHTML =-->
-<!--                    '<div class="alert alert-danger">Error loading content</div>';-->
-<!--            });-->
-<!--    }-->
 
         async function loadTabContent(url, fragment) {
             try {

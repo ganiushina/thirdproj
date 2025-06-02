@@ -28,8 +28,6 @@ import java.util.*;
 
 //@RestController
 @Controller
-@CrossOrigin("*")
-@RequestMapping("/bonus") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
 //@Api("Set of endpoints for CRUD operations for UserBonus")
 @Tag(name="RestBonusController", description="Заработанные бонусы")
 public class BonusController {
@@ -72,6 +70,11 @@ public class BonusController {
         this.bonusKPIService = bonusKPIService;
     }
 
+
+    @GetMapping("/bonus")
+    public String showTabs() {
+        return "bonuses"; // Renders the main tabs.html template tabs_2 - остается все по старому
+    }
 
     @GetMapping("/all") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
     //  @GetMapping
@@ -168,21 +171,21 @@ public class BonusController {
         return "bonus"; //getUserBonusList
     }
 
-    @GetMapping("/getall") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
+    @GetMapping("/bonus/getall") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
     public String getAllBonuses(Model model,
                                   Principal principal,
-                                  @RequestParam(value = "date1")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                  @RequestParam(value = "date2")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo
+
 
     ) {
 
-        userBonusNewList =  bonusService.getUserBonusList(date1, date2);
+        List<UserBonusMain> userBonusMains = bonusService.getUserBonuses(dateFrom, dateTo);
+        userBonusNewList =  bonusService.getUserBonusList(dateFrom, dateTo);
         Double allBonusMoney = Double.valueOf(0);;
-        dateS = date1;
-        dateF = date2;
+        dateS = dateFrom;
+        dateF = dateTo;
 
 
         for (int i = 0; i < userBonusNewList.size() ; i++) {
@@ -193,14 +196,14 @@ public class BonusController {
             }
         }
 
-        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
+        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(dateFrom, dateTo);
 
         Locale ru = new Locale("ru", "RU");
         Currency rub = Currency.getInstance(ru);
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
         Double allMoney = Double.valueOf(0);
-        allMoney = bonusService.getCompanyMoney(date1, date2);
+        allMoney = bonusService.getCompanyMoney(dateFrom, dateTo);
 
 
         Double percentWithoutPKI = Double.valueOf(0);
@@ -208,7 +211,7 @@ public class BonusController {
             percentWithoutPKI = allBonusMoney * 100 / allMoney;
         }
 
-        bonusKPIList = bonusKPIService.getUserBonusKPIList(date1, date2);
+        bonusKPIList = bonusKPIService.getUserBonusKPIList(dateFrom, dateTo);
 
         double allKPIMoney = 0;
 
@@ -237,27 +240,28 @@ public class BonusController {
 
 
         model.addAttribute("userBonusKPI", bonusKPIList);
-        model.addAttribute("userBonus", userBonusNewList);
+        model.addAttribute("userBonus", userBonusMains);
+//        model.addAttribute("userBonus", userBonusNewList);
         model.addAttribute("allBonusMoney", currencyInstance.format(allBonusMoney));
         model.addAttribute("allMoney", allMoneyStr);
         model.addAttribute("percentWithoutPKI", decimalFormat.format(percentWithoutPKI));
         model.addAttribute("percentWithPKI", decimalFormat.format(percentWithPKI));
-        model.addAttribute("date1", date1);
-        model.addAttribute("date2", date2);
-        return "bonusNew2";
+        model.addAttribute("date1", dateFrom);
+        model.addAttribute("date2", dateTo);
+        return "bonus :: bonusTab"; // Fragment for AJAX
     }
 
-    @GetMapping("/export-to-excel")
-    public void exportIntoExcelFile(HttpServletResponse response) throws Exception {
-        response.setContentType("application/octet-stream");
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-        String currentDateTime = dateFormatter.format(new Date());
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=bonus" + currentDateTime + ".xlsx";
-        response.setHeader(headerKey, headerValue);
-        ExcelGenerator generator = new ExcelGenerator(objectList, dateS, dateF);
-        generator.generate(response);
-    }
+//    @GetMapping("/export-to-excel")
+//    public void exportIntoExcelFile(HttpServletResponse response) throws Exception {
+//        response.setContentType("application/octet-stream");
+//        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+//        String currentDateTime = dateFormatter.format(new Date());
+//        String headerKey = "Content-Disposition";
+//        String headerValue = "attachment; filename=bonus" + currentDateTime + ".xlsx";
+//        response.setHeader(headerKey, headerValue);
+//        ExcelGenerator generator = new ExcelGenerator(objectList, dateS, dateF);
+//        generator.generate(response);
+//    }
 
     @GetMapping("/getkpi") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")

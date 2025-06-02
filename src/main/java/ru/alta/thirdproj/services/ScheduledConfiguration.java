@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import ru.alta.thirdproj.entites.birthday.Email;
@@ -47,9 +48,10 @@ public class ScheduledConfiguration {
 //       emails.add("sadykov@altapersonnel.ru");
 
 
-//    @Scheduled(cron = "0 0 7 * * *")
+
  //   @Scheduled(cron = "*/60 * * * * *")
     @Scheduled(cron =  "0 0 7 * * ?", zone="Europe/Samara")
+    @Async
     public void executeTaskUserTomorrow() throws Exception {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(1);
         if (userBirthDayList.size()>0) {
@@ -69,6 +71,7 @@ public class ScheduledConfiguration {
 //    @Scheduled(cron = "*/60 * * * * *")
   //  @Scheduled(cron = "0 0 8 * * *")
     @Scheduled(cron =  "0 0 8 * * ?", zone="Europe/Samara")
+    @Async
     public void executeTaskClient() throws MessagingException {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(0);
         if (userBirthDayList.size()>0) {
@@ -92,6 +95,7 @@ public class ScheduledConfiguration {
  //   @Scheduled(cron = "0 9 1 * ?")
 
     @Scheduled(cron="0 0 6 1 * *", zone="Europe/Samara")
+    @Async
     public void executeTaskUserMonth() throws MessagingException {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(100);
         if (userBirthDayList.size()>0) {
@@ -136,6 +140,10 @@ public class ScheduledConfiguration {
         for (UserBirthDay user : userBirthDayList) {
             emails.add(user.getUserEmail());
         }
+
+//        emails.add("support@altapersonnel.ru");
+//        emails.add("stimul22@mail.ru");
+//        emails.add("stjimul22@mail.ru");
 
         email.setTo(emails);
         email.setFrom("it@altapersonnel.ru");

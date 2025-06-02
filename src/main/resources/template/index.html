@@ -28,15 +28,15 @@
     <div th:text="${firstName}" ></div>
 
 
-<!--<form th:action="@{/bonus/all1}" method="get">-->
-    <form th:action="@{/bonus/getall}" method="get">
+<!--<form th:action="@{/bonus/getall}" method="get">-->
+    <form th:action="@{/bonus}" method="get">
 
-    <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
-    <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+<!--        <input required th:value="${date1 != null} ? ${date1}" th:name="dateFrom" type="date" placeholder="Дата от ">-->
+<!--        <input required th:value="${date2 != null} ? ${date2}" th:name="dateTo" type="date" placeholder="Дата до">-->
 
+        <button type="submit" class="btn btn-primary">Бонусы</button>
 
-    <button type="submit" class="btn btn-primary">Бонусы</button>
-</form>
+    </form>
 
 <form th:action="@{/amount}" method="get">
     <button type="submit" class="btn btn-primary">Выплаты</button>

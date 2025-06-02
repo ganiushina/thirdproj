@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Бонусы</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        .navbar {
+            z-index: 1030;
+        }
+
+        .main-content {
+            position: relative;
+            padding-top: 56px;
+        }
+
+        .table-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        /* Основное изменение - убрали top из CSS, полностью управляем через JS */
+        .fixed-header thead th {
+            position: sticky;
+            background: white;
+            z-index: 1020;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+        }
+
+        td {
+            vertical-align: middle;
+            padding: 0.5rem !important;
+        }
+        tr:hover td {
+            background-color: #f8f9fa !important;
+        }
+
+        .stats-block {
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+            border-radius: 0;
+            border: none;
+        }
+
+        .stats-block .col-md-4 {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .stats-block .bg-light {
+            background-color: #f8f9fa !important;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            height: 100%;
+        }
+
+        .stats-block p {
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            background-color: white;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        .table-width-limiter {
+            max-width: 100%;
+            padding-left: 15px;
+            padding-right: 15px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tab-content {
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{navigation :: navi(Home)}" />
+
+<div class="main-content">
+    <div class="container-fluid mt-4 px-3">
+        <div class="row justify-content-center">
+            <div class="col-12 table-width-limiter">
+                <h2>Бонусы</h2>
+
+                <!-- Фильтр по датам -->
+                <form id="dateFilterForm" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="dateFrom" class="form-label">От:</label>
+                            <input type="date" class="form-control" id="dateFrom" name="dateFrom"
+                                   th:value="${dateFrom != null} ? ${#temporals.format(dateFrom, 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateTo" class="form-label">До:</label>
+                            <input type="date" class="form-control" id="dateTo" name="dateTo"
+                                   th:value="${dateTo != null} ? ${#temporals.format(dateTo, 'yyyy-MM-dd')}">
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button type="button" class="btn btn-primary" onclick="loadActiveTab()">Применить</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="stats-block row mx-0" th:if="${allActMoney != null}">
+                    <div class="col-md-4 px-2">
+                        <div class="bg-light p-2 rounded border">
+                            <p class="mb-1" th:text="'Неоплачено за период: ' + ${allActMoneyPeriod}"></p>
+                            <p class="mb-0" th:text="'Оплачено за период: ' + ${allActMoneyPeriodPaid}"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 px-2">
+                        <div class="bg-light p-2 rounded border">
+                            <p class="mb-1" th:text="'По компаниям: ' + ${allActForClientMoneyPeriodByCompanyString}"></p>
+                            <p class="mb-0" th:text="'Ожидается выходов: ' + ${allFinalistMoneyPeriodPaid}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs" id="bonusTabs">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="bonus-tab" data-bs-toggle="tab"
+                                data-bs-target="#bonus" type="button" role="tab"
+                                aria-controls="bonus" aria-selected="true"
+                                onclick="loadTabContent('/bonus/getall', 'bonusContent')">
+                            Бонусы
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="kpi-tab" data-bs-toggle="tab"
+                                data-bs-target="#kpi" type="button" role="tab"
+                                aria-controls="kpi" aria-selected="false"
+                                onclick="loadTabContent('/bonus/kpi', 'kpiContent')">
+                            Бонусы KPI
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Contents -->
+                <div class="tab-content border border-top-0 rounded-bottom" id="tabContent">
+                    <div class="tab-pane fade show active" id="bonus" role="tabpanel" aria-labelledby="bonus-tab">
+                        <div id="bonusContent" class="table-container">
+                            <!-- Контент фрагмента будет загружаться сюда через AJAX -->
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="kpi" role="tabpanel" aria-labelledby="kpi-tab">
+                        <div id="kpiContent" class="table-container">
+                            <!-- Контент KPI-фрагмента (если есть) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Функция загрузки контента вкладки (фрагмента bonus.html или kpi-фрагмента)
+    function loadTabContent(url, targetDivId) {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+
+        // Показываем спиннер загрузки
+        document.getElementById(targetDivId).innerHTML = `
+            <div class="text-center my-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+
+        fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById(targetDivId).innerHTML = html;
+                adjustStickyHeaders();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById(targetDivId).innerHTML =
+                    '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+            });
+    }
+
+    function loadActiveTab() {
+        const activeTab = document.querySelector('#bonusTabs .nav-link.active');
+        if (activeTab) {
+            activeTab.click();
+        }
+    }
+
+    function adjustStickyHeaders() {
+        const navbar = document.querySelector('.navbar');
+        if (!navbar) return;
+
+        // Теперь используем только высоту навбара
+        const navbarHeight = navbar.offsetHeight;
+
+        // Устанавливаем top равным высоте навбара
+        document.querySelectorAll('.fixed-header thead th').forEach(th => {
+            th.style.top = navbarHeight + 'px';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Загружаем фрагмент «Бонусы» по умолчанию
+        loadTabContent('/bonus/getall', 'bonusContent');
+
+        // После смены вкладки Bootstrap, корректируем top для «липких» заголовков
+        const tabEls = document.querySelectorAll('#bonusTabs button[data-bs-toggle="tab"]');
+        tabEls.forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', function () {
+                adjustStickyHeaders();
+            });
+        });
+
+        window.addEventListener('scroll', adjustStickyHeaders);
+        window.addEventListener('resize', adjustStickyHeaders);
+    });
+
+    function exportToExcel() {
+        const wb = XLSX.utils.book_new();
+        const table = document.getElementById('bonusTable');
+        if (!table) {
+            alert('Таблица для экспорта не найдена.');
+            return;
+        }
+        const ws = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(wb, ws, "Бонусы");
+
+        const dateFrom = document.getElementById('dateFrom').value || '';
+        const dateTo = document.getElementById('dateTo').value || '';
+        XLSX.writeFile(wb, `Бонусы_${dateFrom}_${dateTo}.xlsx`);
+    }
+</script>
+</body>
+</html>
+
