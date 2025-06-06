@@ -8,6 +8,8 @@ import org.sql2o.Query;
 import org.sql2o.Sql2o;
 import org.sql2o.data.Table;
 import ru.alta.thirdproj.entites.UserBonusKPI;
+import ru.alta.thirdproj.entites.UserBonusKPIDetail;
+import ru.alta.thirdproj.entites.UserBonusKPIMain;
 import ru.alta.thirdproj.entites.UserBonusNew;
 
 
@@ -31,136 +33,202 @@ public class UserBonusKPIRepositoryImpl {
     }
 
 
-    public List<UserBonusKPI> userBonusKPIList(LocalDate date1, LocalDate date2){
+//    public List<UserBonusKPI> userBonusKPIList(LocalDate date1, LocalDate date2){
+//
+//        try (Connection connection = sql2o.open()) {
+//            Query query =connection.createQuery(SELECT_BONUS_KPI_QUERY, false)
+//                    .addParameter("date1", date1)
+//                    .addParameter("date2", date2);
+//
+//            Table table = query.executeAndFetchTable();
+//            List<Map<String, Object>> list = table.asList();
+//
+//            List<UserBonusKPI> userBonusKPIList = new ArrayList<>();
+//
+//            Locale ru = new Locale("ru", "RU");
+//            Currency rub = Currency.getInstance(ru);
+//            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+//
+//            for (Map<String, Object> n : list) {
+//
+//                UserBonusKPI userBonusKPI = new UserBonusKPI();
+//
+//                List<Double> bonus = new ArrayList<>();
+//                List<Double> bonusBest = new ArrayList<>();
+//                List<Double> bonusBestMarketing= new ArrayList<>();
+//                List<Double> bonusAll = new ArrayList<>();
+//                List<String> month = new ArrayList<>();
+//
+//                List<String> bonusRUB = new ArrayList<>();
+//                List<String> bonusBestRUB = new ArrayList<>();
+//                List<String> bonusAllRUB = new ArrayList<>();
+//                List<String> bonusBestMarketingRUB= new ArrayList<>();
+//
+//
+//                boolean isNotNew = false;
+//                String manFIO = null;
+//
+//                for (var entry : n.entrySet()) {
+//
+//                    if (entry.getKey().equals("user_id")) {
+//                        userBonusKPI.setUserId((Integer) entry.getValue());
+//                    }
+//
+//                    if (entry.getKey().equals("man_fio")) {
+//                        for (int j = 0; j < userBonusKPIList.size(); j++) {
+//                            if (entry.getKey().equals("man_fio")) {
+//                                if (userBonusKPIList.get(j).getFio().equals(entry.getValue())) {
+//                                    manFIO = (String) entry.getValue();//
+//                                    isNotNew = true;
+//                                }
+//                            }
+//                        }
+//
+//                        userBonusKPI.setFio((String) entry.getValue());
+//                    }
+//
+//
+//                    if (entry.getKey().equals("position")) {
+//                        userBonusKPI.setPosition((String) entry.getValue());
+//                    }
+//
+//                    if (entry.getKey().equals("bonus")) {
+//                        BigDecimal bd = (BigDecimal) entry.getValue();
+//                        double d = bd.doubleValue();
+//                        bonus.add(d);
+//                        bonusRUB.add(currencyInstance.format(d));
+//                    }
+//
+//                    if (entry.getKey().equals("best_bonus")) {
+//                        BigDecimal bd = (BigDecimal) entry.getValue();
+//                        double d = bd.doubleValue();
+//                        bonusBest.add(d);
+//                        bonusBestRUB.add(currencyInstance.format(d));
+//                    }
+//                    if (entry.getKey().equals("best_bonus_kpi_marketing")) {
+//                        BigDecimal bd = (BigDecimal) entry.getValue();
+//                        double d = bd.doubleValue();
+//                        bonusBestMarketing.add(d);
+//                        bonusBestMarketingRUB.add(currencyInstance.format(d));
+//                    }
+//
+//
+//                    if (entry.getKey().equals("all_bonus")) {
+//                        BigDecimal bd = (BigDecimal) entry.getValue();
+//                        double d = bd.doubleValue();
+//                        bonusAll.add(d);
+//                        bonusAllRUB.add(currencyInstance.format(d));
+//
+//                    }
+//
+//                    if (entry.getKey().equals("mon")) {
+//                        month.add((String) entry.getValue());
+//                    }
+//                }
+//
+//                userBonusKPI.setBonus(bonus);
+//                userBonusKPI.setBonusBest(bonusBest);
+//                userBonusKPI.setBonusAll(bonusAll);
+//                userBonusKPI.setMonth(month);
+//                userBonusKPI.setBonusBestMarketing(bonusBestMarketing);
+//
+//                userBonusKPI.setBonusRUB(bonusRUB);
+//                userBonusKPI.setBonusBestRUB(bonusBestRUB);
+//                userBonusKPI.setBonusAllRUB(bonusAllRUB);
+//                userBonusKPI.setBonusBestMarketingRUB(bonusBestMarketingRUB);
+//
+//                if (isNotNew) {
+//                    String finalManFIO = manFIO;
+//                    List<UserBonusKPI> result = userBonusKPIList.stream()
+//                            .filter(a -> Objects.equals(a.getFio(), finalManFIO))
+//                            .collect(Collectors.toList());
+//
+//                    result.get(0).getBonus().add(userBonusKPI.getBonus().get(0));
+//                    result.get(0).getBonusBest().add(userBonusKPI.getBonusBest().get(0));
+//                    result.get(0).getBonusAll().add(userBonusKPI.getBonusAll().get(0));
+//                    result.get(0).getMonth().add(userBonusKPI.getMonth().get(0));
+//                    result.get(0).getBonusBestMarketing().add(userBonusKPI.getBonusBestMarketing().get(0));
+//
+//                    result.get(0).getBonusRUB().add(userBonusKPI.getBonusRUB().get(0));
+//                    result.get(0).getBonusBestRUB().add(userBonusKPI.getBonusBestRUB().get(0));
+//                    result.get(0).getBonusAllRUB().add(userBonusKPI.getBonusAllRUB().get(0));
+//                    result.get(0).getBonusBestMarketingRUB().add(userBonusKPI.getBonusBestMarketingRUB().get(0));
+//
+//
+//
+//                } else
+//                    {
+//                        userBonusKPIList.add(userBonusKPI);
+//                    }
+//            }
+//
+//            return userBonusKPIList;
+//        }
+//    }
 
+    public List<UserBonusKPIMain> getUserBonusKPIList(LocalDate dateFrom, LocalDate dateTo) {
         try (Connection connection = sql2o.open()) {
-            Query query =connection.createQuery(SELECT_BONUS_KPI_QUERY, false)
-                    .addParameter("date1", date1)
-                    .addParameter("date2", date2);
+            Query query = connection.createQuery(SELECT_BONUS_KPI_QUERY, false)
+                    .addParameter("date1", dateFrom)
+                    .addParameter("date2", dateTo);
 
             Table table = query.executeAndFetchTable();
-            List<Map<String, Object>> list = table.asList();
+            List<Map<String, Object>> rawData = table.asList();
 
-            List<UserBonusKPI> userBonusKPIList = new ArrayList<>();
+            // Создаем мапу для группировки по пользователям
+            Map<Integer, UserBonusKPIMain> userMap = new HashMap<>();
+            Locale ruLocale = new Locale("ru", "RU");
+            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(ruLocale);
 
-            Locale ru = new Locale("ru", "RU");
-            Currency rub = Currency.getInstance(ru);
-            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+            for (Map<String, Object> row : rawData) {
+                Integer userId = (Integer) row.get("user_id");
 
-            for (Map<String, Object> n : list) {
+                // Создаем или получаем существующий основной объект
+                UserBonusKPIMain main = userMap.computeIfAbsent(userId, id -> {
+                    UserBonusKPIMain newMain = new UserBonusKPIMain();
+                    newMain.setUserId(id);
+                    newMain.setFio((String) row.get("man_fio"));
+                    newMain.setPosition((String) row.get("position"));
+                    newMain.setUserBonusKPIDetails(new ArrayList<>());
+                    return newMain;
+                });
 
-                UserBonusKPI userBonusKPI = new UserBonusKPI();
+                // Создаем детализированный объект
+                UserBonusKPIDetail detail = new UserBonusKPIDetail();
 
-                List<Double> bonus = new ArrayList<>();
-                List<Double> bonusBest = new ArrayList<>();
-                List<Double> bonusBestMarketing= new ArrayList<>();
-                List<Double> bonusAll = new ArrayList<>();
-                List<String> month = new ArrayList<>();
+                // Обрабатываем числовые значения
+                BigDecimal bonus = (BigDecimal) row.get("bonus");
+                BigDecimal bestBonus = (BigDecimal) row.get("best_bonus");
+                BigDecimal bestBonusMarketing = (BigDecimal) row.get("best_bonus_kpi_marketing");
+                BigDecimal allBonus = (BigDecimal) row.get("all_bonus");
 
-                List<String> bonusRUB = new ArrayList<>();
-                List<String> bonusBestRUB = new ArrayList<>();
-                List<String> bonusAllRUB = new ArrayList<>();
-                List<String> bonusBestMarketingRUB= new ArrayList<>();
+                detail.setBonus(bonus != null ? bonus.doubleValue() : null);
+                detail.setBestBonus(bestBonus != null ? bestBonus.doubleValue() : null);
+                detail.setBestBonusKPIMarketing(bestBonusMarketing != null ? bestBonusMarketing.doubleValue() : null);
+                detail.setAllBonus(allBonus != null ? allBonus.doubleValue() : null);
 
+                // Обрабатываем дату и месяц
+                detail.setMonthName((String) row.get("mon"));
+                detail.setMonthNum((Integer) row.get("mont")); // Нужно реализовать этот метод
 
-                boolean isNotNew = false;
-                String manFIO = null;
+                // Для даты можно использовать либо дату из данных, либо сконструировать
+               // LocalDate recordDate = constructDateFromRow(row); // Нужно реализовать
+             //   detail.setDateKPI(recordDate);
 
-                for (var entry : n.entrySet()) {
-
-                    if (entry.getKey().equals("user_id")) {
-                        userBonusKPI.setUserId((Integer) entry.getValue());
-                    }
-
-                    if (entry.getKey().equals("man_fio")) {
-                        for (int j = 0; j < userBonusKPIList.size(); j++) {
-                            if (entry.getKey().equals("man_fio")) {
-                                if (userBonusKPIList.get(j).getFio().equals(entry.getValue())) {
-                                    manFIO = (String) entry.getValue();//
-                                    isNotNew = true;
-                                }
-                            }
-                        }
-
-                        userBonusKPI.setFio((String) entry.getValue());
-                    }
-
-
-                    if (entry.getKey().equals("position")) {
-                        userBonusKPI.setPosition((String) entry.getValue());
-                    }
-
-                    if (entry.getKey().equals("bonus")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        bonus.add(d);
-                        bonusRUB.add(currencyInstance.format(d));
-                    }
-
-                    if (entry.getKey().equals("best_bonus")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        bonusBest.add(d);
-                        bonusBestRUB.add(currencyInstance.format(d));
-                    }
-                    if (entry.getKey().equals("best_bonus_kpi_marketing")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        bonusBestMarketing.add(d);
-                        bonusBestMarketingRUB.add(currencyInstance.format(d));
-                    }
-
-
-                    if (entry.getKey().equals("all_bonus")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        bonusAll.add(d);
-                        bonusAllRUB.add(currencyInstance.format(d));
-
-                    }
-
-                    if (entry.getKey().equals("mon")) {
-                        month.add((String) entry.getValue());
-                    }
-                }
-
-                userBonusKPI.setBonus(bonus);
-                userBonusKPI.setBonusBest(bonusBest);
-                userBonusKPI.setBonusAll(bonusAll);
-                userBonusKPI.setMonth(month);
-                userBonusKPI.setBonusBestMarketing(bonusBestMarketing);
-
-                userBonusKPI.setBonusRUB(bonusRUB);
-                userBonusKPI.setBonusBestRUB(bonusBestRUB);
-                userBonusKPI.setBonusAllRUB(bonusAllRUB);
-                userBonusKPI.setBonusBestMarketingRUB(bonusBestMarketingRUB);
-
-                if (isNotNew) {
-                    String finalManFIO = manFIO;
-                    List<UserBonusKPI> result = userBonusKPIList.stream()
-                            .filter(a -> Objects.equals(a.getFio(), finalManFIO))
-                            .collect(Collectors.toList());
-
-                    result.get(0).getBonus().add(userBonusKPI.getBonus().get(0));
-                    result.get(0).getBonusBest().add(userBonusKPI.getBonusBest().get(0));
-                    result.get(0).getBonusAll().add(userBonusKPI.getBonusAll().get(0));
-                    result.get(0).getMonth().add(userBonusKPI.getMonth().get(0));
-                    result.get(0).getBonusBestMarketing().add(userBonusKPI.getBonusBestMarketing().get(0));
-
-                    result.get(0).getBonusRUB().add(userBonusKPI.getBonusRUB().get(0));
-                    result.get(0).getBonusBestRUB().add(userBonusKPI.getBonusBestRUB().get(0));
-                    result.get(0).getBonusAllRUB().add(userBonusKPI.getBonusAllRUB().get(0));
-                    result.get(0).getBonusBestMarketingRUB().add(userBonusKPI.getBonusBestMarketingRUB().get(0));
-
-
-
-                } else
-                    {
-                        userBonusKPIList.add(userBonusKPI);
-                    }
+                // Добавляем детали к основному объекту
+                main.getUserBonusKPIDetails().add(detail);
             }
 
-            return userBonusKPIList;
+            return new ArrayList<>(userMap.values());
         }
+    }
+
+
+    private LocalDate constructDateFromRow(Map<String, Object> row) {
+        // Пример реализации - нужно адаптировать под ваши данные
+        Integer year = (Integer) row.get("year"); // если есть в запросе
+        Integer monthNum = (Integer) row.get("mont");
+        return LocalDate.of(year != null ? year : LocalDate.now().getYear(),
+                monthNum, 1);
     }
 }

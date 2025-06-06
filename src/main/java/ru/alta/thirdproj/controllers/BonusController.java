@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Stream;
 
 //@RestController
 @Controller
@@ -75,182 +76,119 @@ public class BonusController {
     public String showTabs() {
         return "bonuses"; // Renders the main tabs.html template tabs_2 - остается все по старому
     }
-
-    @GetMapping("/all") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
-    //  @GetMapping
-    @ApiOperation("Returns list of all products data transfer objects")
-    public ResponseEntity<UserBonus> getAllUserBonus(
-            Principal principal,
-            @RequestParam(value = "date1")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-            @RequestParam(value = "date2")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
-            , @RequestParam(value = "userName", required = false) String userName,
-            @RequestParam(value = "departmentName", required = false) String departmentName
-
-    ) {
-
-        User user = userService.findByUserName(principal.getName());
-        List<HashMap<String, Object>> userBonuses;
-        // List<UserBonus> userBonuses;
-        if (date1 == null) {
-            YearMonth month = YearMonth.now();
-            userBonuses = bonusService.findAll(month.atDay(1), month.atEndOfMonth(), Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-        } else {
-            userBonuses = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-        }
-
-        return new ResponseEntity(userBonuses, HttpStatus.OK);
-
-    }
-
-    @GetMapping("/all3") //http://localhost:8181/userbonus/all?date1=2021-12-01&date2=2021-12-31
-    // @GetMapping
-    @ApiOperation("Returns list of all products data transfer objects")
-    //  @RequestMapping(value = "getAllUserBonusGson", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getAllUserBonusGson(
-            Principal principal,
-            @RequestParam(value = "page") Optional<Integer> page,
-            @RequestParam(value = "date1")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-            @RequestParam(value = "date2")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2,
-            @RequestParam(value = "userName", required = false) String userName,
-            @RequestParam(value = "departmentName", required = false) String departmentName
-
-    ) {
-
-        User user = userService.findByUserName(principal.getName());
-        List<HashMap<String, Object>> entities;
-
-
-        entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-
-        return new ResponseEntity<>(entities, HttpStatus.OK);
-
-
-    }
-
-    @GetMapping("/all1") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
-    // @ApiOperation("Returns list of all products data transfer objects")
-    public String getAllUserBonus(Model model,
-                                  Principal principal,
-                                  @RequestParam(value = "date1")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                  @RequestParam(value = "date2")
-                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
-
-    ) {
-        User user = userService.findByUserName(principal.getName());
-        List<HashMap<String, Object>> entities;
-
-        entities = bonusService.findAll(date1, date2, Math.toIntExact(user.getUserId()), user.getLoginDepartment());
-
-        HashMap<String, Object> mapMoney = bonusService.getMapMoney();
-        HashMap<String, Object> mapSum = bonusService.getMapSum();
-        HashMap<String, Object> mapCandidate = bonusService.getMapCandidate();
-        HashMap<String, Object> mapCompany = bonusService.getMapCompany();
-
-        List<String> employers = bonusService.getEmployers();
-        List<String> department = bonusService.getDepartment();
-
-        double allMoney = bonusService.getAllMoney(mapMoney);
-
-
-
-        model.addAttribute("userBonus", entities);
-        model.addAttribute("moneyByCandidate", mapMoney);
-        model.addAttribute("sumUser", mapSum);
-        model.addAttribute("candidateName", mapCandidate);
-        model.addAttribute("companyName", mapCompany);
-        model.addAttribute("employers", employers);
-        model.addAttribute("department", department);
-        model.addAttribute("date1", date1);
-        model.addAttribute("date2", date2);
-        model.addAttribute("allMoney", allMoney);
-        return "bonus"; //getUserBonusList
-    }
-
-    @GetMapping("/bonus/getall") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
-    // @ApiOperation("Returns list of all products data transfer objects")
+    @GetMapping("/bonus/getall")
     public String getAllBonuses(Model model,
-                                  Principal principal,
                                 @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
-                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo
+                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo) {
 
+        // Получение данных
+        List<UserBonusMain> userBonusMains = getSafeUserBonuses(dateFrom, dateTo);
+        List<UserBonusKPIMain> bonusKPIList = getSafeKPIBonuses(dateFrom, dateTo);
 
-    ) {
+        // Расчет сумм
+        double allBonusMoney = calculateTotalBonusMoney(userBonusMains);
+        double allMoney = getSafeCompanyMoney(dateFrom, dateTo);
+        double allKPIMoney = calculateTotalKPIMoney(bonusKPIList);
 
-        List<UserBonusMain> userBonusMains = bonusService.getUserBonuses(dateFrom, dateTo);
-        userBonusNewList =  bonusService.getUserBonusList(dateFrom, dateTo);
-        Double allBonusMoney = Double.valueOf(0);;
-        dateS = dateFrom;
-        dateF = dateTo;
+        // Форматирование и подготовка модели
+        prepareModel(model, userBonusMains, bonusKPIList,
+                allBonusMoney, allMoney, allKPIMoney,
+                dateFrom, dateTo);
 
+        return "bonus :: bonusTab";
+    }
 
-        for (int i = 0; i < userBonusNewList.size() ; i++) {
-            if (userBonusNewList.get(i).getMoneyByCandidate() != null) {
-                for (int j = 0; j < userBonusNewList.get(i).getMoneyByCandidate().size(); j++) {
-                    allBonusMoney += userBonusNewList.get(i).getMoneyByCandidate().get(j);
-                }
-            }
+// Обновленные вспомогательные методы с улучшенной обработкой null
+
+    private List<UserBonusMain> getSafeUserBonuses(LocalDate dateFrom, LocalDate dateTo) {
+        return Optional.ofNullable(bonusService.getUserBonuses(dateFrom, dateTo))
+                .orElse(Collections.emptyList());
+    }
+
+    private List<UserBonusKPIMain> getSafeKPIBonuses(LocalDate dateFrom, LocalDate dateTo) {
+        return Optional.ofNullable(bonusKPIService.getUserBonusKPIList(dateFrom, dateTo))
+                .orElse(Collections.emptyList());
+    }
+
+    private double getSafeCompanyMoney(LocalDate dateFrom, LocalDate dateTo) {
+        return Optional.ofNullable(bonusService.getCompanyMoney(dateFrom, dateTo))
+                .orElse(0.0);
+    }
+
+    private double calculateTotalBonusMoney(List<UserBonusMain> userBonusList) {
+        return userBonusList.stream()
+                .filter(Objects::nonNull)
+                .flatMap(bonus -> bonus.getUserBonusDetails() != null ?
+                        bonus.getUserBonusDetails().stream() : Stream.empty())
+                .filter(Objects::nonNull)
+                .mapToDouble(detail -> detail.getMoneyByCandidate() != null ?
+                        detail.getMoneyByCandidate() : 0.0)
+                .sum();
+    }
+
+    private double calculateTotalKPIMoney(List<UserBonusKPIMain> kpiMainList) {
+        return kpiMainList.stream()
+                .filter(Objects::nonNull)
+                .flatMap(main -> main.getUserBonusKPIDetails() != null ?
+                        main.getUserBonusKPIDetails().stream() : Stream.empty())
+                .filter(Objects::nonNull)
+                .mapToDouble(detail -> {
+                    double sum = 0.0;
+                    if (detail.getAllBonus() != null) sum += detail.getAllBonus();
+                    return sum;
+                })
+                .sum();
+    }
+
+    private void prepareModel(Model model,
+                              List<UserBonusMain> userBonusMains,
+                              List<UserBonusKPIMain> bonusKPIList,
+                              double allBonusMoney,
+                              double allMoney,
+                              double allKPIMoney,
+                              LocalDate dateFrom,
+                              LocalDate dateTo) {
+
+        NumberFormat currencyFormatter = createCurrencyFormatter();
+        DecimalFormat decimalFormatter = new DecimalFormat("#.##");
+
+        // Форматирование с защитой от ошибок
+        String formattedAllBonusMoney;
+        String formattedAllMoney;
+        try {
+            formattedAllBonusMoney = currencyFormatter.format(allBonusMoney);
+            formattedAllMoney = currencyFormatter.format(allMoney);
+        } catch (IllegalArgumentException e) {
+            formattedAllBonusMoney = String.format("%,.2f ₽", allBonusMoney);
+            formattedAllMoney = String.format("%,.2f ₽", allMoney);
         }
 
-        List<UserBonusKPI> bonusKPIList = bonusKPIService.getUserBonusKPIList(dateFrom, dateTo);
+        // Расчет процентов с защитой от деления на ноль
+        double percentWithoutPKI = allMoney > 0 ? (allBonusMoney * 100 / allMoney) : 0;
+        double percentWithPKI = allMoney > 0 ? ((allBonusMoney + allKPIMoney) * 100 / allMoney) : 0;
 
-        Locale ru = new Locale("ru", "RU");
-        Currency rub = Currency.getInstance(ru);
-        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
-
-        Double allMoney = Double.valueOf(0);
-        allMoney = bonusService.getCompanyMoney(dateFrom, dateTo);
-
-
-        Double percentWithoutPKI = Double.valueOf(0);
-        if (allMoney != null) {
-            percentWithoutPKI = allBonusMoney * 100 / allMoney;
-        }
-
-        bonusKPIList = bonusKPIService.getUserBonusKPIList(dateFrom, dateTo);
-
-        double allKPIMoney = 0;
-
-        for (int i = 0; i < bonusKPIList.size() ; i++) {
-            for (int j = 0; j < bonusKPIList.get(i).getBonusAll().size(); j++) {
-                allKPIMoney += bonusKPIList.get(i).getBonusAll().get(j);
-            }
-        }
-        Double percentWithPKI = Double.valueOf(0);
-        if (allMoney != null) {
-         percentWithPKI = (allBonusMoney + allKPIMoney) * 100 / allMoney;
-        }
-
-        DecimalFormat decimalFormat = new DecimalFormat( "#.##" );
-
-        String allMoneyStr = "";
-        if (allMoney != null)
-            allMoneyStr = currencyInstance.format(allMoney);
-
-        objectList = new ArrayList<>();
-
-        if (bonusKPIList.size() >0){
-            objectList.add(Collections.singletonList(bonusKPIList));
-        }
-        objectList.add(Collections.singletonList((userBonusNewList)));
-
-
-        model.addAttribute("userBonusKPI", bonusKPIList);
-        model.addAttribute("userBonus", userBonusMains);
-//        model.addAttribute("userBonus", userBonusNewList);
-        model.addAttribute("allBonusMoney", currencyInstance.format(allBonusMoney));
-        model.addAttribute("allMoney", allMoneyStr);
-        model.addAttribute("percentWithoutPKI", decimalFormat.format(percentWithoutPKI));
-        model.addAttribute("percentWithPKI", decimalFormat.format(percentWithPKI));
+        // Добавление атрибутов в модель
+//        model.addAttribute("userBonusKPI", bonusKPIList != null ? bonusKPIList : Collections.emptyList());
+        model.addAttribute("userBonus", userBonusMains != null ? userBonusMains : Collections.emptyList());
+        model.addAttribute("allBonusMoney", formattedAllBonusMoney);
+        model.addAttribute("allMoney", formattedAllMoney);
+        model.addAttribute("percentWithoutPKI", decimalFormatter.format(percentWithoutPKI));
+        model.addAttribute("percentWithPKI", decimalFormatter.format(percentWithPKI));
         model.addAttribute("date1", dateFrom);
         model.addAttribute("date2", dateTo);
-        return "bonus :: bonusTab"; // Fragment for AJAX
+
+        System.out.println("Передаваемые атрибуты: " +
+                "allMoney=" + allMoney +
+                ", allBonusMoney=" + allBonusMoney +
+                ", percent=" + percentWithoutPKI);
     }
 
+    private NumberFormat createCurrencyFormatter() {
+        Locale russianLocale = new Locale("ru", "RU");
+        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(russianLocale);
+        currencyFormatter.setCurrency(Currency.getInstance("RUB"));
+        return currencyFormatter;
+    }
 //    @GetMapping("/export-to-excel")
 //    public void exportIntoExcelFile(HttpServletResponse response) throws Exception {
 //        response.setContentType("application/octet-stream");
@@ -263,31 +201,45 @@ public class BonusController {
 //        generator.generate(response);
 //    }
 
-    @GetMapping("/getkpi") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
-    // @ApiOperation("Returns list of all products data transfer objects")
+    @GetMapping("/bonus/getkpi")
     public String getAllKPIBonuses(Model model,
-                                Principal principal,
-                                @RequestParam(value = "date1")
-                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                @RequestParam(value = "date2")
-                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2
+                                   @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+                                   @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo) {
 
-    ) {
+        List<UserBonusKPIMain> bonusKPIList = getSafeKPIBonuses(dateFrom, dateTo);
+
+        // Дополнительные расчеты для KPI вкладки
+        Map<String, Double> kpiStats = calculateKPIStatistics(bonusKPIList);
+
         model.addAttribute("userBonusKPI", bonusKPIList);
-        model.addAttribute("date1", date1);
-        model.addAttribute("date2", date2);
-        return "bonusNew";
+        model.addAttribute("kpiStats", kpiStats);
+        model.addAttribute("date1", dateFrom);
+        model.addAttribute("date2", dateTo);
+        return "bonusKPI :: bonusKPITab";
     }
 
-    @GetMapping("/all2") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
-    // @ApiOperation("Returns list of all products data transfer objects")
-    public String showUserBonus(Model model) {
-        List<Employer> employers = employerService.getAll();
-        model.addAttribute("employers", employers);
-        return "bonusShow";
-    }
+    private Map<String, Double> calculateKPIStatistics(List<UserBonusKPIMain> kpiMainList) {
+        Map<String, Double> stats = new HashMap<>();
 
-    @GetMapping("/add") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
+        double totalBonus = kpiMainList.stream()
+                .flatMap(main -> main.getUserBonusKPIDetails() != null ?
+                        main.getUserBonusKPIDetails().stream() : Stream.empty())
+                .mapToDouble(detail -> detail.getBonus() != null ? detail.getBonus() : 0.0)
+                .sum();
+
+        double totalBestBonus = kpiMainList.stream()
+                .flatMap(main -> main.getUserBonusKPIDetails() != null ?
+                        main.getUserBonusKPIDetails().stream() : Stream.empty())
+                .mapToDouble(detail -> detail.getBestBonus() != null ? detail.getBestBonus() : 0.0)
+                .sum();
+
+        stats.put("totalBonus", totalBonus);
+        stats.put("totalBestBonus", totalBestBonus);
+        // Добавьте другие нужные статистики
+
+        return stats;
+    }
+      @GetMapping("/add") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
     public String addExtraBonus(Model model, @RequestParam(value ="fio") String fio,
                                 @RequestParam(value = "date1")
@@ -304,6 +256,34 @@ public class BonusController {
         model.addAttribute("date1", date1);
         model.addAttribute("date2", date2);
         return "act-bonus";
+    }
+
+    @GetMapping("/bonus/getstats")
+    public ResponseEntity<Map<String, String>> getBonusStats(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo) {
+
+        List<UserBonusMain> userBonusMains = getSafeUserBonuses(dateFrom, dateTo);
+        List<UserBonusKPIMain> bonusKPIList = getSafeKPIBonuses(dateFrom, dateTo);
+
+        double allBonusMoney = calculateTotalBonusMoney(userBonusMains);
+        double allMoney = getSafeCompanyMoney(dateFrom, dateTo);
+        double allKPIMoney = calculateTotalKPIMoney(bonusKPIList);
+
+        DecimalFormat decimalFormatter = new DecimalFormat("#.##");
+        NumberFormat currencyFormatter = createCurrencyFormatter();
+
+        // Расчет процентов с защитой от деления на ноль
+        double percentWithoutPKI = allMoney > 0 ? (allBonusMoney * 100 / allMoney) : 0;
+        double percentWithPKI = allMoney > 0 ? ((allBonusMoney + allKPIMoney) * 100 / allMoney) : 0;
+
+        Map<String, String> stats = new HashMap<>();
+        stats.put("allMoney", currencyFormatter.format(allMoney));
+        stats.put("allBonusMoney", currencyFormatter.format(allBonusMoney));
+        stats.put("percentWithoutPKI", decimalFormatter.format(percentWithoutPKI));
+        stats.put("percentWithPKI", decimalFormatter.format(percentWithPKI));
+
+        return ResponseEntity.ok(stats);
     }
 
 

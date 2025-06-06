@@ -72,9 +72,9 @@ public class UserBonusServiceImpl implements  iUserBonusRepository  {
 
     }
 
-    public List<UserBonusNew> getUserBonusList(LocalDate date1, LocalDate date12){
-        return userBonusProvider.getUserBonusList(date1, date12);
-    }
+//    public List<UserBonusNew> getUserBonusList(LocalDate date1, LocalDate date12){
+//        return userBonusProvider.getUserBonusList(date1, date12);
+//    }
 
     public  List<UserBonusMain> getUserBonuses  (LocalDate date1, LocalDate date12){
         return userBonusProvider.getUserBonuses(date1, date12);

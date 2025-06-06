@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="bonusKPITab">
+    <style>
+        .fixed-header {
+            width: 100%;
+            margin-bottom: 0;
+            table-layout: auto;
+        }
+
+        .fixed-header thead th {
+            position: sticky;
+            top: 0; /* Будет переопределено JavaScript из родительской страницы */
+            background: white;
+            z-index: 10;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+        }
+
+        .fixed-header td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            padding: 0.5rem;
+        }
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Бонусы KPI</h4>
+
+    </div>
+
+    <table id="bonusKPITable" class="table table-bordered table-hover fixed-header">
+        <thead class="table-light">
+        <tr>
+            <th>ФИО</th>
+            <th>Должность</th>
+            <th>Бонус</th>
+            <th>Бонус за 1-ое место</th>
+            <th>Бонус за 1-ое Маркетинг</th>
+            <th>Весь бонус</th>
+            <th>Месяц</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Проверка на пустой список -->
+        <th:block th:if="${userBonusKPI == null or userBonusKPI.isEmpty()}">
+            <tr>
+                <td colspan="7" class="text-center">Нет данных для отображения</td>
+            </tr>
+        </th:block>
+
+        <!-- Итерация по основным записям -->
+        <th:block th:each="main : ${userBonusKPI}">
+            <!-- Проверка на наличие деталей -->
+            <th:block th:if="${main.userBonusKPIDetails != null and not main.userBonusKPIDetails.isEmpty()}">
+                <!-- Первая строка с rowspan -->
+                <tr th:each="detail, iter : ${main.userBonusKPIDetails}">
+                    <td th:text="${main.fio}"
+                        th:if="${iter.index == 0}"
+                        th:rowspan="${main.userBonusKPIDetails.size()}"></td>
+                    <td th:text="${main.position}"
+                        th:if="${iter.index == 0}"
+                        th:rowspan="${main.userBonusKPIDetails.size()}"></td>
+                    <td th:text="${#numbers.formatDecimal(detail.bonus, 1, 2, 'COMMA') + ' ₽'}"></td>
+                    <td th:text="${#numbers.formatDecimal(detail.bestBonus, 1, 2, 'COMMA') + ' ₽'}"></td>
+                    <td th:text="${#numbers.formatDecimal(detail.bestBonusKPIMarketing, 1, 2, 'COMMA') + ' ₽'}"></td>
+                    <td th:text="${#numbers.formatDecimal(detail.allBonus, 1, 2, 'COMMA') + ' ₽'}"></td>
+                    <td th:text="${detail.monthName}"></td>
+                </tr>
+            </th:block>
+            <!-- Если деталей нет -->
+            <th:block th:if="${main.userBonusKPIDetails == null or main.userBonusKPIDetails.isEmpty()}">
+                <tr>
+                    <td th:text="${main.fio}"></td>
+                    <td th:text="${main.position}"></td>
+                    <td colspan="5" class="text-center">Нет данных о бонусах</td>
+                </tr>
+            </th:block>
+        </th:block>
+        </tbody>
+    </table>
+</div>
+</html>

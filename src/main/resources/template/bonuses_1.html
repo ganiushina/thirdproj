@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>Бонусы</title>
@@ -15,20 +14,19 @@
 
         .main-content {
             position: relative;
+            padding-top: 56px;
         }
 
         .table-container {
-            margin-top: 0;
-            padding-top: 0;
-
+            position: relative;
+            margin-bottom: 20px;
         }
+
         .fixed-header thead th {
             position: sticky;
-            top: 56px; /* Высота навбара по умолчанию в Bootstrap */
             background: white;
             z-index: 1020;
             box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
-            transition: top 0.1s ease-out;
         }
 
         td {
@@ -113,19 +111,31 @@
                 <div class="stats-block row mx-0" id="statsBlock">
                     <div class="col-md-4 px-2">
                         <div class="bg-light p-2 rounded border">
-                            <p class="mb-1" id="allMoneyText">Всего заработано денег: <span th:text="${allMoney}"></span></p>
-                            <p class="mb-0" id="allBonusMoneyText">Всего заработано бонусов: <span th:text="${allBonusMoney}"></span></p>
+                            <p class="mb-1" id="allMoneyText">
+                                Всего заработано денег:
+                                <span id="allMoneyValue" th:text="${allMoney}">0 ₽</span>
+                            </p>
+                            <p class="mb-0" id="allBonusMoneyText">
+                                Всего заработано бонусов:
+                                <span id="allBonusMoneyValue" th:text="${allBonusMoney}">0 ₽</span>
+                            </p>
                         </div>
                     </div>
                     <div class="col-md-4 px-2">
                         <div class="bg-light p-2 rounded border">
-                            <p class="mb-1" id="percentWithoutPKIText">Процент выплаты: <span th:text="${percentWithoutPKI}"></span>%</p>
-                            <p class="mb-0" id="percentWithPKIText">Процент выплаты с KPI: <span th:text="${percentWithPKI}"></span>%</p>
+                            <p class="mb-1" id="percentWithoutPKIText">
+                                Процент выплаты:
+                                <span id="percentWithoutPKIValue" th:text="${percentWithoutPKI}">0</span>%
+                            </p>
+                            <p class="mb-0" id="percentWithPKIText">
+                                Процент выплаты с KPI:
+                                <span id="percentWithPKIValue" th:text="${percentWithPKI}">0</span>%
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tabs Navigation -->
+                <!-- Навигация по вкладкам -->
                 <ul class="nav nav-tabs" id="bonusTabs">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="bonus-tab" data-bs-toggle="tab"
@@ -145,7 +155,7 @@
                     </li>
                 </ul>
 
-                <!-- Tab Contents -->
+                <!-- Содержимое вкладок -->
                 <div class="tab-content border border-top-0 rounded-bottom" id="tabContent">
                     <div class="tab-pane fade show active" id="bonus" role="tabpanel" aria-labelledby="bonus-tab">
                         <div id="bonusContent" class="table-container">
@@ -168,8 +178,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-
-    // Функция загрузки активной вкладки
+    // Функция для повторной загрузки активной вкладки после смены даты
     function loadActiveTab() {
         const activeTab = document.querySelector('#bonusTabs .nav-link.active');
         if (activeTab) {
@@ -177,77 +186,83 @@
         }
     }
 
-        async function loadTabContent(url, targetDivId) {
-            const dateFrom = document.getElementById('dateFrom').value;
-            const dateTo = document.getElementById('dateTo').value;
+    // Главная функция загрузки контента вкладки и обновления статистики
+    async function loadTabContent(url, targetDivId) {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
 
-            try {
-                // Показываем спиннер
-                document.getElementById(targetDivId).innerHTML = `
-                    <div class="text-center my-5">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                `;
-
-                // 1. Загружаем статистику
-                await updateStats(dateFrom, dateTo);
-
-                // 2. Загружаем содержимое вкладки
-                const tabResponse = await fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`);
-                const html = await tabResponse.text();
-                document.getElementById(targetDivId).innerHTML = html;
-
-                // 3. Ждем пока браузер обработает новую разметку
-                await new Promise(resolve => requestAnimationFrame(resolve));
-
-                // 4. Настраиваем заголовки
-                adjustStickyHeaders();
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById(targetDivId).innerHTML = `
-                    <div class="alert alert-danger">
-                        Ошибка загрузки данных: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-    // Функция обновления статистики
-    async function updateStats(dateFrom, dateTo) {
         try {
-            const response = await fetch(`/bonus/getstats?dateFrom=${dateFrom}&dateTo=${dateTo}`);
-            const stats = await response.json();
+            // Отображаем спиннер в целевом контейнере
+            document.getElementById(targetDivId).innerHTML = `
+                <div class="text-center my-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
 
-            // Обновляем элементы на странице
-            document.querySelector('#allMoneyText span').textContent = stats.allMoney;
-            document.querySelector('#allBonusMoneyText span').textContent = stats.allBonusMoney;
-            document.querySelector('#percentWithoutPKIText span').textContent = stats.percentWithoutPKI;
-            document.querySelector('#percentWithPKIText span').textContent = stats.percentWithPKI;
+            // 1. Получаем полную страницу (чтобы достать обновлённые статистические данные)
+            const fullPageResponse = await fetch(`/bonus?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+            const fullPageHtml = await fullPageResponse.text();
+
+            // 2. Парсим HTML в документ
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(fullPageHtml, 'text/html');
+
+            // 3. Обновляем блок статистики
+            updateStatsBlock(doc);
+
+            // 4. Запрашиваем только фрагмент с содержимым таблицы для текущей вкладки
+            const tabResponse = await fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+            document.getElementById(targetDivId).innerHTML = await tabResponse.text();
+
+            // 5. Корректируем «липкие» заголовки в таблицах (если они есть)
+            adjustStickyHeaders();
 
         } catch (error) {
-            console.error('Ошибка при загрузке статистики:', error);
+            console.error('Error:', error);
+            document.getElementById(targetDivId).innerHTML = `
+                <div class="alert alert-danger">
+                    Ошибка загрузки данных: ${error.message}
+                </div>
+            `;
         }
     }
 
-            function adjustStickyHeaders() {
-                requestAnimationFrame(() => {
-                    const navbar = document.querySelector('.navbar');
-                    if (!navbar) return;
+    // Обновление блока статистики: подтягиваем новые значения по id-спанам
+    function updateStatsBlock(parsedDoc) {
+        const statIds = [
+            'allMoneyValue',
+            'allBonusMoneyValue',
+            'percentWithoutPKIValue',
+            'percentWithPKIValue'
+        ];
 
-                    // Получаем высоту навбара, включая padding и border
-                    const navbarHeight = navbar.offsetHeight;
-
-                    // Устанавливаем top равным высоте навбара
-                    document.querySelectorAll('.fixed-header thead th').forEach(th => {
-                        th.style.top = `${navbarHeight}px`;
-                    });
-                });
+        statIds.forEach(id => {
+            const newElem = parsedDoc.getElementById(id);
+            const localElem = document.getElementById(id);
+            if (newElem && localElem) {
+                localElem.textContent = newElem.textContent;
             }
+        });
+    }
 
+    // Если в таблицах используются «липкие» заголовки, корректируем их позиционирование
+    function adjustStickyHeaders() {
+        const navbar = document.querySelector('.navbar');
+        if (!navbar) return;
 
+        const navbarHeight = navbar.offsetHeight;
+        const filterHeight = document.querySelector('#dateFilterForm').offsetHeight;
+        const tabsHeight = document.querySelector('#bonusTabs').offsetHeight;
+        const totalOffset = navbarHeight + filterHeight + tabsHeight;
+
+        document.querySelectorAll('.fixed-header thead th').forEach(th => {
+            th.style.top = totalOffset + 'px';
+        });
+    }
+
+    // Экспорт текущей таблицы Бонусов в Excel
     function exportToExcel() {
         const wb = XLSX.utils.book_new();
         const table = document.getElementById('bonusTable');
@@ -265,22 +280,17 @@
 
     // Инициализация при загрузке страницы
     document.addEventListener('DOMContentLoaded', function() {
-        // Загружаем фрагмент «Бонусы» по умолчанию
+        // По умолчанию загружаем вкладку «Бонусы»
         loadTabContent('/bonus/getall', 'bonusContent');
 
-        // После смены вкладки корректируем top для «липких» заголовков
-        const tabEls = document.querySelectorAll('#bonusTabs button[data-bs-toggle="tab"]');
-        tabEls.forEach(tabEl => {
-            tabEl.addEventListener('shown.bs.tab', function() {
-                adjustStickyHeaders();
-            });
+        // При переключении вкладок пересчитываем «липкие» заголовки
+        document.querySelectorAll('#bonusTabs button[data-bs-toggle="tab"]').forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', () => adjustStickyHeaders());
         });
 
         window.addEventListener('scroll', adjustStickyHeaders);
         window.addEventListener('resize', adjustStickyHeaders);
     });
-
-
 </script>
 </body>
 </html>
