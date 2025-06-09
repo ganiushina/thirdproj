@@ -22,6 +22,7 @@ public class UserBonusMain {
     private Double sumTotal;
     private String moneyAllRUB;
     private List<UserBonusDetail> userBonusDetails;
+    private List<ExtraAct> extraActs;
 
 
     @Override

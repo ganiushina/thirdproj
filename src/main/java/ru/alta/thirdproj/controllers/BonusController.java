@@ -168,7 +168,7 @@ public class BonusController {
         double percentWithPKI = allMoney > 0 ? ((allBonusMoney + allKPIMoney) * 100 / allMoney) : 0;
 
         // Добавление атрибутов в модель
-//        model.addAttribute("userBonusKPI", bonusKPIList != null ? bonusKPIList : Collections.emptyList());
+
         model.addAttribute("userBonus", userBonusMains != null ? userBonusMains : Collections.emptyList());
         model.addAttribute("allBonusMoney", formattedAllBonusMoney);
         model.addAttribute("allMoney", formattedAllMoney);
@@ -239,23 +239,27 @@ public class BonusController {
 
         return stats;
     }
-      @GetMapping("/add") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
+    @GetMapping("/bonus/add") //http://localhost:8181/userbonus/all1?date1=2021-12-01&date2=2021-12-31
     // @ApiOperation("Returns list of all products data transfer objects")
-    public String addExtraBonus(Model model, @RequestParam(value ="fio") String fio,
-                                @RequestParam(value = "date1")
-                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date1,
-                                @RequestParam(value = "date2")
-                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date2,
-                                HttpServletRequest httpServletRequest){
+    public String addExtraBonus(Model model,
+                                @RequestParam(value ="fio") String fio,
+                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo
+                               ){
 
         Employer employer = employerService.findByUserName(fio);
-        List<Act> actList = actBonusPercentService.getAllAct(date1, date2, employer.getManId());
+//        Employer employer = employerService.findByUserName("Полянская Евгения Львовна");
+        List<ExtraAct> actList = actBonusPercentService.getAllExtraAct(dateFrom, dateTo, employer.getManId());
         model.addAttribute("actList", actList);
         model.addAttribute("employer", employer);
-        model.addAttribute("requestParam", httpServletRequest.getHeader("referer"));
-        model.addAttribute("date1", date1);
-        model.addAttribute("date2", date2);
-        return "act-bonus";
+//        model.addAttribute("requestParam", httpServletRequest.getHeader("referer"));
+        model.addAttribute("date1", dateFrom);
+        model.addAttribute("date2", dateTo);
+        System.out.println("Передаваемые атрибуты: " +
+                "dateFrom=" + dateFrom +
+                ", dateTo=" + dateTo +
+                ", fio=" + fio);
+        return "extra-acts";
     }
 
     @GetMapping("/bonus/getstats")

@@ -46,7 +46,7 @@
             <th>Процент</th>
             <th>Месяц</th>
             <th>Год</th>
-            <th>Действия</th>
+            <th>Добавить</th>
         </tr>
         </thead>
         <tbody>
@@ -84,7 +84,11 @@
                 <td th:text="${detail.monthName}"></td>
                 <td th:text="${detail.year}"></td>
                 <td>
-                    <button class="btn btn-sm btn-primary">Подробнее</button>
+                    <span th:text="${detail.extraBonusAct}"></span>
+                    <a th:href="@{/bonus/add(fio=${userBonus.fio}, dateFrom=${#request.getParameter('dateFrom')}, dateTo=${#request.getParameter('dateTo')})}"
+                       class="btn btn-sm btn-primary">
+                        Добавить
+                    </a>
                 </td>
             </tr>
         </th:block>

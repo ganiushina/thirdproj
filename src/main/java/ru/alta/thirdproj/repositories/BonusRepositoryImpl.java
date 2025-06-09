@@ -179,9 +179,6 @@ public class BonusRepositoryImpl {
 
             return new ArrayList<>(userBonusMap.values());
         }
-
-
-
     }
 
     public Double getCompanyMoney(LocalDate date1, LocalDate date2) {

@@ -3,6 +3,7 @@ package ru.alta.thirdproj.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.ExtraAct;
 import ru.alta.thirdproj.repositories.ActBonusPercentRepositories;
 
 import java.time.LocalDate;
@@ -44,6 +45,11 @@ public class ActBonusPercentServiceImpl implements iActBonus {
     @Override
     public List<String> getDeletedExtraBonus(List<String> allExtraBonusList, List<String> newExtraBonusList) {
         return null;
+    }
+
+    @Override
+    public List<ExtraAct> getAllExtraAct(LocalDate date1, LocalDate date2, Integer employerId) {
+        return actBonusPercentRepositories.getAllExtraActs(date1, date2, employerId);
     }
 
 }

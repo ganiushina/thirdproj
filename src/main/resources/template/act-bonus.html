@@ -33,7 +33,6 @@
     <br>
 
     <form th:action="@{/act/allact}" th:object="${actList}" method="post">
-<!--    <input type="hidden" th:field="${actList}" name="actList"/>-->
 
     <table id = "myTable" class="table table-hover">
         <tr>
@@ -62,17 +61,7 @@
             <td th:text="${act.candidate}"/>
             <td th:text="${act.bonus}"/>
 
-<!--            <td>-->
 
-<!--            <select multiple id="employer" name="manIds" size="10" >-->
-<!--                <option th:each="employer : ${employers}"-->
-<!--                        th:value="${employer.manId}"-->
-<!--                        th:text="${employer.manFIO}">-->
-<!--                </option>-->
-<!--            </select>-->
-<!--            </td>-->
-
-<!--        </tr>-->
         </tbody>
         <input hidden type="text" name="fio" th:value="${employer.ManFIO}"/>
 

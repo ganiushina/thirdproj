@@ -18,7 +18,7 @@ public class UserBonusDetail {
     private String monthSummName;
     private Integer year;
     private Integer actId;
-//    private String extraBonusAct;
+    private String extraBonusAct;
     private String moneyByCandidateRUB;
     private String sumUserRUB;
     private String moneyAllRUBPerMonth;
