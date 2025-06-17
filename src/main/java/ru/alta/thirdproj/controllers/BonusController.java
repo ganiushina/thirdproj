@@ -244,7 +244,8 @@ public class BonusController {
     public String addExtraBonus(Model model,
                                 @RequestParam(value ="fio") String fio,
                                 @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
-                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo
+                                @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo,
+                                @RequestParam("returnUrl") String returnUrl
                                ){
 
         Employer employer = employerService.findByUserName(fio);
@@ -252,13 +253,16 @@ public class BonusController {
         List<ExtraAct> actList = actBonusPercentService.getAllExtraAct(dateFrom, dateTo, employer.getManId());
         model.addAttribute("actList", actList);
         model.addAttribute("employer", employer);
+        model.addAttribute("requestParam", "/bonus/getall?dateFrom=" + dateFrom + "&dateTo=" + dateTo);
+        model.addAttribute("returnUrl", returnUrl);
 //        model.addAttribute("requestParam", httpServletRequest.getHeader("referer"));
         model.addAttribute("date1", dateFrom);
         model.addAttribute("date2", dateTo);
+        model.addAttribute("isPopup", true);
         System.out.println("Передаваемые атрибуты: " +
                 "dateFrom=" + dateFrom +
                 ", dateTo=" + dateTo +
-                ", fio=" + fio);
+                ", fio=" + fio + ", returnUrl" + returnUrl);
         return "extra-acts";
     }
 

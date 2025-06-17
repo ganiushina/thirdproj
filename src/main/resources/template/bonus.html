@@ -85,8 +85,16 @@
                 <td th:text="${detail.year}"></td>
                 <td>
                     <span th:text="${detail.extraBonusAct}"></span>
-                    <a th:href="@{/bonus/add(fio=${userBonus.fio}, dateFrom=${#request.getParameter('dateFrom')}, dateTo=${#request.getParameter('dateTo')})}"
-                       class="btn btn-sm btn-primary">
+
+                    <a th:with="returnPath=${'/bonus/getall?dateFrom=' + #uris.escapeQueryParam(#request.getParameter('dateFrom')) + '&dateTo=' + #uris.escapeQueryParam(#request.getParameter('dateTo'))}"
+                       th:href="@{/bonus/add(
+                               fio=${userBonus.fio},
+                               dateFrom=${#request.getParameter('dateFrom')},
+                               dateTo=${#request.getParameter('dateTo')},
+                               returnUrl=${returnPath}
+                           )}"
+                       class="btn btn-sm btn-primary"
+                       onclick="return openExtraActsByHref(this.href);">
                         Добавить
                     </a>
                 </td>

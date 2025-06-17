@@ -7,8 +7,10 @@ import ru.alta.thirdproj.entites.ExtraAct;
 import ru.alta.thirdproj.repositories.ActBonusPercentRepositories;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -26,13 +28,43 @@ public class ActBonusPercentServiceImpl implements iActBonus {
         return actBonusPercentRepositories.getAllAct(date1, date2, employerId);
     }
 
+//    @Override
+//    public void saveActBonus(int employerId, int userId, List<String> percents, String actId) {
+//        List<String> actIds = Arrays.asList(actId.split(","));
+//        for (int i = 0; i < actIds.size() ; i++) {
+//            actBonusPercentRepositories.saveExtraBonus(employerId, userId, Integer.parseInt(actIds.get(i)), Double.valueOf(percents.get(i)));
+//        }
+//    }
     @Override
-    public void saveActBonus(int employerId, int userId, List<String> percents, String actId) {
-        List<String> actIds = Arrays.asList(actId.split(","));
-        for (int i = 0; i < actIds.size() ; i++) {
-            actBonusPercentRepositories.saveExtraBonus(employerId, userId, Integer.parseInt(actIds.get(i)), Double.valueOf(percents.get(i)));
+    public void saveActBonus(Integer employerId, Integer userId, Map<Integer, Double> actPercentMap) {
+
+        if (actPercentMap == null || actPercentMap.isEmpty()) {
+            return; // Нет данных для сохранения
         }
+
+        // Удаляем старые записи для этих актов и работодателя
+      //  actBonusPercentRepositories.deleteExtraBonus(employerId, new ArrayList<>(actPercentMap.keySet()));
+
+        // Сохраняем новые записи
+        for (Map.Entry<Integer, Double> entry : actPercentMap.entrySet()) {
+            Integer actId = entry.getKey();
+            Double percent = entry.getValue();
+
+            System.out.println("Передаваемые атрибуты10: " + "employerId " +
+                    employerId + "userId." + userId +
+                    "actId " +  actId + "percent " + percent);
+
+            if (percent != null && percent > 0) {
+                System.out.println("Передаваемые атрибуты8: " + "employerId " +
+                        employerId.intValue() + "userId." + userId.intValue() +
+                        "actId " +  actId.intValue() + "percent " + percent);
+
+                actBonusPercentRepositories.saveExtraBonus(employerId.intValue(), userId.intValue(), actId.intValue(), percent);
+            }
+        }
+
     }
+
 
     @Override
     public void deleteActBonus(int employerId, List<String> actIds) {

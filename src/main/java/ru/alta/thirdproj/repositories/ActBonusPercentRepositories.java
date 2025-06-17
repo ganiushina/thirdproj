@@ -111,11 +111,13 @@ public class ActBonusPercentRepositories {
     @Transactional
     public void saveExtraBonus(int employerId, int userId, int actId, Double percent) {
         try (Connection connection = sql2o.open()) {
+            String formattedPercent = String.format(Locale.US, "%.2f", percent);
+            System.out.println("Передаваемые атрибуты9: " + "employerId " + "percent " + formattedPercent);
             connection.createQuery(SAVE_ACT_EXTRA_BONUS, false)
                     .addParameter("user_id", userId)
                     .addParameter("employer_id", employerId )
                     .addParameter("act_id", actId)
-                    .addParameter("bonus_percent", percent)
+                    .addParameter("bonus_percent", formattedPercent)
                     .addParameter("date_add", new Date())
                     .executeUpdate();
             connection.commit();

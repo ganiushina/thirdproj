@@ -58,7 +58,7 @@
     <h1>Акты</h1>
     <p class="lead" th:text="'Акт для ' + ${employer.ManFIO}"></p>
 
-    <form th:action="@{/act/allact}" th:object="${actList}" method="post">
+    <form th:action="@{/act/allact}" method="post" id="actsForm">
         <div class="table-container">
             <table id="myTable" class="table table-hover">
                 <thead>
@@ -75,18 +75,17 @@
                         <div class="d-flex align-items-center">
                             <input type="checkbox"
                                    class="mr-2"
-                                   name="act"
+                                   name="actIds"
                                    th:value="${act.actId}"
                                    th:checked="${act.paid} ? 'checked'" />
                             <input type="number"
-                                   id="percent"
                                    step="0.5"
                                    min="0"
                                    max="100"
                                    class="form-control form-control-sm"
                                    style="width: 70px;"
-                                   name="percent"
-                                   th:value="${act.percent != null} ? ${act.percent}"/>
+                                   name="percents"
+                                   th:value="${act.percent != null} ? ${act.percent} : 0"/>
                         </div>
                     </td>
                     <td th:text="${act.company}"></td>
@@ -97,64 +96,112 @@
             </table>
         </div>
 
-        <input hidden type="text" name="fio" th:value="${employer.ManFIO}"/>
-        <input hidden name="actList" th:value="${actList}"/>
+        <input type="hidden" name="fio" th:value="${employer.ManFIO}"/>
+        <input type="hidden" name="request" th:value="${requestParam}"/>
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
 
-        <button type="submit"
-                id="buttonID"
-                name="request"
-                th:value="${requestParam}"
-                class="btn btn-primary"
-                disabled>Готово</button>
+        <button type="submit" id="buttonID" class="btn btn-primary" disabled>Готово</button>
     </form>
 </div>
 
 <script>
-    $(document).ready(function() {
-        // Обработчик изменения числового поля
-        $('input[type="number"]').change(function(){
-            $(this).siblings('input[type="checkbox"]').prop('checked', true);
-            let thisval = $(this).val();
 
-            if (thisval == 0) {
-                $(this).siblings('input[type="checkbox"]').prop('checked', false);
-                $(this).prop('required', false);
-            } else {
-                $(this).siblings('input[type="checkbox"]').prop('checked', true);
-            }
+    document.getElementById('actsForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
 
-            checkButtonState();
+          const submitButton = document.getElementById('buttonID');
+          submitButton.Disabled = true;
+          submitButton.textContent = 'Сохранение...';
+
+          try {
+              const formData = new FormData(this);
+              const response = await fetch(this.action, {
+                  method: 'POST',
+                  body: formData,
+                  headers: {
+                      'Accept': 'application/json'
+                  }
+              });
+
+              const result = await response.json();
+
+              if (result.success) {
+                  // 1. Отправляем более детальное сообщение родительскому окну
+                  if (window.opener) {
+                      window.opener.postMessage({
+                          type: 'BONUS_DATA_UPDATED',
+                          payload: {
+                              fio: result.fio,
+                              count: result.updatedCount,
+                              dateFrom: new URLSearchParams(window.location.search).get('dateFrom'),
+                              dateTo: new URLSearchParams(window.location.search).get('dateTo')
+                          }
+                      }, '*');
+                  }
+
+                  // 2. Закрываем окно
+                  window.close();
+              } else {
+                  alert('Ошибка: ' + (result.message || 'Неизвестная ошибка'));
+                  submitButton.Disabled = false;
+                  submitButton.textContent = 'Готово';
+              }
+          } catch (error) {
+              console.error('Ошибка:', error);
+              alert('Произошла ошибка при отправке данных');
+              submitButton.disabled = false;
+              submitButton.textContent = 'Готово';
+          }
         });
 
-        // Обработчик изменения чекбокса
-        $('input[type="checkbox"]').change(function(){
-            var checked = $(this).is(':checked');
-            var input = $(this).closest('tr').find('input[type="number"]');
-            var d = input.val();
+  $(document).ready(function() {
+      // Обработчик изменения числового поля
+      $('input[type="number"]').change(function(){
+          $(this).siblings('input[type="checkbox"]').prop('checked', true);
+          let thisval = $(this).val();
 
-            if (d == 0) {
-                input.prop("required", checked);
-            }
+          if (thisval == 0) {
+              $(this).siblings('input[type="checkbox"]').prop('checked', false);
+              $(this).prop('required', false);
+          } else {
+              $(this).siblings('input[type="checkbox"]').prop('checked', true);
+          }
 
-            checkButtonState();
-        });
+          checkButtonState();
+  });
 
-        // Функция проверки состояния кнопки
-        function checkButtonState() {
-            var hasErrors = false;
+  // Обработчик изменения чекбокса
+  $('input[type="checkbox"]').change(function(){
+      var checked = $(this).is(':checked');
+      var input = $(this).closest('tr').find('input[type="number"]');
+      var d = input.val();
 
-            // Проверяем все обязательные поля
-            $('input[type="number"][required]').each(function() {
-                if ($(this).val() == "" || $(this).val() == 0) {
-                    hasErrors = true;
-                    return false; // прерываем цикл
-                }
-            });
+      if (d == 0) {
+          input.prop("required", checked);
+      }
 
-            $("#buttonID").attr("disabled", hasErrors);
-        }
-    });
+      checkButtonState();
+  });
+
+  // Функция проверки состояния кнопки
+  function checkButtonState() {
+      var hasErrors = false;
+
+      // Проверяем все обязательные поля
+      $('input[type="number"][required]').each(function() {
+          if ($(this).val() == "" || $(this).val() == 0) {
+              hasErrors = true;
+              return false; // прерываем цикл
+          }
+      });
+
+      $("#buttonID").attr("disabled", hasErrors);
+  }
+});
+
 </script>
+
+
 
 </body>
 </html>
