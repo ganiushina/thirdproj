@@ -208,6 +208,33 @@
            }
        }
 
+        @media (max-width: 768px) {
+            /* ... существующие стили ... */
+
+            /* Добавьте эти стили для таблиц */
+            #mainTable {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .act-table {
+                width: auto;
+                min-width: 100%;
+            }
+
+            #mainTable th, #mainTable td {
+                white-space: nowrap;
+            }
+
+            /* Опционально: уменьшите padding для экономии места */
+            #mainTable th, #mainTable td {
+                padding: 4px;
+            }
+        }
+
+
+
     </style>
 </head>
 
