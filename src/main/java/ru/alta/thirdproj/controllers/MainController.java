@@ -17,6 +17,7 @@ import ru.alta.thirdproj.repositories.UserRepositorySlqO2;
 import ru.alta.thirdproj.services.UserServiceImpl;
 
 import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 
 //@RestController
 @Controller
@@ -40,20 +41,26 @@ public class MainController {
         }
     }
 
-//    @GetMapping("/user")
-//    public String getIndex(@AuthenticationPrincipal User sUser) {
-//
-//            Authentication loggedInUser = SecurityContextHolder.getContext().getAuthentication();
-//            String userName = loggedInUser.getName();
+
+//    @RequestMapping("/user")
+//    public String handleRequest2(HttpServletRequest request, Model model) {
+//        Authentication auth = SecurityContextHolder.getContext()
+//                .getAuthentication();
+//        model.addAttribute("uri", request.getRequestURI())
+//                .addAttribute("firstName", auth.getName());
 //        return "index";
 //    }
 
     @RequestMapping("/user")
-    public String handleRequest2(HttpServletRequest request, Model model) {
-        Authentication auth = SecurityContextHolder.getContext()
-                .getAuthentication();
+    public String handleRequest2(HttpServletRequest request, Model model, Principal principal) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String firstName = auth.getName();
+
+        // Сохраняем firstName в сессии
+        request.getSession().setAttribute("firstName", firstName);
+
         model.addAttribute("uri", request.getRequestURI())
-                .addAttribute("firstName", auth.getName());
+                .addAttribute("firstName", principal.getName());
         return "index";
     }
 }

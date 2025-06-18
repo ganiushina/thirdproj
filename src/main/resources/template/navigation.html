@@ -1,33 +1,3 @@
-<!--<!DOCTYPE html>-->
-<!--<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    &lt;!&ndash; Уберите все стили и скрипты из этого файла, они должны быть в основном файле &ndash;&gt;-->
-<!--</head>-->
-<!--<body>-->
-<!--&lt;!&ndash; Упростите фрагмент навигации &ndash;&gt;-->
-<!--<nav th:fragment="navi(activeTab)" class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">-->
-<!--    <a class="navbar-brand" th:href="@{/}">Альта Персонал</a>-->
-<!--    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"-->
-<!--            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">-->
-<!--        <span class="navbar-toggler-icon"></span>-->
-<!--    </button>-->
-<!--    <div class="collapse navbar-collapse" id="navbarNav">-->
-<!--        <ul class="navbar-nav">-->
-<!--            <li class="nav-item" th:classappend="${activeTab == 'Home'} ? 'active' : ''">-->
-<!--                <a class="nav-link" th:href="@{/}">Главная</a>-->
-<!--            </li>-->
-<!--            <li class="nav-item" th:classappend="${activeTab == 'Bonuses'} ? 'active' : ''">-->
-<!--                <a class="nav-link" th:href="@{/bonuses}">Бонусы</a>-->
-<!--            </li>-->
-<!--            &lt;!&ndash; Добавьте другие пункты меню по необходимости &ndash;&gt;-->
-<!--        </ul>-->
-<!--    </div>-->
-<!--</nav>-->
-<!--<div class="navbar-spacer" style="height: 56px;"></div> &lt;!&ndash; Отступ вместо visible-md &ndash;&gt;-->
-<!--</body>-->
-<!--</html>-->
-
 <!DOCTYPE html>
 
 <html xmlns:th="http://www.thymeleaf.org">
@@ -38,29 +8,107 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="icon" type="image/x-icon" href="https://altapersonnel.ru/favicon.ico"/>
 
+    <!-- Сначала подключаем Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <style>
+        /* Основной цвет навбара (максимально специфичный селектор) */
+        html body nav.navbar.bg-primary,
+        html body nav.navbar.bg-primary.navbar-dark {
+            background-color: #d23c3d !important;
+        }
+
+        /* Фиксированное выравнивание меню справа */
+        #navbarNav .navbar-nav {
+            margin-left: auto !important;
+            margin-right: 0 !important;
+            width: 100% !important;
+            justify-content: flex-end !important;
+            display: flex !important;
+        }
+
+        /* Стили для пунктов меню */
+        .navbar-nav .nav-item {
+            float: none !important;
+            display: block !important;
+            text-align: center !important;
+        }
+
+        /* Стили для ссылок */
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        /* Стили для активного пункта меню */
+        .navbar-dark .navbar-nav .active > .nav-link,
+        .navbar-dark .navbar-nav .nav-item.active > .nav-link {
+            color: white !important;
+            font-weight: bold !important;
+            background-color: rgba(0, 0, 0, 0.1) !important;
+            border-radius: 4px !important;
+        }
+
+        /* Стили при наведении */
+        .navbar-dark .navbar-nav .nav-link:focus,
+        .navbar-dark .navbar-nav .nav-link:hover {
+            color: white !important;
+            background-color: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Фикс для мобильного меню */
+        @media (max-width: 991.98px) {
+            #navbarNav .navbar-nav {
+                margin-left: 0 !important;
+                padding: 10px 0 !important;
+            }
+            .navbar-nav .nav-item {
+                text-align: left !important;
+            }
+        }
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="styleNavigation.css">
-
 </head>
 
 <body>
-
 <div class="fluid-container" th:fragment="navi(activeTab)">
-    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary ">
-        <a class="navbar-brand" th:href="@{/}">Альта Персонал</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" style="background-color: #d23c3d !important;">
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+            <img src="/images/a.png" alt="Логотип" width="36" height="36"
+                 class="d-inline-block align-top mr-2 navbar-logo">
+            Альта Персонал
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse"
+                data-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Переключить навигацию">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <!-- добавлен justify-content-end для выравнивания по правому краю -->
+            <ul class="navbar-nav">
+                <li class="nav-item" th:classappend="${activeTab} == 'Bonus' ? 'active'">
+                    <a class="nav-link" th:href="@{/bonus}">Бонусы</a>
+                </li>
+                <li class="nav-item" th:classappend="${activeTab} == 'Amount' ? 'active'">
+                    <a class="nav-link" th:href="@{/amount}">Выплаты</a>
+                </li>
+                <li class="nav-item" th:classappend="${activeTab} == 'Acts' ? 'active'">
+                    <a class="nav-link" th:href="@{/acts}">Акты</a>
+                </li>
+                <li class="nav-item" th:classappend="${activeTab} == 'Margin' ? 'active'">
+                    <a class="nav-link" th:href="@{/margin}">Маржинальная прибыль</a>
+                </li>
+            </ul>
+        </div>
+<
     </nav>
     <div class="visible-md" style="height:80px;"></div>
 </div>
 
 </body>
 </html>
+
