@@ -8,7 +8,7 @@ import java.util.Objects;
 @Data
 public class UserBonusDetail {
     private Double moneyByCandidate;
-    private Integer percent;
+    private Double percent;
     private Double sumUser;
     private String companyName;
     private String candidateName;

@@ -22,12 +22,24 @@
             vertical-align: middle;
             padding: 0.5rem;
         }
+
+        /* Стиль для кнопки Excel */
+        .btn-excel {
+            background-color: #217346;
+            color: white;
+            border-color: #217346;
+        }
+        .btn-excel:hover {
+            background-color: #1b5e38;
+            border-color: #1b5e38;
+            color: white;
+        }
     </style>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>Заработанные бонусы</h4>
-        <button class="btn btn-sm btn-outline-secondary" onclick="exportToExcel()">
-            Экспорт в Excel
+        <button class="btn btn-sm btn-excel" onclick="window.exportBonusToExcel()">
+            <i class="fas fa-file-excel"></i> Экспорт в Excel
         </button>
     </div>
 
@@ -80,7 +92,7 @@
                 <td th:text="${#numbers.formatDecimal(detail.sumUser, 1, 2)}"></td>
                 <td th:text="${detail.candidateName}"></td>
                 <td th:text="${detail.companyName}"></td>
-                <td th:text="${detail.percent} + '%'"></td>
+                <td th:text="${#numbers.formatDecimal(detail.percent, 1, 1)} + '%'"></td>
                 <td th:text="${detail.monthName}"></td>
                 <td th:text="${detail.year}"></td>
                 <td>
@@ -102,5 +114,9 @@
         </th:block>
         </tbody>
     </table>
+
+    <script>
+    </script>
 </div>
 </html>
+

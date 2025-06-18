@@ -7,25 +7,71 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        /* ...весь твой CSS без изменений... */
         .navbar { z-index: 1030; }
         .main-content { position: relative; }
+
         .fixed-header thead th {
             position: sticky;
             top: 56px;
             background: white;
             z-index: 1020;
             box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
-            transition: top 0.1s ease-out;
         }
+
         td { vertical-align: middle; padding: 0.5rem !important; }
         tr:hover td { background-color: #f8f9fa !important; }
+
         .stats-block { background-color: transparent; margin-bottom: 20px; border: none; }
         .stats-block .bg-light {
             background-color: #f8f9fa !important;
             padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;
         }
+
         .table-width-limiter { max-width: 100%; margin: auto; padding: 0 15px; }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-group button {
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .filter-group button:hover {
+            background-color: #0b5ed7;
+        }
     </style>
 </head>
 <body>
@@ -38,7 +84,7 @@
             <div class="col-12 table-width-limiter">
                 <h2>Бонусы</h2>
 
-                <!-- Фильтр -->
+                <!-- Фильтры -->
                 <form id="dateFilterForm" class="mb-4">
                     <div class="row">
                         <div class="col-md-3">
@@ -57,6 +103,17 @@
                     </div>
                 </form>
 
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <label for="searchFio">Поиск по ФИО</label>
+                        <input type="text" id="searchFio" placeholder="Введите имя..." oninput="filterBonusTable()">
+                    </div>
+                    <div class="filter-group">
+                        <label for="searchDepartment">Поиск по отделу</label>
+                        <input type="text" id="searchDepartment" placeholder="Введите отдел..." oninput="filterBonusTable()">
+                    </div>
+                </div>
+
                 <!-- Статистика -->
                 <div class="stats-block row mx-0" id="statsBlock">
                     <div class="col-md-4 px-2">
@@ -73,7 +130,7 @@
                     </div>
                 </div>
 
-                <!-- Tabs -->
+                <!-- Вкладки -->
                 <ul class="nav nav-tabs" id="bonusTabs">
                     <li class="nav-item">
                         <button class="nav-link active" id="bonus-tab" data-bs-toggle="tab"
@@ -93,7 +150,7 @@
                     </li>
                 </ul>
 
-                <!-- Tab Content -->
+                <!-- Контент вкладок -->
                 <div class="tab-content border rounded-bottom" id="tabContent">
                     <div class="tab-pane fade show active" id="bonus" role="tabpanel" aria-labelledby="bonus-tab">
                         <div id="bonusContent" class="table-container">
@@ -113,51 +170,15 @@
     </div>
 </div>
 
+<!-- Скрипты -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-<!--    async function loadTabContent(url, targetDivId) {-->
-<!--        const dateFrom = document.getElementById('dateFrom').value;-->
-<!--        const dateTo = document.getElementById('dateTo').value;-->
-
-<!--        try {-->
-<!--            document.getElementById(targetDivId).innerHTML = `-->
-<!--                <div class="text-center my-5">-->
-<!--                    <div class="spinner-border" role="status">-->
-<!--                        <span class="visually-hidden">Loading...</span>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            `;-->
-
-<!--            const statsPromise = updateStats(dateFrom, dateTo);-->
-
-<!--            const params = new URLSearchParams();-->
-<!--            if (dateFrom) params.append('dateFrom', dateFrom);-->
-<!--            if (dateTo) params.append('dateTo', dateTo);-->
-<!--            params.append('nocache', new Date().getTime()); // предотвращает кеширование-->
-<!--            const fullUrl = url + '?' + params.toString();-->
-
-<!--            const response = await fetch(fullUrl);-->
-<!--            const html = await response.text();-->
-
-<!--            await statsPromise;-->
-
-<!--            document.getElementById(targetDivId).innerHTML = html;-->
-<!--            await new Promise(resolve => requestAnimationFrame(resolve));-->
-<!--            adjustStickyHeaders();-->
-
-<!--        } catch (error) {-->
-<!--            console.error('Ошибка загрузки:', error);-->
-<!--            document.getElementById(targetDivId).innerHTML = `<div class="alert alert-danger">Ошибка загрузки: ${error.message}</div>`;-->
-<!--        }-->
-<!--    }-->
-
     async function loadTabContent(url, targetDivId) {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
 
         try {
-            // Показываем спиннер
             document.getElementById(targetDivId).innerHTML = `
                 <div class="text-center my-5">
                     <div class="spinner-border" role="status">
@@ -166,33 +187,26 @@
                 </div>
             `;
 
-            // Загружаем статистику параллельно
+            console.log(`🔄 loadTabContent(${url}, ${targetDivId})`);
             const statsPromise = updateStats(dateFrom, dateTo);
 
-            // Собираем URL с параметрами
             const params = new URLSearchParams();
             if (dateFrom) params.append('dateFrom', dateFrom);
             if (dateTo) params.append('dateTo', dateTo);
-            params.append('nocache', new Date().getTime()); // для избежания кеша
+            params.append('nocache', new Date().getTime());
 
-            let fullUrl = url + (url.includes('?') ? '&' : '?') + params.toString();
+            const fullUrl = url + (url.includes('?') ? '&' : '?') + params.toString();
+            console.log('📡 GET:', fullUrl);
 
             const response = await fetch(fullUrl);
             if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-
             const html = await response.text();
 
-            // Дожидаемся статистики
             await statsPromise;
 
-            // Вставляем новый HTML
             document.getElementById(targetDivId).innerHTML = html;
-
-            // Подождать один кадр, чтобы браузер обработал DOM
             await new Promise(resolve => requestAnimationFrame(resolve));
-
-            adjustStickyHeaders(); // если используешь "липкие" заголовки
-
+            adjustStickyHeaders();
         } catch (error) {
             console.error('Ошибка при загрузке вкладки:', error);
             document.getElementById(targetDivId).innerHTML = `
@@ -216,7 +230,6 @@
             document.querySelector('#allBonusMoneyText span').textContent = stats.allBonusMoney;
             document.querySelector('#percentWithoutPKIText span').textContent = stats.percentWithoutPKI;
             document.querySelector('#percentWithPKIText span').textContent = stats.percentWithPKI;
-
         } catch (error) {
             console.error('Ошибка загрузки статистики:', error);
         }
@@ -230,7 +243,6 @@
     function adjustStickyHeaders() {
         const navbar = document.querySelector('.navbar');
         if (!navbar) return;
-
         const navbarHeight = navbar.offsetHeight;
         document.querySelectorAll('.fixed-header thead th').forEach(th => {
             th.style.top = `${navbarHeight}px`;
@@ -252,137 +264,152 @@
         }, 3000);
     }
 
-    // === 🎯 ГЛАВНЫЙ СЛУШАТЕЛЬ postMessage ===
     window.addEventListener('message', async function(event) {
+    console.log('👂 Получено postMessage:', event);
         if (event.data?.type === 'BONUS_DATA_UPDATED') {
             console.log('▶ Получено сообщение:', event.data);
 
-            const dateFrom = event.data.payload.dateFrom;
-            const dateTo = event.data.payload.dateTo;
+            const { dateFrom, dateTo, fio } = event.data.payload;
 
             await updateStats(dateFrom, dateTo);
-
-            const targetDivId = 'bonusContent';
-            let url = '/bonus/getall'; // ← ВАЖНО: let, а НЕ const
-
-            const params = new URLSearchParams();
-            if (dateFrom) params.append('dateFrom', dateFrom);
-            if (dateTo) params.append('dateTo', dateTo);
-            params.append('nocache', new Date().getTime());
-
-            url += '?' + params.toString();
-
-            await loadTabContent(url, targetDivId);
+            await loadTabContent('/bonus/getall', 'bonusContent');
+            showUpdateNotification(`Обновлены данные для: ${fio}`);
         }
     });
 
+     function openExtraActsByHref(href) {
+        window.open(href, '_blank', 'width=1000,height=700');
+        return false;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         loadTabContent('/bonus/getall', 'bonusContent');
-
         const tabEls = document.querySelectorAll('#bonusTabs button[data-bs-toggle="tab"]');
         tabEls.forEach(tabEl => {
             tabEl.addEventListener('shown.bs.tab', function () {
                 adjustStickyHeaders();
             });
         });
-
         window.addEventListener('scroll', adjustStickyHeaders);
         window.addEventListener('resize', adjustStickyHeaders);
     });
 
-     function openExtraActsByHref(href) {
-        window.open(href, '_blank', 'width=1000,height=700');
-        return false; // отменяет обычный переход по ссылке
-     }
+    window.exportBonusToExcel = function () {
+        const table = document.getElementById('bonusTable');
+        if (!table) {
+            alert('Таблица для экспорта не найдена.');
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(wb, ws, "Бонусы");
+
+        const dateFrom = document.getElementById('dateFrom').value || '';
+        const dateTo = document.getElementById('dateTo').value || '';
+        XLSX.writeFile(wb, `Бонусы_${dateFrom}_${dateTo}.xlsx`);
+    };
+
+     function filterBonusTable() {
+        const nameFilter = document.getElementById('searchFio').value.toLowerCase();
+        const deptFilter = document.getElementById('searchDepartment').value.toLowerCase();
+
+        document.querySelectorAll('#bonusTable tbody tr').forEach(row => {
+            const fioCell = row.querySelector('td:nth-child(1)');
+            const deptCell = row.querySelector('td:nth-child(3)');
+
+            const fio = fioCell ? fioCell.textContent.toLowerCase() : '';
+            const department = deptCell ? deptCell.textContent.toLowerCase() : '';
+
+            const nameMatch = fio.includes(nameFilter);
+            const deptMatch = department.includes(deptFilter);
+
+            row.style.display = (nameMatch && deptMatch) ? '' : 'none';
+        });
+    }
 </script>
 </body>
 </html>
 
 <!--<!DOCTYPE html>-->
 <!--<html xmlns:th="http://www.thymeleaf.org">-->
-
 <!--<head>-->
 <!--    <meta charset="UTF-8">-->
 <!--    <title>Бонусы</title>-->
 <!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">-->
 <!--    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
 <!--    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>-->
-
 <!--    <style>-->
-<!--        .navbar {-->
-<!--            z-index: 1030;-->
-<!--        }-->
+<!--        .navbar { z-index: 1030; }-->
+<!--        .main-content { position: relative; }-->
 
-<!--        .main-content {-->
-<!--            position: relative;-->
-<!--        }-->
-
-<!--        .table-container {-->
-<!--            margin-top: 0;-->
-<!--            padding-top: 0;-->
-
-<!--        }-->
 <!--        .fixed-header thead th {-->
 <!--            position: sticky;-->
-<!--            top: 56px; /* Высота навбара по умолчанию в Bootstrap */-->
+<!--            top: 56px;-->
 <!--            background: white;-->
 <!--            z-index: 1020;-->
 <!--            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);-->
-<!--            transition: top 0.1s ease-out;-->
 <!--        }-->
 
-<!--        td {-->
-<!--            vertical-align: middle;-->
-<!--            padding: 0.5rem !important;-->
-<!--        }-->
-<!--        tr:hover td {-->
-<!--            background-color: #f8f9fa !important;-->
-<!--        }-->
+<!--        td { vertical-align: middle; padding: 0.5rem !important; }-->
+<!--        tr:hover td { background-color: #f8f9fa !important; }-->
 
-<!--        .stats-block {-->
-<!--            background-color: transparent;-->
-<!--            padding: 0;-->
-<!--            margin-bottom: 20px;-->
-<!--            border-radius: 0;-->
-<!--            border: none;-->
-<!--        }-->
-
-<!--        .stats-block .col-md-4 {-->
-<!--            padding-left: 5px;-->
-<!--            padding-right: 5px;-->
-<!--        }-->
-
+<!--        .stats-block { background-color: transparent; margin-bottom: 20px; border: none; }-->
 <!--        .stats-block .bg-light {-->
 <!--            background-color: #f8f9fa !important;-->
+<!--            padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;-->
+<!--        }-->
+
+<!--        .table-width-limiter { max-width: 100%; margin: auto; padding: 0 15px; }-->
+
+<!--        .filter-container {-->
+<!--            display: flex;-->
+<!--            flex-wrap: wrap;-->
+<!--            gap: 15px;-->
+<!--            margin-bottom: 20px;-->
 <!--            padding: 15px;-->
+<!--            background-color: #f8f9fa;-->
 <!--            border-radius: 5px;-->
-<!--            border: 1px solid #dee2e6;-->
-<!--            height: 100%;-->
+<!--            box-shadow: 0 2px 4px rgba(0,0,0,0.1);-->
 <!--        }-->
 
-<!--        .stats-block p {-->
-<!--            margin-bottom: 0.5rem;-->
-<!--            padding: 0.3rem 0.5rem;-->
-<!--            background-color: white;-->
-<!--            border-radius: 3px;-->
-<!--            font-size: 0.9rem;-->
+<!--        .filter-group {-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            min-width: 200px;-->
 <!--        }-->
 
-<!--        .table-width-limiter {-->
-<!--            max-width: 100%;-->
-<!--            padding-left: 15px;-->
-<!--            padding-right: 15px;-->
-<!--            margin-left: auto;-->
-<!--            margin-right: auto;-->
+<!--        .filter-group label {-->
+<!--            margin-bottom: 5px;-->
+<!--            font-weight: 500;-->
+<!--            color: #495057;-->
 <!--        }-->
 
-<!--        .tab-content {-->
-<!--            background-color: white;-->
+<!--        .filter-group input {-->
+<!--            padding: 8px 12px;-->
+<!--            border: 1px solid #ced4da;-->
+<!--            border-radius: 4px;-->
+<!--            font-size: 14px;-->
+<!--        }-->
+
+<!--        .filter-group button {-->
+<!--            padding: 8px 16px;-->
+<!--            background-color: #0d6efd;-->
+<!--            color: white;-->
+<!--            border: none;-->
+<!--            border-radius: 4px;-->
+<!--            cursor: pointer;-->
+<!--            margin-top: 20px;-->
+<!--        }-->
+
+<!--        .filter-group button:hover {-->
+<!--            background-color: #0b5ed7;-->
 <!--        }-->
 <!--    </style>-->
 <!--</head>-->
 <!--<body>-->
-<!--<div th:replace="~{navigation :: navi(Home)}" />-->
+
+<!--<div th:replace="~{navigation :: navi(Home)}"></div>-->
 
 <!--<div class="main-content">-->
 <!--    <div class="container-fluid mt-4 px-3">-->
@@ -390,7 +417,7 @@
 <!--            <div class="col-12 table-width-limiter">-->
 <!--                <h2>Бонусы</h2>-->
 
-<!--                &lt;!&ndash; Фильтр по датам &ndash;&gt;-->
+<!--                &lt;!&ndash; Фильтры &ndash;&gt;-->
 <!--                <form id="dateFilterForm" class="mb-4">-->
 <!--                    <div class="row">-->
 <!--                        <div class="col-md-3">-->
@@ -409,25 +436,36 @@
 <!--                    </div>-->
 <!--                </form>-->
 
-<!--                &lt;!&ndash; Блок статистики &ndash;&gt;-->
+<!--                <div class="filter-container">-->
+<!--                    <div class="filter-group">-->
+<!--                        <label for="searchFio">Поиск по ФИО</label>-->
+<!--                        <input type="text" id="searchFio" placeholder="Введите имя..." oninput="filterBonusTable()">-->
+<!--                    </div>-->
+<!--                    <div class="filter-group">-->
+<!--                        <label for="searchDepartment">Поиск по отделу</label>-->
+<!--                        <input type="text" id="searchDepartment" placeholder="Введите отдел..." oninput="filterBonusTable()">-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Статистика &ndash;&gt;-->
 <!--                <div class="stats-block row mx-0" id="statsBlock">-->
 <!--                    <div class="col-md-4 px-2">-->
 <!--                        <div class="bg-light p-2 rounded border">-->
-<!--                            <p class="mb-1" id="allMoneyText">Всего заработано денег: <span th:text="${allMoney}"></span></p>-->
-<!--                            <p class="mb-0" id="allBonusMoneyText">Всего заработано бонусов: <span th:text="${allBonusMoney}"></span></p>-->
+<!--                            <p class="mb-1" id="allMoneyText">Всего денег: <span th:text="${allMoney}"></span></p>-->
+<!--                            <p class="mb-0" id="allBonusMoneyText">Всего бонусов: <span th:text="${allBonusMoney}"></span></p>-->
 <!--                        </div>-->
 <!--                    </div>-->
 <!--                    <div class="col-md-4 px-2">-->
 <!--                        <div class="bg-light p-2 rounded border">-->
 <!--                            <p class="mb-1" id="percentWithoutPKIText">Процент выплаты: <span th:text="${percentWithoutPKI}"></span>%</p>-->
-<!--                            <p class="mb-0" id="percentWithPKIText">Процент выплаты с KPI: <span th:text="${percentWithPKI}"></span>%</p>-->
+<!--                            <p class="mb-0" id="percentWithPKIText">С KPI: <span th:text="${percentWithPKI}"></span>%</p>-->
 <!--                        </div>-->
 <!--                    </div>-->
 <!--                </div>-->
 
-<!--                &lt;!&ndash; Tabs Navigation &ndash;&gt;-->
+<!--                &lt;!&ndash; Tabs &ndash;&gt;-->
 <!--                <ul class="nav nav-tabs" id="bonusTabs">-->
-<!--                    <li class="nav-item" role="presentation">-->
+<!--                    <li class="nav-item">-->
 <!--                        <button class="nav-link active" id="bonus-tab" data-bs-toggle="tab"-->
 <!--                                data-bs-target="#bonus" type="button" role="tab"-->
 <!--                                aria-controls="bonus" aria-selected="true"-->
@@ -435,7 +473,7 @@
 <!--                            Бонусы-->
 <!--                        </button>-->
 <!--                    </li>-->
-<!--                    <li class="nav-item" role="presentation">-->
+<!--                    <li class="nav-item">-->
 <!--                        <button class="nav-link" id="bonusKPITab-tab" data-bs-toggle="tab"-->
 <!--                                data-bs-target="#kpi" type="button" role="tab"-->
 <!--                                aria-controls="kpi" aria-selected="false"-->
@@ -445,13 +483,13 @@
 <!--                    </li>-->
 <!--                </ul>-->
 
-<!--                &lt;!&ndash; Tab Contents &ndash;&gt;-->
-<!--                <div class="tab-content border border-top-0 rounded-bottom" id="tabContent">-->
+<!--                &lt;!&ndash; Tab Content &ndash;&gt;-->
+<!--                <div class="tab-content border rounded-bottom" id="tabContent">-->
 <!--                    <div class="tab-pane fade show active" id="bonus" role="tabpanel" aria-labelledby="bonus-tab">-->
 <!--                        <div id="bonusContent" class="table-container">-->
 <!--                            <div class="text-center my-5">-->
 <!--                                <div class="spinner-border" role="status">-->
-<!--                                    <span class="visually-hidden">Loading...</span>-->
+<!--                                    <span class="visually-hidden">Загрузка...</span>-->
 <!--                                </div>-->
 <!--                            </div>-->
 <!--                        </div>-->
@@ -465,163 +503,51 @@
 <!--    </div>-->
 <!--</div>-->
 
+<!--&lt;!&ndash; Скрипты &ndash;&gt;-->
 <!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>-->
 
 <!--<script>-->
+<!--    async function loadTabContent(url, targetDivId) {-->
+<!--        const dateFrom = document.getElementById('dateFrom').value;-->
+<!--        const dateTo = document.getElementById('dateTo').value;-->
 
-<!--    // Функция загрузки активной вкладки-->
-<!--    function loadActiveTab() {-->
-<!--        const activeTab = document.querySelector('#bonusTabs .nav-link.active');-->
-<!--        if (activeTab) {-->
-<!--            activeTab.click();-->
+<!--        try {-->
+<!--            document.getElementById(targetDivId).innerHTML = `-->
+<!--                <div class="text-center my-5">-->
+<!--                    <div class="spinner-border" role="status">-->
+<!--                        <span class="visually-hidden">Loading...</span>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            `;-->
+
+<!--            const statsPromise = updateStats(dateFrom, dateTo);-->
+
+<!--            const params = new URLSearchParams();-->
+<!--            if (dateFrom) params.append('dateFrom', dateFrom);-->
+<!--            if (dateTo) params.append('dateTo', dateTo);-->
+<!--            params.append('nocache', new Date().getTime());-->
+
+<!--            const fullUrl = url + (url.includes('?') ? '&' : '?') + params.toString();-->
+
+<!--            const response = await fetch(fullUrl);-->
+<!--            if (!response.ok) throw new Error(`HTTP error ${response.status}`);-->
+<!--            const html = await response.text();-->
+
+<!--            await statsPromise;-->
+
+<!--            document.getElementById(targetDivId).innerHTML = html;-->
+<!--            await new Promise(resolve => requestAnimationFrame(resolve));-->
+<!--            adjustStickyHeaders();-->
+<!--        } catch (error) {-->
+<!--            console.error('Ошибка при загрузке вкладки:', error);-->
+<!--            document.getElementById(targetDivId).innerHTML = `-->
+<!--                <div class="alert alert-danger">-->
+<!--                    Ошибка при загрузке данных: ${error.message}-->
+<!--                </div>-->
+<!--            `;-->
 <!--        }-->
 <!--    }-->
 
-<!--        async function loadTabContent(url, targetDivId) {-->
-<!--            const dateFrom = document.getElementById('dateFrom').value;-->
-<!--            const dateTo = document.getElementById('dateTo').value;-->
-
-<!--            try {-->
-<!--                // Показываем спиннер-->
-<!--                document.getElementById(targetDivId).innerHTML = `-->
-<!--                    <div class="text-center my-5">-->
-<!--                        <div class="spinner-border" role="status">-->
-<!--                            <span class="visually-hidden">Loading...</span>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                `;-->
-
-<!--                // 1. Загружаем статистику (параллельно с основным контентом)-->
-<!--                const statsPromise = updateStats(dateFrom, dateTo);-->
-
-<!--                // 2. Загружаем содержимое вкладки-->
-<!--                let fullUrl = url;-->
-<!--                if (dateFrom || dateTo) {-->
-<!--                    const params = new URLSearchParams();-->
-<!--                    if (dateFrom) params.append('dateFrom', dateFrom);-->
-<!--                    if (dateTo) params.append('dateTo', dateTo);-->
-<!--                    params.append('nocache', new Date().getTime()); // cache buster-->
-<!--                    fullUrl += (url.includes('?') ? '&' : '?') + params.toString();-->
-<!--                }-->
-
-<!--                const tabResponse = await fetch(fullUrl);-->
-<!--                if (!tabResponse.ok) {-->
-<!--                    throw new Error(`Ошибка HTTP: ${tabResponse.status}`);-->
-<!--                }-->
-<!--                const html = await tabResponse.text();-->
-
-<!--                // 3. Ждем завершения загрузки статистики-->
-<!--                await statsPromise;-->
-
-<!--                // 4. Обновляем DOM-->
-<!--                document.getElementById(targetDivId).innerHTML = html;-->
-<!--                 console.log(html);-->
-
-<!--                // 5. Ждем обработки новой разметки браузером-->
-<!--                await new Promise(resolve => requestAnimationFrame(resolve));-->
-
-<!--                // 6. Настраиваем заголовки-->
-<!--                adjustStickyHeaders();-->
-
-<!--            } catch (error) {-->
-<!--                console.error('Ошибка загрузки данных:', error);-->
-<!--                document.getElementById(targetDivId).innerHTML = `-->
-<!--                    <div class="alert alert-danger">-->
-<!--                        Ошибка загрузки данных: ${error.message}-->
-<!--                    </div>-->
-<!--                `;-->
-<!--            }-->
-<!--        }-->
-
-<!--            function adjustStickyHeaders() {-->
-<!--                requestAnimationFrame(() => {-->
-<!--                    const navbar = document.querySelector('.navbar');-->
-<!--                    if (!navbar) return;-->
-
-<!--                    // Получаем высоту навбара, включая padding и border-->
-<!--                    const navbarHeight = navbar.offsetHeight;-->
-
-<!--                    // Устанавливаем top равным высоте навбара-->
-<!--                    document.querySelectorAll('.fixed-header thead th').forEach(th => {-->
-<!--                        th.style.top = `${navbarHeight}px`;-->
-<!--                    });-->
-<!--                });-->
-<!--            }-->
-
-
-<!--    function exportToExcel() {-->
-<!--        const wb = XLSX.utils.book_new();-->
-<!--        const table = document.getElementById('bonusTable');-->
-<!--        if (!table) {-->
-<!--            alert('Таблица для экспорта не найдена.');-->
-<!--            return;-->
-<!--        }-->
-<!--        const ws = XLSX.utils.table_to_sheet(table);-->
-<!--        XLSX.utils.book_append_sheet(wb, ws, "Бонусы");-->
-
-<!--        const dateFrom = document.getElementById('dateFrom').value || '';-->
-<!--        const dateTo = document.getElementById('dateTo').value || '';-->
-<!--        XLSX.writeFile(wb, `Бонусы_${dateFrom}_${dateTo}.xlsx`);-->
-<!--    }-->
-
-<!--    // Инициализация при загрузке страницы-->
-<!--    document.addEventListener('DOMContentLoaded', function() {-->
-<!--        // Загружаем фрагмент «Бонусы» по умолчанию-->
-<!--        loadTabContent('/bonus/getall', 'bonusContent');-->
-
-<!--        // После смены вкладки корректируем top для «липких» заголовков-->
-<!--        const tabEls = document.querySelectorAll('#bonusTabs button[data-bs-toggle="tab"]');-->
-<!--        tabEls.forEach(tabEl => {-->
-<!--            tabEl.addEventListener('shown.bs.tab', function() {-->
-<!--                adjustStickyHeaders();-->
-<!--            });-->
-<!--        });-->
-
-<!--        window.addEventListener('scroll', adjustStickyHeaders);-->
-<!--        window.addEventListener('resize', adjustStickyHeaders);-->
-
-<!--    });-->
-
-
-<!--    window.addEventListener('message', async function(event) {-->
-<!--        if (event.data?.type === 'BONUS_DATA_UPDATED') {-->
-<!--            const dateFrom = document.getElementById('dateFrom').value;-->
-<!--            const dateTo = document.getElementById('dateTo').value;-->
-
-<!--            await updateStats(dateFrom, dateTo);-->
-<!--&lt;!&ndash;            await reloadBonusTab(); // 👈 Заменили на прямую перезагрузку&ndash;&gt;-->
-<!--&lt;!&ndash;            showUpdateNotification(Данные для ${event.data.payload.fio} обновлены);&ndash;&gt;-->
-
-<!--            const activeTab = document.querySelector('#bonusTabs .nav-link.active');-->
-<!--            if (activeTab) {-->
-<!--                const targetId = activeTab.getAttribute('aria-controls') + 'Content';-->
-<!--                const urlMatch = activeTab.getAttribute('onclick')?.match(/loadTabContent\('([^']+)/);-->
-<!--                if (urlMatch && urlMatch[1]) {-->
-<!--                    await loadTabContent(urlMatch[1], targetId);-->
-<!--                }-->
-<!--            }-->
-
-<!--            showUpdateNotification(`Данные для ${event.data.payload.fio} обновлены`);-->
-<!--        }-->
-<!--    });-->
-<!--        // Вспомогательная функция для уведомлений-->
-<!--        function showUpdateNotification(message) {-->
-<!--            const notification = document.createElement('div');-->
-<!--            notification.style = `position: fixed; top: 20px; right: 20px; padding: 15px;-->
-<!--                                 background: #28a745; color: white; border-radius: 5px;-->
-<!--                                 z-index: 9999; box-shadow: 0 2px 10px rgba(0,0,0,0.1)`;-->
-<!--            notification.textContent = message;-->
-<!--            document.body.appendChild(notification);-->
-
-<!--            setTimeout(() => {-->
-<!--                notification.style.transition = 'opacity 0.5s';-->
-<!--                notification.style.opacity = '0';-->
-<!--                setTimeout(() => notification.remove(), 500);-->
-<!--            }, 3000);-->
-<!--        }-->
-
-
-<!--    // Обновленная функция updateStats для параллельной работы-->
 <!--    async function updateStats(dateFrom, dateTo) {-->
 <!--        try {-->
 <!--            const params = new URLSearchParams();-->
@@ -629,51 +555,88 @@
 <!--            if (dateTo) params.append('dateTo', dateTo);-->
 
 <!--            const response = await fetch(`/bonus/getstats?${params.toString()}`);-->
-<!--            if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);-->
-
 <!--            const stats = await response.json();-->
 
-<!--            // Обновляем элементы на странице-->
 <!--            document.querySelector('#allMoneyText span').textContent = stats.allMoney;-->
 <!--            document.querySelector('#allBonusMoneyText span').textContent = stats.allBonusMoney;-->
 <!--            document.querySelector('#percentWithoutPKIText span').textContent = stats.percentWithoutPKI;-->
 <!--            document.querySelector('#percentWithPKIText span').textContent = stats.percentWithPKI;-->
-
 <!--        } catch (error) {-->
-<!--            console.error('Ошибка при загрузке статистики:', error);-->
+<!--            console.error('Ошибка загрузки статистики:', error);-->
 <!--        }-->
 <!--    }-->
 
-<!--    async function reloadBonusTab() {-->
-<!--        const dateFrom = document.getElementById('dateFrom').value;-->
-<!--        const dateTo = document.getElementById('dateTo').value;-->
-<!--        const url = '/bonus/getall';-->
+<!--    function loadActiveTab() {-->
+<!--        const activeTab = document.querySelector('#bonusTabs .nav-link.active');-->
+<!--        if (activeTab) activeTab.click();-->
+<!--    }-->
 
-<!--        const params = new URLSearchParams();-->
-<!--        if (dateFrom) params.append('dateFrom', dateFrom);-->
-<!--        if (dateTo) params.append('dateTo', dateTo);-->
-<!--        params.append('nocache', new Date().getTime());-->
+<!--    function adjustStickyHeaders() {-->
+<!--        const navbar = document.querySelector('.navbar');-->
+<!--        if (!navbar) return;-->
+<!--        const navbarHeight = navbar.offsetHeight;-->
+<!--        document.querySelectorAll('.fixed-header thead th').forEach(th => {-->
+<!--            th.style.top = `${navbarHeight}px`;-->
+<!--        });-->
+<!--    }-->
 
-<!--        const fullUrl = url + '?' + params.toString();-->
+<!--    function showUpdateNotification(message) {-->
+<!--        const notification = document.createElement('div');-->
+<!--        notification.style = `position: fixed; top: 20px; right: 20px; padding: 15px;-->
+<!--                             background: #28a745; color: white; border-radius: 5px;-->
+<!--                             z-index: 9999; box-shadow: 0 2px 10px rgba(0,0,0,0.1)`;-->
+<!--        notification.textContent = message;-->
+<!--        document.body.appendChild(notification);-->
 
-<!--        try {-->
-<!--            const response = await fetch(fullUrl);-->
-<!--            const html = await response.text();-->
+<!--        setTimeout(() => {-->
+<!--            notification.style.transition = 'opacity 0.5s';-->
+<!--            notification.style.opacity = '0';-->
+<!--            setTimeout(() => notification.remove(), 500);-->
+<!--        }, 3000);-->
+<!--    }-->
+
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        loadTabContent('/bonus/getall', 'bonusContent');-->
+<!--        const tabEls = document.querySelectorAll('#bonusTabs button[data-bs-toggle="tab"]');-->
+<!--        tabEls.forEach(tabEl => {-->
+<!--            tabEl.addEventListener('shown.bs.tab', function () {-->
+<!--                adjustStickyHeaders();-->
+<!--            });-->
+<!--        });-->
+<!--        window.addEventListener('scroll', adjustStickyHeaders);-->
+<!--        window.addEventListener('resize', adjustStickyHeaders);-->
+<!--    });-->
+
+<!--    window.addEventListener('message', async function(event) {-->
+<!--        if (event.data?.type === 'BONUS_DATA_UPDATED') {-->
+<!--            console.log('▶ Получено сообщение:', event.data);-->
+
+<!--            const dateFrom = event.data.payload.dateFrom;-->
+<!--            const dateTo = event.data.payload.dateTo;-->
+
+<!--            await updateStats(dateFrom, dateTo);-->
 
 <!--            const targetDivId = 'bonusContent';-->
-<!--            document.getElementById(targetDivId).innerHTML = html;-->
+<!--            let url = '/bonus/getall'; // ← ВАЖНО: let, а НЕ const-->
 
-<!--            adjustStickyHeaders(); // если используешь-->
+<!--            const params = new URLSearchParams();-->
+<!--            if (dateFrom) params.append('dateFrom', dateFrom);-->
+<!--            if (dateTo) params.append('dateTo', dateTo);-->
+<!--            params.append('nocache', new Date().getTime());-->
 
-<!--            console.log('Вкладка bonus перезагружена');-->
+<!--            url += '?' + params.toString();-->
 
-<!--        } catch (e) {-->
-<!--            console.error('Ошибка загрузки bonusTab:', e);-->
+<!--            await loadTabContent(url, targetDivId);-->
 <!--        }-->
+<!--    });-->
+
+<!--     function openExtraActsByHref(href) {-->
+<!--        window.open(href, '_blank', 'width=1200,height=800,noopener,noreferrer');-->
+<!--        return false;-->
 <!--    }-->
 
 
+<!-- </script>-->
 
-<!--</script>-->
 <!--</body>-->
 <!--</html>-->

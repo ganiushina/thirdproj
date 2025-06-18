@@ -164,7 +164,7 @@ public class BonusRepositoryImpl {
                 UserBonusDetail detail = new UserBonusDetail();
                 BigDecimal moneyCandidate = (BigDecimal) row.get("money_by_candidate");
                 detail.setMoneyByCandidate(moneyCandidate.doubleValue());
-                detail.setPercent((Integer) row.get("persent"));
+                detail.setPercent((Double) row.get("persent"));
                 BigDecimal sumUser = (BigDecimal) row.get("money_by_candidate");
                 detail.setSumUser(sumUser.doubleValue());
                 detail.setCompanyName((String) row.get("company_name"));
