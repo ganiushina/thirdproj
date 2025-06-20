@@ -76,36 +76,4 @@ public class EmailSenderService {
         }
     }
 
-//    public void sendHtmlMessage(Email email) throws MessagingException {
-//        MimeMessage message = emailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
-//        Context context = new Context();
-//        context.setVariables(email.getProperties());
-//        helper.setFrom(email.getFrom());
-//        String[] recipientList = email.getTo().toArray(new String[0]);
-//        InternetAddress[] recipientAddress = new InternetAddress[recipientList.length];
-//        int counter = 0;
-//        for (String recipient : recipientList) {
-//            try {
-//                recipientAddress[counter] = new InternetAddress(recipient.trim());
-//            } catch (AddressException e) {
-//                throw new RuntimeException(e);
-//            }
-//            counter++;
-//        }
-//        helper.setTo(recipientAddress);
-//        helper.setSubject(email.getSubject());
-//        String html = templateEngine.process(email.getTemplate(), context);
-//        helper.setText(html, true);
-//
-//        if (email.getProperties().containsKey("img")) {
-//            byte[] imgBytes = (byte[]) email.getProperties().get("img");
-//            ByteArrayResource imageResource = new ByteArrayResource(imgBytes);
-//            helper.addInline("logo", imageResource, "image/png");
-//        }
-//
-//
-//        log.info("Sending email: {}", email.getTo() + " " + email.getSubject());
-//        emailSender.send(message);
-//    }
 }

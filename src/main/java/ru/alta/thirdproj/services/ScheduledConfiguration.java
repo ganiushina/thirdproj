@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableScheduling
@@ -143,7 +144,7 @@ public class ScheduledConfiguration {
 
 //        emails.add("support@altapersonnel.ru");
 //        emails.add("stimul22@mail.ru");
-//        emails.add("stjimul22@mail.ru");
+
 
         email.setTo(emails);
         email.setFrom("it@altapersonnel.ru");
@@ -155,11 +156,10 @@ public class ScheduledConfiguration {
         Date date = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         String currentDateTime = simpleDateFormat.format(date);
 
-        // Собираем список всех именинников
-        List<BirthdayMan> allBirthdayMen = new ArrayList<>();
-        for (UserBirthDay user : userBirthDayList) {
-            allBirthdayMen.addAll(user.getBirthdayManList());
-        }
+        List<BirthdayMan> allBirthdayMen = userBirthDayList.stream()
+                .flatMap(user -> user.getBirthdayManList().stream())
+                .distinct()
+                .collect(Collectors.toList());
 
         properties.put("userBirthday", allBirthdayMen);
         properties.put("date", currentDateTime);
