@@ -42,7 +42,6 @@
             <i class="fas fa-file-excel"></i> Экспорт в Excel
         </button>
     </div>
-
     <table id="bonusTable" class="table table-bordered table-hover fixed-header">
         <thead class="table-light">
         <tr>
@@ -64,7 +63,8 @@
         <tbody>
         <th:block th:each="userBonus : ${userBonus}">
             <!-- Строка для пользователей без деталей -->
-            <tr th:if="${userBonus.userBonusDetails.empty}">
+            <tr th:if="${userBonus.userBonusDetails.empty}"
+                th:attr="data-fio=${userBonus.fio.toLowerCase()}, data-department=${userBonus.department.toLowerCase()}">
                 <td th:text="${userBonus.fio}"></td>
                 <td th:text="${userBonus.position}"></td>
                 <td th:text="${userBonus.department}"></td>
@@ -74,7 +74,8 @@
             </tr>
 
             <!-- Строки для пользователей с деталями -->
-            <tr th:each="detail, iter : ${userBonus.userBonusDetails}">
+            <tr th:each="detail, iter : ${userBonus.userBonusDetails}"
+                th:attr="data-fio=${userBonus.fio.toLowerCase()}, data-department=${userBonus.department.toLowerCase()}">
                 <!-- Показываем информацию о пользователе только в первой строке группы -->
                 <td th:if="${iter.first}" th:text="${userBonus.fio}"
                     th:attr="rowspan=${userBonus.userBonusDetails.size()}"></td>
@@ -100,11 +101,11 @@
 
                     <a th:with="returnPath=${'/bonus/getall?dateFrom=' + #uris.escapeQueryParam(#request.getParameter('dateFrom')) + '&dateTo=' + #uris.escapeQueryParam(#request.getParameter('dateTo'))}"
                        th:href="@{/bonus/add(
-                               fio=${userBonus.fio},
-                               dateFrom=${#request.getParameter('dateFrom')},
-                               dateTo=${#request.getParameter('dateTo')},
-                               returnUrl=${returnPath}
-                           )}"
+                       fio=${userBonus.fio},
+                       dateFrom=${#request.getParameter('dateFrom')},
+                       dateTo=${#request.getParameter('dateTo')},
+                       returnUrl=${returnPath}
+                   )}"
                        class="btn btn-sm btn-primary"
                        onclick="return openExtraActsByHref(this.href);">
                         Добавить

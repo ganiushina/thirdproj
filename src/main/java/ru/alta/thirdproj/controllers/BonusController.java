@@ -83,6 +83,10 @@ public class BonusController {
 
         // Получение данных
         List<UserBonusMain> userBonusMains = getSafeUserBonuses(dateFrom, dateTo);
+        userBonusMains.forEach(bonus -> {
+            System.out.println("User " + bonus.getUserId() +
+                    " has " + bonus.getUserBonusDetails().size() + " details");
+        });
         List<UserBonusKPIMain> bonusKPIList = getSafeKPIBonuses(dateFrom, dateTo);
 
         // Расчет сумм

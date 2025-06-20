@@ -42,15 +42,6 @@ public class MainController {
     }
 
 
-//    @RequestMapping("/user")
-//    public String handleRequest2(HttpServletRequest request, Model model) {
-//        Authentication auth = SecurityContextHolder.getContext()
-//                .getAuthentication();
-//        model.addAttribute("uri", request.getRequestURI())
-//                .addAttribute("firstName", auth.getName());
-//        return "index";
-//    }
-
     @RequestMapping("/user")
     public String handleRequest2(HttpServletRequest request, Model model, Principal principal) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
