@@ -40,7 +40,6 @@ public class UserSalaryRepImplRep  {
     private static final String SELECT_MARGIN_MONTH_QUERY =  "select * from fn_marginality_by_month (:date1,:date2)";
     private static final String SELECT_SALES_QUERY =  "select * from [fn_User_Sale] (:date1, :date2)";
     private static final String SELECT_SALARY_PAYMENT_INTERPRETER_QUERY = "select * from fn_salary_for_all_user_sverka(:date1,:date2) order by dep_name, salary_month, man_fio\n";
-
     private static final String SELECT_SALARY_PAYMENT_SUCCESS_QUERY =
             "select ps.user_id, m.man_fio, ps.dateFrom, ps.dateTo, ps.success from paymentPeriodSuccess ps\n" +
             "join man m on m.man_id = ps.user_id " +

@@ -8,6 +8,28 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
     <script type="text/javascript" th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+    <style>
+        /* Основной блок приветствия */
+        .greeting-block {
+            font-family: 'Arial', sans-serif;
+            font-size: 28px;
+            color: #333; /* Нейтральный тёмно-серый */
+            line-height: 1.5;
+        }
+
+        /* Имя пользователя */
+        .user-name {
+            font-weight: 800; /* Супержирный */
+            font-size: 32px; /* Крупнее основного текста */
+            padding: 0 2px;
+        }
+
+        /* Сообщение для Даши */
+        .dasha-message {
+            font-weight: 600;
+            font-size: 28px;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,7 +37,14 @@
 
 <div class="container text-center mt-5">
     <h1 class="display-4">Добро пожаловать в Альта бонус!</h1>
-    <p class="lead" th:text="${userFullName != null} ? 'Здравствуй, ' + ${userFullName} + '!' : 'Здравствуй!'"></p>
+    <div th:utext="${greeting}"></div>
+<!--    <p class="greeting"-->
+<!--      >-->
+
+<!--       th:utext="${userFullName != null} ? 'Здравствуй, &lt;strong&gt;' + ${userFullName} + '&lt;/strong&gt;!' : 'Здравствуй!'">-->
+    </p>
+
+<!--    <p class="lead" th:text="${userFullName != null} ? 'Здравствуй, ' + ${userFullName} + '!' : 'Здравствуй!'"></p>-->
 </div>
 </body>
 </html>

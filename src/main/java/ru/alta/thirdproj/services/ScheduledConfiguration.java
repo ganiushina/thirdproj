@@ -50,8 +50,8 @@ public class ScheduledConfiguration {
 
 
 
- //   @Scheduled(cron = "*/60 * * * * *")
-    @Scheduled(cron =  "0 0 7 * * ?", zone="Europe/Samara")
+  //  @Scheduled(cron = "*/60 * * * * *")
+      @Scheduled(cron =  "0 0 7 * * ?", zone="Europe/Samara")
     @Async
     public void executeTaskUserTomorrow() throws Exception {
         List<UserBirthDay> userBirthDayList = birthDayRepositories.getUserBirthday(1);

@@ -66,20 +66,24 @@ public class MarginController {
             Model model) {
 
         processDateRange(dateFrom, dateTo, model);
-        List<MarginBonus> marginBonuses = userSalesService.getMarginBonusByMonth(dateFrom,dateTo);
+        List<MarginBonus> marginBonuses = userSalesService.getMarginBonusByMonth(dateFrom, dateTo);
+        List<MarginBonusBDM> marginBonusList = marginBonusService.getAllMarginBonus(dateFrom, dateTo);
+
         Double totalMargin = marginBonuses.stream()
                 .mapToDouble(bonus -> bonus.getMargin() != null ? bonus.getMargin() : 0.0)
                 .sum();
+
         NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("ru", "RU"));
         formatter.setMinimumFractionDigits(2);
         formatter.setMaximumFractionDigits(2);
 
-        String allMargin = formatter.format(totalMargin) + " ₽";
         model.addAttribute("marginBonusByMonth", marginBonuses);
-        model.addAttribute("allMargin", allMargin);
+        model.addAttribute("allMargin", formatter.format(totalMargin) + " ₽");
+        model.addAttribute("departmentMargins", getFormattedMargins(marginBonusList));
         model.addAttribute("dateFrom", dateFrom);
         model.addAttribute("dateTo", dateTo);
-        return "summary :: summaryTab"; // Fragment for AJAX
+
+        return "summary :: summaryTab";
     }
 
     @GetMapping("/margin/detailed")
@@ -89,7 +93,8 @@ public class MarginController {
             Model model) {
 
         processDateRange(dateFrom, dateTo, model);
-        List<MarginBonusBDM> marginBonusList = marginBonusService.getAllMarginBonus(dateFrom,dateTo);
+        List<MarginBonusBDM> marginBonusList = marginBonusService.getAllMarginBonus(dateFrom, dateTo);
+
         Double allMargin = marginBonusList.stream()
                 .filter(Objects::nonNull)
                 .flatMap(bdm -> bdm.getMarginDepartmentSum() != null ?
@@ -103,11 +108,13 @@ public class MarginController {
         formatter.setMinimumFractionDigits(2);
         formatter.setMaximumFractionDigits(2);
 
-        String formattedMargin = formatter.format(allMargin) + " ₽";
         model.addAttribute("marginBonusList", marginBonusList);
-        model.addAttribute("totalMargin", formattedMargin);
-        return "details :: detailsTab"; // Fragment for AJAX
+        model.addAttribute("totalMargin", formatter.format(allMargin) + " ₽");
+        model.addAttribute("departmentMargins", getFormattedMargins(marginBonusList));
+
+        return "details :: detailsTab";
     }
+
 
     @GetMapping("/margin/charts")
     public String getChartData(
@@ -118,8 +125,14 @@ public class MarginController {
         processDateRange(dateFrom, dateTo, model);
         User user = userService.findByUserName(principal.getName());
 
-        //user.getRoles()
-        List<UserSalary> userSalaryList = marginBonusService.getUserSalary(dateFrom,dateTo, user.getLoginDepartment());
+        int userDepartment = user.getLoginDepartment();
+
+
+        if ((userDepartment == 4) && (user.getUserPosition().equals("7") )) {
+            userDepartment = 0;
+        }
+
+        List<UserSalary> userSalaryList = marginBonusService.getUserSalary(dateFrom,dateTo, userDepartment);
         model.addAttribute("userSalaryList", userSalaryList);
         return "charts :: chartsTab"; // Fragment for AJAX
     }
@@ -202,62 +215,19 @@ public class MarginController {
                 "Данные за период " + period + " были проверены: " + inspectors;
     }
 
+    private Double safeParseDouble(Object value) {
+        if (value == null) return 0.0;
+        try {
+            String strValue = value.toString()
+                    .replaceAll("[^\\d.,-]", "")
+                    .replace(',', '.');
+            return Double.parseDouble(strValue);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
 
-//    @GetMapping("/margin/interpreters")
-//    public String getInterpreterData(
-//            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
-//            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo,
-//            Model model) {
-//        try {
-//            processDateRange(dateFrom, dateTo, model);
-//            List<UserSalaryDetail> userSalaryDetailList = marginBonusService.getUserSalaryInterpreter(dateFrom,dateTo);
-//            List<UserSalarySuccess> userSalarySuccesses = userSalaryService.getUserSalarySuccess(dateFrom,dateTo);
-//            String userSalarySuccessesStr = getSalarySuccess(userSalarySuccesses);
-//            model.addAttribute("userSalaryList", userSalaryDetailList);
-//            model.addAttribute("userSalarySuccesses", userSalarySuccessesStr);
-//            return "interpreter :: interpreterTab";
-//        } catch (Exception e) {
-//            e.printStackTrace(); // или logger.error("Error in getInterpreterData", e);
-//            throw e; // или return error page
-//        }
-//    }
-//
-//    @PostMapping("/margin/send-verification-emails")
-//    @ResponseBody
-//    public ResponseEntity<Map<String, String>> sendVerificationEmails(
-//            @RequestBody Map<String, String> dateParams,
-//            Principal principal) {
-//
-//        Map<String, String> response = new HashMap<>();
-//
-//        try {
-//            LocalDate dateFrom = LocalDate.parse(dateParams.get("dateFrom"));
-//            LocalDate dateTo = LocalDate.parse(dateParams.get("dateTo"));
-//
-//            // 1. Отправка писем
-//            String period = formatPeriod(dateFrom, dateTo);
-//            emailUserSendConfiguration.sendAccessToAllUsers(dateFrom, dateTo, period);
-//
-//            // 2. Сохранение статуса проверки
-//            User user = userService.findByUserName(principal.getName());
-//            emailPaymentSuccessService.save(user.getUserId(), dateFrom, dateTo, 1);
-//
-//            // 3. Получение информации о проверке
-//            List<UserSalarySuccess> successData = userSalaryService.getUserSalarySuccess(dateFrom, dateTo);
-//            String successInfo = getSalarySuccess(successData);
-//
-//            // Формируем ответ
-//            response.put("message", "Письма о сверке выплат успешно отправлены за " + period);
-//            response.put("successInfo", successInfo);
-//
-//            return ResponseEntity.ok(response);
-//
-//        } catch (Exception e) {
-//            response.put("error", "Ошибка при отправке: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(response);
-//        }
-//    }
+
 
     private String formatPeriod(LocalDate dateFrom, LocalDate dateTo) {
         // Словарь для замены окончаний
@@ -292,27 +262,30 @@ public class MarginController {
         return from + " - " + to;
     }
 
-//    private String getSalarySuccess(List<UserSalarySuccess> userSalarySuccesses) {
-//        if (userSalarySuccesses == null || userSalarySuccesses.isEmpty()) {
-//            return "Нет данных о проверке";
-//        }
-//
-//        // Берем первый элемент для получения периода (предполагаем, что период одинаков для всех)
-//        UserSalarySuccess first = userSalarySuccesses.get(0);
-//        String period = formatPeriod(first.getDateFrom(), first.getDateTo());
-//
-//        // Собираем ФИО всех проверяющих с успешной проверкой (success = 1)
-//        String inspectors = userSalarySuccesses.stream()
-//                .filter(user -> user.getSuccess() == 1) // Проверяем, что success равно 1
-//                .map(UserSalarySuccess::getUserFio)
-//                .distinct()
-//                .collect(Collectors.joining(", "));
-//
-//        if (inspectors.isEmpty()) {
-//            return "Данные за период " + period + " не были проверены";
-//        }
-//
-//        return "Данные за период " + period + " были проверены: " + inspectors;
-//    }
+    private Map<String, String> getFormattedMargins(List<MarginBonusBDM> marginBonusList) {
+        if (marginBonusList == null || marginBonusList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Double> departmentMargins = marginBonusList.stream()
+                .collect(Collectors.groupingBy(
+                        MarginBonusBDM::getDepartmentName,
+                        Collectors.summingDouble(d -> d.getMarginDepartmentSum().stream()
+                                .mapToDouble(this::safeParseDouble)
+                                .sum())
+                ));
+
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("ru", "RU"));
+        formatter.setMinimumFractionDigits(2);
+        formatter.setMaximumFractionDigits(2);
+
+        return departmentMargins.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> formatter.format(e.getValue()).replace("\u00A0", " ") + " ₽"
+                ));
+    }
+
+
 }
 

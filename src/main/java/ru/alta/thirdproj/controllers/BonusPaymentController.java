@@ -144,9 +144,6 @@ public class BonusPaymentController {
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
 
 
-
-
-
             if (request.getPaymentRealDate() != null) {
              paymentDate = request.getPaymentRealDate() != null ?
                      request.getPaymentRealDate() :

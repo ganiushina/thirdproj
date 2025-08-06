@@ -46,12 +46,16 @@ public class MainController {
     public String handleRequest2(HttpServletRequest request, Model model, Principal principal) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String firstName = auth.getName();
+        String strWelcome = "Здравствуй";
+        String hello = "";
 
         // Сохраняем firstName в сессии
         request.getSession().setAttribute("firstName", firstName);
 
         model.addAttribute("uri", request.getRequestURI())
-                .addAttribute("firstName", principal.getName());
+                .addAttribute("firstName", principal.getName())
+                .addAttribute("strWelcome", strWelcome)
+                .addAttribute("hello", hello);
         return "index";
     }
 }

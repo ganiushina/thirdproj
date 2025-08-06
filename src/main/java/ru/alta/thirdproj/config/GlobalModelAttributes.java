@@ -19,19 +19,42 @@ public class GlobalModelAttributes {
         this.userService = userService;
     }
 
-    @ModelAttribute("userFullName") // лучше называть осмысленно, а не просто firstName
-    public String addUserFullName(Principal principal) {
+    @ModelAttribute("greeting")
+    public String getGreeting(Principal principal) {
+        // Базовые настройки
+        String strWelcome = "Здравствуй";
+        String greetingTemplate = "<div class='greeting-block'>%s</div>";
+
         if (principal == null) {
-            return "Гость";
+            return String.format(greetingTemplate, strWelcome + "!");
         }
 
         User user = userService.findByUserName(principal.getName());
         if (user == null) {
-            return principal.getName();
+            return String.format(greetingTemplate, strWelcome + "!");
         }
 
-        String fullName = user.getUserFIO(); // "Иванов Пётр" или "Иванов Пётр Михайлович"
-        return extractFirstName(fullName, user); // Вернёт "Пётр"
+        // Получаем и обрабатываем имя
+        String userFullName = extractFirstName(user.getUserFIO(), user);
+        boolean isDasha = user.getUserId() == 9421219;
+
+        // Собираем приветствие
+        StringBuilder greeting = new StringBuilder(strWelcome);
+
+        if (!userFullName.isEmpty()) {
+            greeting.append(", <span class='user-name'>")
+                    .append(userFullName)
+                    .append("</span>!");
+        } else {
+            greeting.append("!");
+        }
+
+//        // Добавляем спец-сообщение
+//        if (isDasha) {
+//            greeting.append(" <span class='dasha-message'>Выздоравливай!</span>");
+//        }
+
+        return String.format(greetingTemplate, greeting.toString());
     }
 
     private String extractFirstName(String fullName, User user) {
