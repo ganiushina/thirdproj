@@ -155,6 +155,14 @@
                         Ожидается выходов
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="actByDepartment-tab" data-bs-toggle="tab"
+                            data-bs-target="#actByDepartment" type="button" role="tab"
+                            aria-controls="actByDepartment" aria-selected="false"
+                            onclick="loadTabContent('/acts/departmentActs', 'actByDepartmentTab')">
+                        Детализация по Клиентам
+                    </button>
+                </li>
             </ul>
 
             <!-- Содержимое вкладок -->
@@ -170,6 +178,9 @@
                     </div>
                     <div class="tab-pane fade" id="actExpected" role="tabpanel">
                         <div id="actExpectedContent" class="tab-table-container"></div>
+                    </div>
+                    <div class="tab-pane fade" id="actByDepartment" role="tabpanel">
+                        <div id="actByDepartmentContent" class="tab-table-container"></div>
                     </div>
 
             </div>
@@ -189,6 +200,7 @@
         candidate: '',
         project: '',
         company: '',
+        department: '', // Добавляем новое поле для направления
         filterByCreationDate: false, // По умолчанию не отмечено
         paymentStatus: 'all'
     };
@@ -201,7 +213,8 @@
              const tabMap = {
                  'actPeriod-tab': ['/acts/actAll', 'actPeriodTab'],
                  'actUnpaid-tab': ['/acts/unpaidActs', 'actUnpaidTab'],
-                 'actExpected-tab': ['/acts/expectedExits', 'actExpectedTab']
+                 'actExpected-tab': ['/acts/expectedExits', 'actExpectedTab'],
+                 'actByDepartment-tab': ['/acts/departmentActs', 'actByDepartmentTab']
              };
 
              if (tabMap[tabId]) {
@@ -211,16 +224,26 @@
      }
 
      // Функция загрузки контента вкладки
-     // В функции loadTabContent обновим значения полей фильтра после загрузки данных
-    function loadTabContent(url, fragment) {
+     function loadTabContent(url, fragment) {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
+        const companyFilter = document.getElementById('globalCompanySearch').value; // Получаем значение из поля ввода
+
+        // Создаем параметры запроса
+        let params = new URLSearchParams();
+        params.append('dateFrom', dateFrom);
+        params.append('dateTo', dateTo);
+
+        // Добавляем фильтр компании, если он есть
+        if (companyFilter && companyFilter.trim() !== '') {
+            params.append('companyFilter', companyFilter);
+        }
 
         // Загружаем сначала основную страницу с обновлённой статистикой
-        fetch(`/acts?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+        fetch(`/acts?${params.toString()}`)
             .then(response => response.text())
             .then(html => {
-                // Обновляем только статистический блок, не перезагружая всю страницу
+                // Обновляем только статистический блок
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const newStats = doc.querySelector('.stats-block');
@@ -232,95 +255,269 @@
                 }
 
                 // Затем загружаем содержимое вкладки
-                return fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+                return fetch(`${url}?${params.toString()}`);
             })
             .then(response => response.text())
             .then(html => {
                 const targetDiv = {
                     'actPeriodTab': 'actPeriodContent',
                     'actUnpaidTab': 'actUnpaidContent',
-                    'actExpectedTab': 'actExpectedContent'
+                    'actExpectedTab': 'actExpectedContent',
+                    'actByDepartmentTab': 'actByDepartmentContent'
                 }[fragment];
 
                 if (targetDiv) {
                     document.getElementById(targetDiv).innerHTML = html;
                     initTableFeatures();
                     adjustStickyHeaders();
-
-                    // Обновляем значения полей фильтра дат
-                    document.getElementById('dateFromFilter').value = dateFrom;
-                    document.getElementById('dateToFilter').value = dateTo;
-
-                    applyFilters(); // Применяем текущие фильтры после загрузки
+                    applyFilters();
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById(targetDiv).innerHTML =
-                    '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                const targetDiv = {
+                    'actPeriodTab': 'actPeriodContent',
+                    'actUnpaidTab': 'actUnpaidContent',
+                    'actExpectedTab': 'actExpectedContent',
+                    'actByDepartmentTab': 'actByDepartmentContent'
+                }[fragment];
+                if (targetDiv) {
+                    document.getElementById(targetDiv).innerHTML =
+                        '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                }
             });
     }
-      // Функция фильтрации таблиц
-    function applyFilters() {
-        const { actNum, candidate, project, company, filterByCreationDate, paymentStatus } = currentFilters;
-        const dateFrom = document.getElementById('dateFrom').value;
-        const dateTo = document.getElementById('dateTo').value;
 
-        // Получаем активную таблицу
-        const table = document.querySelector('.tab-pane.active table');
-        if (!table) return;
+<!--    function loadTabContent(url, fragment) {-->
+<!--        const dateFrom = document.getElementById('dateFrom').value;-->
+<!--        const dateTo = document.getElementById('dateTo').value;-->
+<!--        const companyFilter = document.getElementById('globalCompanySearch').value;-->
 
-        const rows = table.querySelectorAll('tbody tr');
+<!--        // Добавляем параметр фильтрации компании-->
+<!--        let params = `dateFrom=${dateFrom}&dateTo=${dateTo}`;-->
+<!--        if (companyFilter) {-->
+<!--            params += `&companyFilter=${encodeURIComponent(companyFilter)}`;-->
+<!--        }-->
 
-        // Определяем индексы столбцов
-        const headers = table.querySelectorAll('thead th');
-        const columnIndexes = {
-            actNum: findColumnIndex(headers, ['номер акта']),
-            candidate: findColumnIndex(headers, ['кандидат']),
-            project: findColumnIndex(headers, ['проект']),
-            company: findColumnIndex(headers, ['компания', 'организация']),
-            actDate: findColumnIndex(headers, ['дата акта']),
-            paymentStatus: findColumnIndex(headers, ['оплата', 'статус оплаты'])
-        };
+<!--        // Загружаем сначала основную страницу с обновлённой статистикой-->
+<!--        fetch(`/acts?dateFrom=${dateFrom}&dateTo=${dateTo}`)-->
+<!--            .then(response => response.text())-->
+<!--            .then(html => {-->
+<!--                // Обновляем только статистический блок, не перезагружая всю страницу-->
+<!--                const parser = new DOMParser();-->
+<!--                const doc = parser.parseFromString(html, 'text/html');-->
+<!--                const newStats = doc.querySelector('.stats-block');-->
+<!--                if (newStats) {-->
+<!--                    const currentStats = document.querySelector('.stats-block');-->
+<!--                    if (currentStats) {-->
+<!--                        currentStats.innerHTML = newStats.innerHTML;-->
+<!--                    }-->
+<!--                }-->
 
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
+<!--                // Затем загружаем содержимое вкладки-->
+<!--                return fetch(`${url}?dateFrom=${dateFrom}&dateTo=${dateTo}`);-->
+<!--            })-->
+<!--            .then(response => response.text())-->
+<!--            .then(html => {-->
+<!--                const targetDiv = {-->
+<!--                    'actPeriodTab': 'actPeriodContent',-->
+<!--                    'actUnpaidTab': 'actUnpaidContent',-->
+<!--                    'actExpectedTab': 'actExpectedContent',-->
+<!--                    'actByDepartmentTab': 'actByDepartmentContent'-->
 
-            // Проверка текстовых фильтров
-            const actNumText = columnIndexes.actNum !== -1 ? cells[columnIndexes.actNum]?.textContent.toLowerCase() : '';
-            const candidateText = columnIndexes.candidate !== -1 ? cells[columnIndexes.candidate]?.textContent.toLowerCase() : '';
-            const projectText = columnIndexes.project !== -1 ? cells[columnIndexes.project]?.textContent.toLowerCase() : '';
-            const companyText = columnIndexes.company !== -1 ? cells[columnIndexes.company]?.textContent.toLowerCase() : '';
+<!--                }[fragment];-->
 
-            // Проверка фильтра по дате создания
-            let dateMatch = true;
-            if (filterByCreationDate && columnIndexes.actDate !== -1) {
-                const dateText = cells[columnIndexes.actDate]?.textContent.trim();
-                const actDate = parseTableDate(dateText);
-                dateMatch = isDateInPeriod(actDate, dateFrom, dateTo);
+<!--                if (targetDiv) {-->
+<!--                    document.getElementById(targetDiv).innerHTML = html;-->
+<!--                    initTableFeatures();-->
+<!--                    adjustStickyHeaders();-->
+
+<!--                    // Обновляем значения полей фильтра дат-->
+<!--                    document.getElementById('dateFromFilter').value = dateFrom;-->
+<!--                    document.getElementById('dateToFilter').value = dateTo;-->
+
+<!--                    applyFilters(); // Применяем текущие фильтры после загрузки-->
+<!--                }-->
+<!--            })-->
+<!--            .catch(error => {-->
+<!--                console.error('Error:', error);-->
+<!--                document.getElementById(targetDiv).innerHTML =-->
+<!--                    '<div class="alert alert-danger">Ошибка загрузки данных</div>';-->
+<!--            });-->
+<!--    }-->
+        function applyFilters() {
+            // 1. Обновляем текущие значения фильтров
+            currentFilters.actNum = document.getElementById('globalActNumSearch').value.toLowerCase();
+            currentFilters.candidate = document.getElementById('globalCandidateSearch').value.toLowerCase();
+            currentFilters.project = document.getElementById('globalProjectSearch').value.toLowerCase();
+            currentFilters.company = document.getElementById('globalCompanySearch').value.toLowerCase();
+            currentFilters.department = document.getElementById('globalDepartmentSearch').value.toLowerCase();
+            currentFilters.filterByCreationDate = document.getElementById('filterByCreationDate').checked;
+            currentFilters.paymentStatus = document.getElementById('paymentStatus').value;
+
+            // 2. Получаем даты из фильтров
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            // 3. Определяем активную вкладку
+            const activeTab = document.querySelector('#reportTabs .nav-link.active');
+            if (!activeTab) return;
+
+            // 4. Если это вкладка "Детализация по Клиентам" и изменился фильтр компании
+            if (activeTab.id === 'actByDepartment-tab' && currentFilters.company) {
+                // Формируем параметры запроса только с companyFilter
+                let params = new URLSearchParams();
+                params.append('dateFrom', dateFrom);
+                params.append('dateTo', dateTo);
+                params.append('companyFilter', currentFilters.company);
+
+                // 5. Определяем target div для обновления
+                const targetDiv = 'actByDepartmentContent';
+                const container = document.getElementById(targetDiv);
+
+                // 6. Показываем индикатор загрузки
+                container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>';
+
+                // 7. Отправляем запрос на сервер только с фильтром компании
+                fetch(`/acts/departmentActs?${params.toString()}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        container.innerHTML = html;
+                        initTableFeatures();
+                        adjustStickyHeaders();
+
+                        // Применяем остальные фильтры на клиенте
+                        applyClientSideFilters();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        container.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных</div>';
+                    });
+            } else {
+                // Для всех других вкладок или если не фильтр компании - применяем только клиентскую фильтрацию
+                applyClientSideFilters();
             }
 
-            // Проверка фильтра по оплате
-            let paymentMatch = true;
-            if (paymentStatus !== 'all' && columnIndexes.paymentStatus !== -1) {
-                const isPaid = cells[columnIndexes.paymentStatus]?.textContent.toLowerCase().includes('да');
-                paymentMatch = (paymentStatus === 'paid' && isPaid) ||
-                              (paymentStatus === 'unpaid' && !isPaid);
+            // Функция для применения фильтров на клиенте
+            function applyClientSideFilters() {
+                const table = document.querySelector('.tab-pane.active table');
+                if (!table) return;
+
+                const rows = table.querySelectorAll('tbody tr');
+                const headers = table.querySelectorAll('thead th');
+
+                const columnIndexes = {
+                    actNum: findColumnIndex(headers, ['номер акта']),
+                    candidate: findColumnIndex(headers, ['кандидат']),
+                    project: findColumnIndex(headers, ['проект']),
+                    company: findColumnIndex(headers, ['компания', 'организация']),
+                    department: findColumnIndex(headers, ['направление']),
+                    actDate: findColumnIndex(headers, ['дата акта']),
+                    paymentStatus: findColumnIndex(headers, ['оплата', 'статус оплаты'])
+                };
+
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+
+                    // Проверка текстовых фильтров
+                    const actNumText = columnIndexes.actNum !== -1 ? cells[columnIndexes.actNum]?.textContent.toLowerCase() : '';
+                    const candidateText = columnIndexes.candidate !== -1 ? cells[columnIndexes.candidate]?.textContent.toLowerCase() : '';
+                    const projectText = columnIndexes.project !== -1 ? cells[columnIndexes.project]?.textContent.toLowerCase() : '';
+                    const companyText = columnIndexes.company !== -1 ? cells[columnIndexes.company]?.textContent.toLowerCase() : '';
+                    const departmentText = columnIndexes.department !== -1 ? cells[columnIndexes.department]?.textContent.toLowerCase() : '';
+
+                    // Проверка фильтра по дате создания
+                    let dateMatch = true;
+                    if (currentFilters.filterByCreationDate && columnIndexes.actDate !== -1) {
+                        const dateText = cells[columnIndexes.actDate]?.textContent.trim();
+                        const actDate = parseTableDate(dateText);
+                        dateMatch = isDateInPeriod(actDate, dateFrom, dateTo);
+                    }
+
+                    // Проверка фильтра по оплате
+                    let paymentMatch = true;
+                    if (currentFilters.paymentStatus !== 'all' && columnIndexes.paymentStatus !== -1) {
+                        const isPaid = cells[columnIndexes.paymentStatus]?.textContent.toLowerCase().includes('да');
+                        paymentMatch = (currentFilters.paymentStatus === 'paid' && isPaid) ||
+                                      (currentFilters.paymentStatus === 'unpaid' && !isPaid);
+                    }
+
+                    // Комбинированная проверка всех фильтров
+                    const matches = [
+                        !currentFilters.actNum || actNumText.includes(currentFilters.actNum),
+                        !currentFilters.candidate || candidateText.includes(currentFilters.candidate),
+                        !currentFilters.project || projectText.includes(currentFilters.project),
+                        !currentFilters.company || companyText.includes(currentFilters.company),
+                        !currentFilters.department || departmentText.includes(currentFilters.department),
+                        dateMatch,
+                        paymentMatch
+                    ].every(Boolean);
+
+                    row.style.display = matches ? '' : 'none';
+                });
             }
+        }
 
-            // Комбинированная проверка всех фильтров
-            const matches = [
-                columnIndexes.actNum === -1 || actNumText.includes(actNum),
-                columnIndexes.candidate === -1 || candidateText.includes(candidate),
-                columnIndexes.project === -1 || projectText.includes(project),
-                columnIndexes.company === -1 || companyText.includes(company),
-                dateMatch,
-                paymentMatch
-            ].every(Boolean);
+<!--    function applyFilters() {-->
+<!--        const { actNum, candidate, project, company, filterByCreationDate, paymentStatus } = currentFilters;-->
+<!--        const dateFrom = document.getElementById('dateFrom').value;-->
+<!--        const dateTo = document.getElementById('dateTo').value;-->
 
-            row.style.display = matches ? '' : 'none';
-        });
-    }
+<!--        // Получаем активную таблицу-->
+<!--        const table = document.querySelector('.tab-pane.active table');-->
+<!--        if (!table) return;-->
+
+<!--        const rows = table.querySelectorAll('tbody tr');-->
+
+<!--        // Определяем индексы столбцов-->
+<!--        const headers = table.querySelectorAll('thead th');-->
+<!--        const columnIndexes = {-->
+<!--            actNum: findColumnIndex(headers, ['номер акта']),-->
+<!--            candidate: findColumnIndex(headers, ['кандидат']),-->
+<!--            project: findColumnIndex(headers, ['проект']),-->
+<!--            company: findColumnIndex(headers, ['компания', 'организация']),-->
+<!--            actDate: findColumnIndex(headers, ['дата акта']),-->
+<!--            paymentStatus: findColumnIndex(headers, ['оплата', 'статус оплаты'])-->
+<!--        };-->
+
+<!--        rows.forEach(row => {-->
+<!--            const cells = row.querySelectorAll('td');-->
+
+<!--            // Проверка текстовых фильтров-->
+<!--            const actNumText = columnIndexes.actNum !== -1 ? cells[columnIndexes.actNum]?.textContent.toLowerCase() : '';-->
+<!--            const candidateText = columnIndexes.candidate !== -1 ? cells[columnIndexes.candidate]?.textContent.toLowerCase() : '';-->
+<!--            const projectText = columnIndexes.project !== -1 ? cells[columnIndexes.project]?.textContent.toLowerCase() : '';-->
+<!--            const companyText = columnIndexes.company !== -1 ? cells[columnIndexes.company]?.textContent.toLowerCase() : '';-->
+
+<!--            // Проверка фильтра по дате создания-->
+<!--            let dateMatch = true;-->
+<!--            if (filterByCreationDate && columnIndexes.actDate !== -1) {-->
+<!--                const dateText = cells[columnIndexes.actDate]?.textContent.trim();-->
+<!--                const actDate = parseTableDate(dateText);-->
+<!--                dateMatch = isDateInPeriod(actDate, dateFrom, dateTo);-->
+<!--            }-->
+
+<!--            // Проверка фильтра по оплате-->
+<!--            let paymentMatch = true;-->
+<!--            if (paymentStatus !== 'all' && columnIndexes.paymentStatus !== -1) {-->
+<!--                const isPaid = cells[columnIndexes.paymentStatus]?.textContent.toLowerCase().includes('да');-->
+<!--                paymentMatch = (paymentStatus === 'paid' && isPaid) ||-->
+<!--                              (paymentStatus === 'unpaid' && !isPaid);-->
+<!--            }-->
+
+<!--            // Комбинированная проверка всех фильтров-->
+<!--            const matches = [-->
+<!--                columnIndexes.actNum === -1 || actNumText.includes(actNum),-->
+<!--                columnIndexes.candidate === -1 || candidateText.includes(candidate),-->
+<!--                columnIndexes.project === -1 || projectText.includes(project),-->
+<!--                columnIndexes.company === -1 || companyText.includes(company),-->
+<!--                dateMatch,-->
+<!--                paymentMatch-->
+<!--            ].every(Boolean);-->
+
+<!--            row.style.display = matches ? '' : 'none';-->
+<!--        });-->
+<!--    }-->
     // Вспомогательная функция для проверки даты в периоде
     function isDateInPeriod(date, dateFrom, dateTo) {
         if (!date) return false;
@@ -369,6 +566,11 @@
         // Фильтр по дате создания
         document.getElementById('filterByCreationDate').addEventListener('change', function() {
             currentFilters.filterByCreationDate = this.checked;
+            applyFilters();
+        });
+        // Добавляем новый обработчик для фильтра по направлению
+        document.getElementById('globalDepartmentSearch').addEventListener('input', function() {
+            currentFilters.department = this.value.toLowerCase();
             applyFilters();
         });
 

@@ -1,5 +1,7 @@
 package ru.alta.thirdproj.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -7,20 +9,24 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.ActByCompanyByDepartment;
 import ru.alta.thirdproj.entites.MoneyByFinalist;
 import ru.alta.thirdproj.services.ActPutServiceImpl;
 import ru.alta.thirdproj.services.ExpectedMoneyByFinalistService;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Controller
 public class ActsController {
+    private static final Logger logger = LoggerFactory.getLogger(ActsController.class);
+
+
 
     private ActPutServiceImpl actBonusPercentService;
     private ExpectedMoneyByFinalistService moneyByFinalistService;
@@ -130,5 +136,118 @@ public class ActsController {
                                     Model model) {
         prepareCommonModel(model, dateFrom, dateTo);
         return "fragments/actExpectedTable :: actExpectedTab";
+
+    }
+
+    @GetMapping("/acts/departmentActs")
+    public String showActsByDepartment(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo,
+            @RequestParam(required = false) String companyFilter,
+            Model model) {
+
+        // Получаем исходные данные (все акты за период)
+        List<ActByCompanyByDepartment> allActs = actBonusPercentService.getActByDepartmentByCompany(dateFrom, dateTo);
+
+        // Всегда добавляем суммы по направлениям из всех данных
+        model.addAttribute("formattedDepartmentSums", getFormattedDepartmentSums(allActs));
+
+        // Инициализируем список для отфильтрованных данных
+        List<ActByCompanyByDepartment> filteredActs = allActs; // По умолчанию показываем все данные
+
+        // Применяем фильтр компании только если он не пустой
+        if (companyFilter != null && !companyFilter.trim().isEmpty()) {
+            // Ищем компании, которые содержат введенную подстроку (без учета регистра)
+            filteredActs = allActs.stream()
+                    .filter(act -> act.getCompany() != null &&
+                            act.getCompany().toLowerCase().contains(companyFilter.toLowerCase().trim()))
+                    .collect(Collectors.toList());
+
+            // Получаем список уникальных компаний в отфильтрованных данных
+            Set<String> uniqueCompanies = filteredActs.stream()
+                    .map(ActByCompanyByDepartment::getCompany)
+                    .collect(Collectors.toSet());
+
+            // Если найдена ровно одна уникальная компания - показываем сумму
+            if (uniqueCompanies.size() == 1) {
+                String foundCompany = uniqueCompanies.iterator().next();
+
+                // Суммируем sumActNoNDS только для уникальных актов (по actId)
+                double companySum = filteredActs.stream()
+                        .filter(distinctByKey(ActByCompanyByDepartment::getActId))
+                        .mapToDouble(act -> act.getSumActNoNDS() != null ? act.getSumActNoNDS() : 0.0)
+                        .sum();
+
+                model.addAttribute("selectedCompany", foundCompany);
+                model.addAttribute("formattedCompanySum", formatCurrency(companySum));
+
+                logger.info("Для компании '{}' найдена сумма: {}", foundCompany, companySum);
+            }
+        }
+
+        // Добавляем отфильтрованные данные для таблицы
+        model.addAttribute("actByCompanyByDepartments", filteredActs);
+        model.addAttribute("date1", dateFrom);
+        model.addAttribute("date2", dateTo);
+
+        return "fragments/actByDepartmentTable :: actByDepartmentTab";
+    }
+
+    // Вспомогательный метод для фильтрации уникальных значений по ключу
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+
+
+    private String formatCurrency(Double value) {
+        if (value == null) return "0,00 ₽";
+
+        NumberFormat formatter = NumberFormat.getNumberInstance(new Locale("ru", "RU"));
+        formatter.setMinimumFractionDigits(2);
+        formatter.setMaximumFractionDigits(2);
+        return formatter.format(value).replace("\u00A0", " ") + " ₽";
+    }
+
+    private Map<String, String> getFormattedDepartmentSums(List<ActByCompanyByDepartment> acts) {
+        if (acts == null || acts.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Суммируем по отделам
+        Map<String, Double> departmentSums = acts.stream()
+                .collect(Collectors.toMap(
+                        ActByCompanyByDepartment::getDepartmentName,
+                        ActByCompanyByDepartment::getSumActNoNDS,
+                        Double::sum
+                ));
+
+        // Форматируем суммы
+        return departmentSums.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> formatCurrency(e.getValue())
+                ));
+    }
+
+    private Map<String, String> getFormattedCompaniesSums(List<ActByCompanyByDepartment> acts) {
+        if (acts == null || acts.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Суммируем по отделам
+        Map<String, Double> companiesSums = acts.stream()
+                .collect(Collectors.toMap(
+                        ActByCompanyByDepartment::getCompany,
+                        ActByCompanyByDepartment::getSumActNoNDS,
+                        Double::sum
+                ));
+
+        // Форматируем суммы
+        return companiesSums.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> formatCurrency(e.getValue())
+                ));
     }
 }

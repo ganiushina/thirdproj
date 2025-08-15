@@ -4,10 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
 import org.sql2o.Query;
+import org.sql2o.ResultSetHandler;
 import org.sql2o.Sql2o;
 import org.sql2o.data.Table;
 import ru.alta.thirdproj.entites.Act;
 import ru.alta.thirdproj.entites.ActBuilder;
+import ru.alta.thirdproj.entites.ActByCompanyByDepartment;
 import ru.alta.thirdproj.entites.Employer;
 
 import java.math.BigDecimal;
@@ -39,6 +41,16 @@ public class ActPutRepository {
             "\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
             "\tWHERE ab.id NOT IN (SELECT pb.act_id FROM dbo.payment_buh pb) \n" +
             "\tAND convert(date, ab.date_act) >= convert(date, dateadd(yy, -1, :date1))";
+
+    private static final String SELECT_ACT_DETAILS_BY_COMPANY_BY_DEPARTMENT = "SELECT distinct ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
+            "\tab.candidate, ab.organization, pb.depatment_id, d.dep_name, pb.percent_responsible_user_by_candidate_percent*100 dep_percent,\n" +
+            "\tsum(pb.summ_responsible_user) over (partition by pb.depatment_id) sum_dep,\n" +
+            "\tsum(ab.total_no_nds) over (partition by ab.company_name) sum_comp\n" +
+            "\tFROM dbo.act_buh ab\n" +
+            "\tjoin project_buh pb on pb.act_id = ab.id\n" +
+            "\tjoin depatment d on d.id = pb.depatment_id\t\n" +
+            "\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
+            "\tWHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
 
     public List<Act> getPutAct(LocalDate date1, LocalDate date2)  {
 
@@ -130,6 +142,31 @@ public class ActPutRepository {
 }
     public LocalDate convertToLocalDateViaSqlDate(Date dateToConvert) {
         return new java.sql.Date(dateToConvert.getTime()).toLocalDate();
+    }
+
+    public List<ActByCompanyByDepartment> getActByDepartmentByCompany(LocalDate dateStart, LocalDate dateFinish){
+        try (Connection connection = sql2o.open()) {
+            return   connection.createQuery(SELECT_ACT_DETAILS_BY_COMPANY_BY_DEPARTMENT, false)
+                    .addParameter("date1", dateStart)
+                    .addParameter("date2", dateFinish)
+                    .executeAndFetch((ResultSetHandler<ActByCompanyByDepartment>) rs -> {
+                        ActByCompanyByDepartment act = new ActByCompanyByDepartment();
+                        act.setActId(rs.getInt("id"));
+                        act.setNum(rs.getString("act_num"));
+                        act.setDateAct(rs.getDate("date_act").toLocalDate());
+                        act.setCompany(rs.getString("company_name"));
+                        act.setProjectName(rs.getString("project_name"));
+                        act.setCandidate(rs.getString("candidate"));
+                        act.setOrganization(rs.getString("organization"));
+                        act.setSumActNoNDS(rs.getDouble("total_no_nds"));
+                        act.setDepartmentId(rs.getInt("depatment_id"));
+                        act.setDepartmentName(rs.getString("dep_name"));
+                        act.setPercentByDepartment(rs.getDouble("dep_percent"));
+                        act.setSumByDepartment(rs.getDouble("sum_dep"));
+                        act.setSumByCompany(rs.getDouble("sum_comp"));
+                        return act;
+                    });
+        }
     }
 
 

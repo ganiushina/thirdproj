@@ -28,13 +28,6 @@ public class ActBonusPercentServiceImpl implements iActBonus {
         return actBonusPercentRepositories.getAllAct(date1, date2, employerId);
     }
 
-//    @Override
-//    public void saveActBonus(int employerId, int userId, List<String> percents, String actId) {
-//        List<String> actIds = Arrays.asList(actId.split(","));
-//        for (int i = 0; i < actIds.size() ; i++) {
-//            actBonusPercentRepositories.saveExtraBonus(employerId, userId, Integer.parseInt(actIds.get(i)), Double.valueOf(percents.get(i)));
-//        }
-//    }
     @Override
     public void saveActBonus(Integer employerId, Integer userId, Map<Integer, Double> actPercentMap) {
 

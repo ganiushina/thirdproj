@@ -3,6 +3,7 @@ package ru.alta.thirdproj.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.ActByCompanyByDepartment;
 import ru.alta.thirdproj.entites.Employer;
 import ru.alta.thirdproj.repositories.ActPutRepository;
 
@@ -35,6 +36,10 @@ public class ActPutServiceImpl implements iActPutService {
         return null;
     }
 
+    @Override
+    public List<ActByCompanyByDepartment> getActByDepartmentByCompany(LocalDate dateStart, LocalDate dateFinish) {
+        return actPutRepository.getActByDepartmentByCompany(dateStart, dateFinish);
+    }
 
 
 }

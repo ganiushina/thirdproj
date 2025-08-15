@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
 
@@ -69,6 +70,47 @@ public class UserPaymentBonusServiceImpl {
     public List<EmployerNew> getEmployerList (LocalDate date1, LocalDate date2){
         return userBonusPaymentRepository.userBonusPaymentList(date1,date2);
     }
+
+//    public String getAllMoney(List<EmployerNew> employerNews) {
+//        if (employerNews == null) {
+//            System.out.println("employerNews is null!");
+//            return "0 руб.";
+//        }
+//
+//        Locale ru = new Locale("ru", "RU");
+//        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
+//
+//        double sum = 0.0;
+//        for (EmployerNew employer : employerNews) {
+//            if (employer == null) {
+//                System.out.println("Found null employer!");
+//                continue;
+//            }
+//
+//            List<Act> actList = employer.getActList();
+//            if (actList == null) {
+//                System.out.println("Employer " + employer + " has null actList!");
+//                continue;
+//            }
+//
+//            for (Act act : actList) {
+//                if (act == null) {
+//                    System.out.println("Found null act in list!");
+//                    continue;
+//                }
+//
+//                Double bonus = act.getBonus();
+//                if (bonus == null) {
+//                    System.out.println("Act " + act + " has null bonus!");
+//                    continue;
+//                }
+//
+//                sum += bonus;
+//            }
+//        }
+//
+//        return currencyInstance.format(sum);
+//    }
 
     public String getAllMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();

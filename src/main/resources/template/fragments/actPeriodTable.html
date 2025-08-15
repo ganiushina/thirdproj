@@ -65,7 +65,7 @@
     <p>Акты за период <span th:text="${date1 != null} ? ${#temporals.format(date1)}">...</span>
         <span th:text="${date2 != null} ? ${#temporals.format(date2)}">...</span></p>
 
-<!--    <div th:replace="~{fragments/act-filter-fragment :: filter-form(tableId='periodTable')}"></div>-->
+<!--     <div th:replace="~{fragments/act-filter-fragment :: filter-form}"></div>-->
 
     <div class="table-scroll-container">
         <table id="periodTable" class="table table-bordered table-hover fixed-header" data-numeric-cols="Сумма">
