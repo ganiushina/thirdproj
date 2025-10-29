@@ -7,20 +7,15 @@
 
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
-            <div class="row g-3 align-items-end" th:with="departmentOptions=${departments}">
-                <div class="col-sm-6 col-lg-4">
-                    <label class="form-label" th:for="${tableId + '_departmentFilter'}">Направление</label>
-                    <select class="form-control form-select"
-                            th:id="${tableId + '_departmentFilter'}"
-                            th:attr="data-table-id=${tableId}"
-                            th:onchange="departmentFilter(this)">
-                        <option value="">Все направления</option>
-                        <option th:each="department : ${departmentOptions}"
-                                th:value="${department.name}"
-                                th:text="${department.name}"
-                                th:attr="data-department-id=${department.id}"></option>
-                    </select>
-                </div>
+            <div class="row" th:with="departmentOptions=${departments}">
+                <select th:attr="data-table-id=${tableId}" id="departmentFilter"
+                        th:onchange="departmentFilter(this)">
+                    <option value="">Все направления</option>
+                    <option th:each="department : ${departmentOptions}"
+                            th:value="${department.name}"
+                            th:text="${department.name}"
+                            th:attr="data-department-id=${department.id}"></option>
+                </select>
             </div>
         </div>
     </div>
