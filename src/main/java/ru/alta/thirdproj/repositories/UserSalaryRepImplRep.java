@@ -353,9 +353,14 @@ public class UserSalaryRepImplRep  {
 
     public List<String> getAllDepartments() {
         try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_DEPARTMENTS_QUERY, false)
-                    .executeAndFetch(String.class)
-                    .stream()
+            List<String> departments = connection.createQuery(SELECT_DEPARTMENTS_QUERY, false)
+                    .executeAndFetch(String.class);
+
+            if (departments == null) {
+                return Collections.emptyList();
+            }
+
+            return departments.stream()
                     .filter(Objects::nonNull)
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
