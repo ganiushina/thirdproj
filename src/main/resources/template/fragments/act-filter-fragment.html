@@ -23,7 +23,7 @@
                     <div class="col-md-3" th:with="departmentOptions=${departments}">
                         <label for="globalDepartmentSearch" class="form-label">Направление</label>
                         <select id="globalDepartmentSearch"
-                                class="form-select mb-2">
+                                class="form-control form-select mb-2">
                             <option value="">Все направления</option>
                             <option th:each="department : ${departmentOptions}"
                                     th:value="${department.name}"

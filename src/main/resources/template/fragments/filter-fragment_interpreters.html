@@ -7,43 +7,31 @@
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
             <div class="row" th:with="departmentOptions=${departments}">
-                <div class="col-md-3 mb-2">
-                    <label class="form-label" th:for="${tableId + '_nameFilter'}">ФИО</label>
-                    <input type="text" class="form-control"
-                           th:id="${tableId + '_nameFilter'}"
-                           th:attr="data-table-id=${tableId}"
-                           placeholder="Искать по имени"
-                           th:oninput="debounceFilter(nameFilterInterpreters, this)" />
-                </div>
+                <input type="text"
+                       th:id="${tableId + '_nameFilter'}"
+                       th:attr="data-table-id=${tableId}"
+                       placeholder="Искать по имени"
+                       th:oninput="debounceFilter(nameFilterInterpreters, this)" />
 
-                <div class="col-md-3 mb-2">
-                    <label class="form-label" th:for="${tableId + '_monthFilter'}">Месяц</label>
-                    <input type="text" class="form-control"
-                           th:id="${tableId + '_monthFilter'}"
-                           th:attr="data-table-id=${tableId}"
-                           placeholder="Искать по месяцу"
-                           th:oninput="debounceFilter(filterByMonthInterpreters, this)" />
-                </div>
+                <input type="text"
+                       th:id="${tableId + '_monthFilter'}"
+                       th:attr="data-table-id=${tableId}"
+                       placeholder="Искать по месяцу"
+                       th:oninput="debounceFilter(filterByMonthInterpreters, this)" />
 
-                <div class="col-md-3 mb-2">
-                    <label class="form-label" th:for="${tableId + '_departmentFilter'}">Направление</label>
-                    <select class="form-select"
-                            th:id="${tableId + '_departmentFilter'}"
-                            th:attr="data-table-id=${tableId}"
-                            th:onchange="debounceFilter(departmentFilterInterpreters, this)">
-                        <option value="">Все направления</option>
-                        <option th:each="department : ${departmentOptions}"
-                                th:value="${department.name}"
-                                th:text="${department.name}"
-                                th:attr="data-department-id=${department.id}"></option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-success w-100"
-                            onclick="exportToExcel('interpreters')">
-                        <i class="bi bi-file-excel"></i> Excel
-                    </button>
-                </div>
+                <select th:id="${tableId + '_departmentFilter'}"
+                        th:attr="data-table-id=${tableId}"
+                        th:onchange="debounceFilter(departmentFilterInterpreters, this)">
+                    <option value="">Все направления</option>
+                    <option th:each="department : ${departmentOptions}"
+                            th:value="${department.name}"
+                            th:text="${department.name}"
+                            th:attr="data-department-id=${department.id}"></option>
+                </select>
+                <button type="button" class="btn btn-success"
+                        onclick="exportToExcel('interpreters')">
+                    <i class="bi bi-file-excel"></i> Excel
+                </button>
 
             </div>
         </div>

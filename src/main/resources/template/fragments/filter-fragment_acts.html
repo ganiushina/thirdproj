@@ -26,7 +26,7 @@
                 </div>
                 <div class="col-md-3" th:with="departmentOptions=${departments}">
                     <label for="filterDepartment" class="form-label">Направление</label>
-                    <select class="form-select" id="filterDepartment" onchange="filterTable()">
+                    <select class="form-control form-select" id="filterDepartment" onchange="filterTable()">
                         <option value="">Все направления</option>
                         <option th:each="department : ${departmentOptions}"
                                 th:value="${department.name}"
