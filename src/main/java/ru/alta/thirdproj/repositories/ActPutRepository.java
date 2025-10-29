@@ -42,7 +42,7 @@ public class ActPutRepository {
             "\tWHERE ab.id NOT IN (SELECT pb.act_id FROM dbo.payment_buh pb) \n" +
             "\tAND convert(date, ab.date_act) >= convert(date, dateadd(yy, -1, :date1))";
 
-    private static final String SELECT_ACT_DETAILS_BY_COMPANY_BY_DEPARTMENT = "SELECT distinct ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
+    private static final String SELECT_ACT_DETAILS_BY_COMPANY_BY_DEPARTMENT = "SELECT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
             "\tab.candidate, ab.organization, pb.depatment_id, d.dep_name, pb.percent_responsible_user_by_candidate_percent*100 dep_percent,\n" +
             "\tsum(pb.summ_responsible_user) over (partition by pb.depatment_id) sum_dep,\n" +
             "\tsum(ab.total_no_nds) over (partition by ab.company_name) sum_comp\n" +

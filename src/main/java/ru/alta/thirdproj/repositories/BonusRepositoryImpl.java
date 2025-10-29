@@ -24,7 +24,7 @@ public class BonusRepositoryImpl {
 
     private List<UserBonus> userBonusesList;
 
-    private static final String SELECT_USER_QUERY = "SELECT * FROM fn_User_Bonus_by_Details (:date1, :date2, :user_id, :department_id)";
+    private static final String SELECT_USER_QUERY = "SELECT * FROM [fn_User_Bonus_by_Details_New] (:date1, :date2, :user_id, :department_id)";
 
     private static final String SELECT_EXTRA_BONUS = "SELECT ab.company_name, ab.candidate, ab.id FROM extra_bonus eb\n" +
             "    JOIN dbo.act_buh ab ON ab.id = eb.act_id\n" +

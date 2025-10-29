@@ -23,4 +23,6 @@ public class Salary {
     private Integer salaryQuarter;
     private String salaryMonthStr;
     private Integer salaryYear;
+    private String salarySickDaysPayRUB;
+    private String salaryVacationPayRUB;
 }

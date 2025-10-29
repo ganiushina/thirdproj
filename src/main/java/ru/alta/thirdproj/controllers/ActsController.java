@@ -2,6 +2,7 @@ package ru.alta.thirdproj.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -21,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class ActsController {
@@ -149,8 +151,10 @@ public class ActsController {
         // Получаем исходные данные (все акты за период)
         List<ActByCompanyByDepartment> allActs = actBonusPercentService.getActByDepartmentByCompany(dateFrom, dateTo);
 
+        List<ActByCompanyByDepartment> actsByDepartment = allActs;
+        allActs = groupActsByDepartmentPercentage(allActs);
         // Всегда добавляем суммы по направлениям из всех данных
-        model.addAttribute("formattedDepartmentSums", getFormattedDepartmentSums(allActs));
+        model.addAttribute("formattedDepartmentSums", getFormattedDepartmentSums(actsByDepartment));
 
         // Инициализируем список для отфильтрованных данных
         List<ActByCompanyByDepartment> filteredActs = allActs; // По умолчанию показываем все данные
@@ -214,12 +218,17 @@ public class ActsController {
             return Collections.emptyMap();
         }
 
-        // Суммируем по отделам
+        // Группируем по departmentId, берем первую запись и из нее departmentName и sumByDepartment
         Map<String, Double> departmentSums = acts.stream()
                 .collect(Collectors.toMap(
-                        ActByCompanyByDepartment::getDepartmentName,
-                        ActByCompanyByDepartment::getSumActNoNDS,
-                        Double::sum
+                        ActByCompanyByDepartment::getDepartmentId, // ключ - ID отдела
+                        act -> Map.entry(act.getDepartmentName(), act.getSumByDepartment()), // значение - пара (название, сумма)
+                        (existing, replacement) -> existing // при дубликатах оставляем существующий
+                ))
+                .values().stream() // получаем только значения (пары название-сумма)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, // departmentName
+                        Map.Entry::getValue // sumByDepartment
                 ));
 
         // Форматируем суммы
@@ -229,6 +238,8 @@ public class ActsController {
                         e -> formatCurrency(e.getValue())
                 ));
     }
+
+
 
     private Map<String, String> getFormattedCompaniesSums(List<ActByCompanyByDepartment> acts) {
         if (acts == null || acts.isEmpty()) {
@@ -249,5 +260,64 @@ public class ActsController {
                         Map.Entry::getKey,
                         e -> formatCurrency(e.getValue())
                 ));
+    }
+
+    public List<ActByCompanyByDepartment> groupActsByDepartmentPercentage(List<ActByCompanyByDepartment> allActs) {
+        if (allActs == null || allActs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Группируем сначала по actId, затем внутри каждого акта по departmentId
+        return allActs.stream()
+                .collect(Collectors.groupingBy(
+                        ActByCompanyByDepartment::getActId,
+                        Collectors.groupingBy(ActByCompanyByDepartment::getDepartmentId)
+                ))
+                .entrySet().stream()
+                .flatMap(actEntry ->
+                        actEntry.getValue().entrySet().stream()
+                                .flatMap(departmentEntry -> {
+                                    List<ActByCompanyByDepartment> departmentActs = departmentEntry.getValue();
+
+                                    // Суммируем проценты для данного отдела в данном акте
+                                    double totalPercent = departmentActs.stream()
+                                            .mapToDouble(ActByCompanyByDepartment::getPercentByDepartment)
+                                            .sum();
+
+                                    totalPercent = Math.round(totalPercent * 100.0) / 100.0;
+
+                                    if (Math.abs(totalPercent - 100.0) < 0.01) {
+                                        // Если сумма ≈100%, берем первую запись и устанавливаем 100%
+                                        ActByCompanyByDepartment representative = departmentActs.get(0);
+                                        ActByCompanyByDepartment modified = copyAct(representative);
+                                        modified.setPercentByDepartment(100.0);
+                                        // Пересчитываем сумму для отдела
+                                        modified.setSumByDepartment(representative.getSumActNoNDS());
+                                        return Stream.of(modified);
+                                    } else {
+                                        // Если сумма не 100%, оставляем все записи как есть
+                                        return departmentActs.stream();
+                                    }
+                                })
+                )
+                .collect(Collectors.toList());
+    }
+
+    private ActByCompanyByDepartment copyAct(ActByCompanyByDepartment original) {
+        ActByCompanyByDepartment copy = new ActByCompanyByDepartment();
+        copy.setNum(original.getNum());
+        copy.setActId(original.getActId());
+        copy.setCandidate(original.getCandidate());
+        copy.setCompany(original.getCompany());
+        copy.setProjectName(original.getProjectName());
+        copy.setDateAct(original.getDateAct());
+        copy.setOrganization(original.getOrganization());
+        copy.setPercentByDepartment(original.getPercentByDepartment());
+        copy.setSumActNoNDS(original.getSumActNoNDS());
+        copy.setDepartmentId(original.getDepartmentId());
+        copy.setDepartmentName(original.getDepartmentName());
+        copy.setSumByDepartment(original.getSumByDepartment());
+        copy.setSumByCompany(original.getSumByCompany());
+        return copy;
     }
 }

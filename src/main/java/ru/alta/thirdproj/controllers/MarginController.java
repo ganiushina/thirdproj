@@ -158,6 +158,28 @@ public class MarginController {
 
         return "interpreter :: interpreterTab";
     }
+    @GetMapping("/margin/userAct")
+    public String getUserAct(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo,
+            Model model) {
+
+        processDateRange(dateFrom, dateTo, model);
+
+        // Получаем данные о выплатах
+        List<ActByUserCheck> actByUserList = marginBonusService.getActByUserCheck(dateFrom, dateTo);
+        // Группируем данные по номеру акта
+        Map<String, List<ActByUserCheck>> groupedActs = actByUserList != null ?
+                actByUserList.stream()
+                        .collect(Collectors.groupingBy(ActByUserCheck::getActNum)) :
+                new HashMap<>();
+
+        model.addAttribute("groupedActs", groupedActs);
+        model.addAttribute("actByUserList", actByUserList != null ? actByUserList : Collections.emptyList());
+
+        return "actByUserCheck :: actByUserTab";
+    }
+
 
     @PostMapping("/margin/send-verification-emails")
     @ResponseBody

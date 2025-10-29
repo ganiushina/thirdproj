@@ -44,6 +44,15 @@ public class UserSalaryRepImplRep  {
             "select ps.user_id, m.man_fio, ps.dateFrom, ps.dateTo, ps.success from paymentPeriodSuccess ps\n" +
             "join man m on m.man_id = ps.user_id " +
                     "where convert(date, ps.dateFrom) = convert(date,:dateFrom) and convert(date,ps.dateTo) = convert(date,:dateTo)";
+    private static final String SELECT_ACT_BY_USER_CHECK = "SELECT ab.id as act_id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
+            "            ab.candidate, ab.organization, d.dep_name, pb.responsible_user_name, isnull(pb.resecher_name, '') resecher_name, isnull(pb.summ_resecher, 0) summ_resecher,\n" +
+            "\t\t\tpb.percent_responsible_user_by_candidate_percent*100 candidate_percent,\n" +
+            "            pb.summ_responsible_user          \n" +
+            "            FROM dbo.act_buh ab\n" +
+            "            join project_buh pb on pb.act_id = ab.id\n" +
+            "            join depatment d on d.id = pb.depatment_id\n" +
+            "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\t\t\t\n" +
+            "            WHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -641,6 +650,14 @@ public class UserSalaryRepImplRep  {
                     salary.setUserSalaryRUB(formatCurrency(manZP, ru));
 //                    salary.setUserBonusBDMRUB(currencyInstance.format(bonusBdm.doubleValue()));
                 }
+                BigDecimal salarySickDaysPay = (BigDecimal) n.get("salary_sick_days_pay");
+                if (salarySickDaysPay != null && salarySickDaysPay.doubleValue() != 0.0) {
+                    salary.setSalarySickDaysPayRUB(currencyInstance.format(salarySickDaysPay.doubleValue()));
+                }
+                BigDecimal salaryVacationPay = (BigDecimal) n.get("salary_vacation_pay");
+                if (salaryVacationPay != null && salaryVacationPay.doubleValue() != 0.0) {
+                    salary.setSalaryVacationPayRUB(currencyInstance.format(salaryVacationPay.doubleValue()));
+                }
 
                 // Аналогично заполняем остальные поля salary...
 
@@ -685,4 +702,48 @@ public class UserSalaryRepImplRep  {
         }
     }
 
+    public List<ActByUserCheck> getActByUserCheck(LocalDate dateFrom, LocalDate dateTo) {
+        try (Connection connection = sql2o.open()) {
+            List<Map<String, Object>> rows = connection.createQuery(SELECT_ACT_BY_USER_CHECK)
+                    .addParameter("date1", dateFrom)
+                    .addParameter("date2", dateTo)
+                    .executeAndFetchTable()
+                    .asList();
+
+            return rows.stream().map(row -> {
+                ActByUserCheck item = new ActByUserCheck();
+                item.setActId((Integer) row.get("act_id"));
+                // Правильное преобразование даты
+                Object dateValue = row.get("date_act");
+                if (dateValue instanceof java.sql.Timestamp) {
+                    java.sql.Timestamp timestamp = (java.sql.Timestamp) dateValue;
+                    item.setDateAct(timestamp.toLocalDateTime().toLocalDate());
+                } else if (dateValue instanceof java.sql.Date) {
+                    item.setDateAct(((java.sql.Date) dateValue).toLocalDate());
+                } else {
+                    item.setDateAct(null);
+                }
+//                java.sql.Date dateAct = (java.sql.Date) row.get("date_act");
+//                item.setDateAct(dateAct != null ? dateAct.toLocalDate() : null);
+                item.setActNum((String) row.get("act_num"));
+                item.setCompanyName((String) row.get("company_name"));
+                Double totalNoNds = (Double) row.get("total_no_nds");
+                item.setTotalNoNds(totalNoNds != null ? totalNoNds : 0.0);
+                item.setProjectName((String) row.get("project_name"));
+                item.setCandidate((String) row.get("candidate"));
+                item.setOrganization((String) row.get("organization"));
+                item.setDepartmentName((String) row.get("dep_name"));
+                item.setResponsibleUserName((String) row.get("responsible_user_name"));
+                item.setResecherName((String) row.get("resecher_name"));
+                Double summResecher = (Double) row.get("summ_resecher");
+                item.setSummResecher(summResecher != null ? summResecher : 0.0);
+                Double candidatePercent = (Double) row.get("candidate_percent");
+                item.setCandidatePercent(candidatePercent != null ? candidatePercent : 0.0);
+                Double summResponsibleUser = (Double) row.get("summ_responsible_user");
+                item.setSummResponsibleUser(summResponsibleUser != null ? summResponsibleUser : 0.0);
+
+                return item;
+            }).collect(Collectors.toList());
+        }
+    }
 }

@@ -1,0 +1,257 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="actByUserTab">
+
+    <h4>Выставленные акты по направлениям и людям</h4>
+    <p>Акты за период <span th:text="${#temporals.format(dateFrom)}">...</span> -
+        <span th:text="${#temporals.format(dateTo)}">...</span></p>
+
+    <div th:replace="~{fragments/filter-fragment_acts :: filter-form}"></div>
+
+    <div class="sticky-table-wrapper">
+        <table id="actByUser" class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Номер акта</th>
+                <th>Дата акта</th>
+                <th>Сумма акта</th>
+                <th>Компания</th>
+                <th>Кандидат</th>
+                <th>Выставлен от</th>
+                <th>Направление</th>
+                <th>Консультант</th>
+                <th>Сумма консультанта</th>
+                <th>Ресечер</th>
+                <th>Сумма ресечера</th>
+                <th>Процент участия</th>
+                <th>Проект</th>
+            </tr>
+            </thead>
+            <tbody>
+            <th:block th:if="${!groupedActs.isEmpty()}">
+                <th:block th:each="entry : ${groupedActs.entrySet()}">
+                    <th:block th:with="acts=${entry.value}">
+                        <tr th:each="act,iter : ${acts}">
+                            <!-- Объединяем ячейки только для первой строки группы -->
+                            <td th:text="${entry.key}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td th:text="${#temporals.format(act.dateAct, 'dd.MM.yyyy')}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td th:text="${#numbers.formatDecimal(act.totalNoNds, 1, 2)}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td th:text="${act.companyName}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td th:text="${act.candidate}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td th:text="${act.organization}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+
+                            <!-- Остальные поля для всех строк -->
+                            <td th:text="${act.departmentName}"></td>
+                            <td th:text="${act.responsibleUserName}"></td>
+                            <td th:text="${#numbers.formatDecimal(act.summResponsibleUser, 1, 2)}"></td>
+                            <td th:text="${act.resecherName}"></td>
+                            <td th:text="${#numbers.formatDecimal(act.summResecher, 1, 2)}"></td>
+                            <td th:text="${#numbers.formatDecimal(act.candidatePercent, 1, 2)} + '%'"></td>
+                            <td th:text="${act.projectName}"></td>
+                        </tr>
+                    </th:block>
+                </th:block>
+            </th:block>
+
+            <th:block th:if="${groupedActs.isEmpty()}">
+                <tr>
+                    <td colspan="13" class="text-center text-muted">
+                        Нет данных для отображения за выбранный период
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html>
+
+<!--    <script th:inline="javascript">-->
+<!--        /*<![CDATA[*/-->
+<!--        // Функция фильтрации таблицы-->
+<!--        function filterTable() {-->
+<!--            const actNumFilter = document.getElementById('filterActNum').value.toLowerCase();-->
+<!--            const companyFilter = document.getElementById('filterCompany').value.toLowerCase();-->
+<!--            const candidateFilter = document.getElementById('filterCandidate').value.toLowerCase();-->
+<!--            const departmentFilter = document.getElementById('filterDepartment').value.toLowerCase();-->
+<!--            const personFilter = document.getElementById('filterPerson').value.toLowerCase();-->
+
+<!--            const table = document.getElementById('actByUser');-->
+<!--            const tbody = table.querySelector('tbody');-->
+<!--            const allRows = Array.from(tbody.querySelectorAll('tr.act-row'));-->
+<!--            const noDataRow = table.querySelector('tr.no-data-row');-->
+
+<!--            // Сначала скрываем все строки данных-->
+<!--            allRows.forEach(row => {-->
+<!--                row.style.display = 'none';-->
+<!--            });-->
+
+<!--            // Скрываем сообщение "Нет данных"-->
+<!--            if (noDataRow) {-->
+<!--                noDataRow.style.display = 'none';-->
+<!--            }-->
+
+<!--            // Находим группы актов, которые соответствуют фильтрам-->
+<!--            const visibleGroups = new Set();-->
+
+<!--            allRows.forEach(row => {-->
+<!--                const actNum = row.getAttribute('data-act-num') || '';-->
+<!--                const companyName = row.getAttribute('data-company-name') || '';-->
+<!--                const candidate = row.getAttribute('data-candidate') || '';-->
+<!--                const departmentName = row.getAttribute('data-department-name') || '';-->
+<!--                const responsibleUser = row.getAttribute('data-responsible-user') || '';-->
+<!--                const resecherName = row.getAttribute('data-resecher-name') || '';-->
+
+<!--                // Проверяем фильтры-->
+<!--                const matchesActNum = !actNumFilter || actNum.toLowerCase().includes(actNumFilter);-->
+<!--                const matchesCompany = !companyFilter || companyName.toLowerCase().includes(companyFilter);-->
+<!--                const matchesCandidate = !candidateFilter || candidate.toLowerCase().includes(candidateFilter);-->
+<!--                const matchesDepartment = !departmentFilter || departmentName.toLowerCase().includes(departmentFilter);-->
+<!--                const matchesPerson = !personFilter ||-->
+<!--                    responsibleUser.toLowerCase().includes(personFilter) ||-->
+<!--                    resecherName.toLowerCase().includes(personFilter);-->
+
+<!--                if (matchesActNum && matchesCompany && matchesCandidate && matchesDepartment && matchesPerson) {-->
+<!--                    visibleGroups.add(actNum);-->
+<!--                }-->
+<!--            });-->
+
+<!--            // Показываем строки из групп, которые прошли фильтрацию-->
+<!--            allRows.forEach(row => {-->
+<!--                const actNum = row.getAttribute('data-act-num');-->
+<!--                if (visibleGroups.has(actNum)) {-->
+<!--                    row.style.display = '';-->
+<!--                }-->
+<!--            });-->
+
+<!--            // Обновляем rowspan для видимых групп-->
+<!--            updateRowspans();-->
+
+<!--            // Показываем сообщение "Нет данных", если нет видимых строк-->
+<!--            const visibleRows = table.querySelectorAll('tr.act-row[style=""]');-->
+<!--            if (visibleRows.length === 0 && noDataRow) {-->
+<!--                noDataRow.style.display = '';-->
+<!--            }-->
+<!--        }-->
+
+<!--        // Обновление rowspan для объединенных ячеек-->
+<!--        function updateRowspans() {-->
+<!--            const table = document.getElementById('actByUser');-->
+<!--            const groups = new Map();-->
+
+<!--            // Собираем видимые строки по группам-->
+<!--            const visibleRows = Array.from(table.querySelectorAll('tr.act-row[style=""]'));-->
+
+<!--            visibleRows.forEach(row => {-->
+<!--                const actNum = row.getAttribute('data-act-num');-->
+<!--                if (!groups.has(actNum)) {-->
+<!--                    groups.set(actNum, []);-->
+<!--                }-->
+<!--                groups.get(actNum).push(row);-->
+<!--            });-->
+
+<!--            // Обновляем rowspan для каждой группы-->
+<!--            groups.forEach((rows, actNum) => {-->
+<!--                const rowspan = rows.length;-->
+
+<!--                // Обновляем rowspan только для первой строки группы-->
+<!--                const firstRow = rows.find(row => {-->
+<!--                    const firstRowCell = row.querySelector('td[rowspan]');-->
+<!--                    return firstRowCell !== null;-->
+<!--                });-->
+
+<!--                if (firstRow) {-->
+<!--                    const mergedCells = firstRow.querySelectorAll('td[rowspan]');-->
+<!--                    mergedCells.forEach(cell => {-->
+<!--                        cell.setAttribute('rowspan', rowspan);-->
+<!--                    });-->
+<!--                }-->
+<!--            });-->
+<!--        }-->
+
+<!--        // Очистка фильтров-->
+<!--        function clearFilters() {-->
+<!--            document.getElementById('filterActNum').value = '';-->
+<!--            document.getElementById('filterCompany').value = '';-->
+<!--            document.getElementById('filterCandidate').value = '';-->
+<!--            document.getElementById('filterDepartment').value = '';-->
+<!--            document.getElementById('filterPerson').value = '';-->
+
+<!--            // Показываем все строки-->
+<!--            const table = document.getElementById('actByUser');-->
+<!--            const allRows = table.querySelectorAll('tr.act-row');-->
+<!--            const noDataRow = table.querySelector('tr.no-data-row');-->
+
+<!--            allRows.forEach(row => {-->
+<!--                row.style.display = '';-->
+<!--            });-->
+
+<!--            // Скрываем сообщение "Нет данных"-->
+<!--            if (noDataRow) {-->
+<!--                noDataRow.style.display = 'none';-->
+<!--            }-->
+
+<!--            // Обновляем rowspan-->
+<!--            updateRowspans();-->
+<!--        }-->
+
+<!--        // Экспорт в Excel-->
+<!--        function exportToExcel() {-->
+<!--            const table = document.getElementById('actByUser');-->
+
+<!--            // Создаем копию таблицы для экспорта-->
+<!--            const tableCopy = table.cloneNode(true);-->
+
+<!--            // Удаляем скрытые строки-->
+<!--            const rowsToRemove = tableCopy.querySelectorAll('tr[style="none"]');-->
+<!--            rowsToRemove.forEach(row => row.remove());-->
+
+<!--            const html = tableCopy.outerHTML;-->
+<!--            const blob = new Blob([html], {type: 'application/vnd.ms-excel'});-->
+<!--            const link = document.createElement('a');-->
+<!--            link.href = URL.createObjectURL(blob);-->
+<!--            link.download = `акты_по_пользователям_${new Date().toLocaleDateString('ru-RU')}.xls`;-->
+<!--            link.click();-->
+<!--        }-->
+
+<!--        // Инициализация при загрузке страницы-->
+<!--        document.addEventListener('DOMContentLoaded', function() {-->
+<!--            // Инициализируем таблицу-->
+<!--            updateRowspans();-->
+<!--        });-->
+<!--        /*]]>*/-->
+<!--    </script>-->
+
+<!--    <style>-->
+<!--        .table th {-->
+<!--            background-color: #f8f9fa;-->
+<!--            font-weight: 600;-->
+<!--        }-->
+
+<!--        .table td {-->
+<!--            vertical-align: middle;-->
+<!--        }-->
+
+<!--        .sticky-table-wrapper {-->
+<!--            max-height: 70vh;-->
+<!--            overflow-y: auto;-->
+<!--        }-->
+
+<!--        .card-header {-->
+<!--            background-color: #f8f9fa;-->
+<!--            border-bottom: 1px solid #dee2e6;-->
+<!--        }-->
+<!--    </style>-->
+<!--</div>-->
+<!--</html>-->
