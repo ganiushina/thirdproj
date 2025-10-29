@@ -54,7 +54,8 @@ public class UserSalaryRepImplRep  {
             "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\t\t\t\n" +
             "            WHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
     private static final String SELECT_DEPARTMENTS_QUERY =
-            "SELECT DISTINCT id, dep_name FROM depatment WHERE dep_name IS NOT NULL ORDER BY dep_name";
+            "SELECT DISTINCT id, dep_name FROM depatment WHERE dep_name IS NOT NULL " +
+                    "and id not in (5,9,7,10) ORDER BY dep_name";
     private static final String DEPARTMENT_ID_COLUMN = "id";
     private static final String DEPARTMENT_NAME_COLUMN = "dep_name";
 
