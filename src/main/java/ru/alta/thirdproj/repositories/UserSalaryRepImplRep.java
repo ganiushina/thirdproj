@@ -53,6 +53,8 @@ public class UserSalaryRepImplRep  {
             "            join depatment d on d.id = pb.depatment_id\n" +
             "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\t\t\t\n" +
             "            WHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
+    private static final String SELECT_DEPARTMENTS_QUERY =
+            "SELECT DISTINCT dep_name FROM depatment WHERE dep_name IS NOT NULL ORDER BY dep_name";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -347,6 +349,19 @@ public class UserSalaryRepImplRep  {
 
         }
 
+    }
+
+    public List<String> getAllDepartments() {
+        try (Connection connection = sql2o.open()) {
+            return connection.createQuery(SELECT_DEPARTMENTS_QUERY, false)
+                    .executeAndFetch(String.class)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+        }
     }
 
     public List<DepartmentUserSales> getAllUsersSales(LocalDate date1, LocalDate date2) {

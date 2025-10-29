@@ -7,9 +7,27 @@
 
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
-            <div class="row">
-                <input type="text" th:attr="data-table-id=${tableId}" id="departmentFilter" placeholder="Искать по отделу" th:onkeyup="departmentFilter(this)" />
-                <input type="text" th:attr="data-table-id=${tableId}" id="monthFilter" placeholder="Искать по месяцу" th:onkeyup="monthFilter(this)" />
+            <div class="row" th:with="departmentOptions=${departments}">
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" th:for="${tableId + '_departmentFilter'}">Направление</label>
+                    <select class="form-select"
+                            th:id="${tableId + '_departmentFilter'}"
+                            th:attr="data-table-id=${tableId}"
+                            th:onchange="departmentFilter(this)">
+                        <option value="">Все направления</option>
+                        <option th:each="department : ${departmentOptions}"
+                                th:value="${department}"
+                                th:text="${department}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label" th:for="${tableId + '_monthFilter'}">Месяц</label>
+                    <input type="text" class="form-control"
+                           th:id="${tableId + '_monthFilter'}"
+                           th:attr="data-table-id=${tableId}"
+                           placeholder="Искать по месяцу"
+                           th:oninput="monthFilter(this)" />
+                </div>
             </div>
         </div>
     </div>

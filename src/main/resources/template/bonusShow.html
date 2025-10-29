@@ -20,8 +20,19 @@
                 <input th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
                 <input th:value="${userName != null} ? ${userName}" th:name="userName" type="text"
                        placeholder="Фамилия">
-                <input th:value="${departmentName != null} ? ${departmentName}" th:name="departmentName" type="text"
-                       placeholder="Направление">
+                <div th:with="departmentOptions=${departments}">
+                    <select class="form-control"
+                            th:name="departmentName">
+                        <option value=""
+                                th:selected="${departmentName == null || #strings.isEmpty(departmentName)}">
+                            Все направления
+                        </option>
+                        <option th:each="department : ${departmentOptions}"
+                                th:value="${department}"
+                                th:text="${department}"
+                                th:selected="${departmentName != null && departmentName.equals(department)}"></option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-primary">Фильтровать</button>
             </form>
 

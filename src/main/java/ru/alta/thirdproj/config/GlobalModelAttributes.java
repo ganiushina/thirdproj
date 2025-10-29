@@ -1,22 +1,25 @@
 package ru.alta.thirdproj.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import ru.alta.thirdproj.entites.User;
+import ru.alta.thirdproj.services.DepartmentService;
 import ru.alta.thirdproj.services.UserService;
 
 import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
 
 @ControllerAdvice
 public class GlobalModelAttributes {
     private final UserService userService;
+    private final DepartmentService departmentService;
 
     @Autowired
-    public GlobalModelAttributes(UserService userService) {
+    public GlobalModelAttributes(UserService userService, DepartmentService departmentService) {
         this.userService = userService;
+        this.departmentService = departmentService;
     }
 
     @ModelAttribute("greeting")
@@ -55,6 +58,12 @@ public class GlobalModelAttributes {
         }
 
         return String.format(greetingTemplate, greeting.toString());
+    }
+
+    @ModelAttribute("departments")
+    public List<String> populateDepartments() {
+        List<String> departments = departmentService.getDepartments();
+        return departments != null ? departments : Collections.emptyList();
     }
 
     private String extractFirstName(String fullName, User user) {

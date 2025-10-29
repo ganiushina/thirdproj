@@ -108,9 +108,14 @@
                         <label for="searchFio">Поиск по ФИО</label>
                         <input type="text" id="searchFio" placeholder="Введите имя..." oninput="filterBonusTable()">
                     </div>
-                    <div class="filter-group">
-                        <label for="searchDepartment">Поиск по отделу</label>
-                        <input type="text" id="searchDepartment" placeholder="Введите отдел..." oninput="filterBonusTable()">
+                    <div class="filter-group" th:with="departmentOptions=${departments}">
+                        <label for="searchDepartment">Направление</label>
+                        <select id="searchDepartment" class="form-select" onchange="filterBonusTable()">
+                            <option value="">Все направления</option>
+                            <option th:each="department : ${departmentOptions}"
+                                    th:value="${department}"
+                                    th:text="${department}"></option>
+                        </select>
                     </div>
                 </div>
 
@@ -311,8 +316,8 @@
     };
 
     function filterBonusTable() {
-        const nameFilter = document.getElementById('searchFio').value.toLowerCase();
-        const deptFilter = document.getElementById('searchDepartment').value.toLowerCase();
+        const nameFilter = (document.getElementById('searchFio').value || '').toLowerCase();
+        const deptFilter = (document.getElementById('searchDepartment').value || '').toLowerCase();
 
         // Сначала скрываем всё
         document.querySelectorAll('#bonusTable tbody tr').forEach(row => {
@@ -325,7 +330,7 @@
             const department = row.getAttribute('data-department') || '';
 
             const nameMatch = fio.includes(nameFilter);
-            const deptMatch = department.includes(deptFilter);
+            const deptMatch = !deptFilter || department === deptFilter;
 
             if (nameMatch && deptMatch) {
                 row.style.display = '';

@@ -24,10 +24,14 @@
                     <input type="text" class="form-control" id="filterCandidate" placeholder="Введите кандидата"
                            oninput="filterTable()">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" th:with="departmentOptions=${departments}">
                     <label for="filterDepartment" class="form-label">Направление</label>
-                    <input type="text" class="form-control" id="filterDepartment" placeholder="Введите направление"
-                           oninput="filterTable()">
+                    <select class="form-select" id="filterDepartment" onchange="filterTable()">
+                        <option value="">Все направления</option>
+                        <option th:each="department : ${departmentOptions}"
+                                th:value="${department}"
+                                th:text="${department}"></option>
+                    </select>
                 </div>
                 <div class="col-md-6">
                     <label for="filterPerson" class="form-label">Консультант / Ресечер</label>
