@@ -1218,10 +1218,23 @@
 
         filterInputs.forEach(inputId => {
             const input = document.getElementById(inputId);
-            if (input) {
-                input.addEventListener('input', debounce(filterTable, 300));
+            if (!input || input.dataset.filterBound === 'true') {
+                return;
             }
+
+            input.addEventListener('input', debounce(filterTable, 300));
+
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', filterTable);
+            }
+
+            input.dataset.filterBound = 'true';
         });
+
+        // Пересобираем группировку, чтобы учесть текущее состояние фильтров
+        if (document.getElementById('actByUser')) {
+            filterTable();
+        }
     }
 
     // Debounce функция для оптимизации

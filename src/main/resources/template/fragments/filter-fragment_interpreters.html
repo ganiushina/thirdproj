@@ -2,21 +2,52 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
+<style>
+    .filter-container .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .filter-container .filter-control {
+        flex: 1 1 220px;
+        min-width: 180px;
+    }
+
+    .filter-container .filter-actions {
+        flex: 0 0 auto;
+    }
+
+    @media (max-width: 576px) {
+        .filter-container .filter-control,
+        .filter-container .filter-actions {
+            flex-basis: 100%;
+        }
+
+        .filter-container .filter-actions {
+            display: flex;
+            justify-content: flex-start;
+        }
+    }
+</style>
+
 <!-- Name filter fragment -->
 <div th:fragment="filter-form(tableId)">
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
-            <div class="row" th:with="departmentOptions=${departments}">
-                <input type="text" th:attr="data-table-id=${tableId}" id="nameFilter"
+            <div class="filter-row" th:with="departmentOptions=${departments}">
+                <input class="filter-control" type="text" th:attr="data-table-id=${tableId}" id="nameFilter"
                        placeholder="Искать по имени"
                        th:oninput="debounceFilter(nameFilterInterpreters, this)" />
 
-                <input type="text" th:attr="data-table-id=${tableId}" id="monthFilter"
+                <input class="filter-control" type="text" th:attr="data-table-id=${tableId}" id="monthFilter"
                        placeholder="Искать по месяцу"
                        th:oninput="debounceFilter(filterByMonthInterpreters, this)" />
 
-                <select th:attr="data-table-id=${tableId}" id="departmentFilter"
-                        th:onchange="debounceFilter(departmentFilterInterpreters, this)">
+                <select class="filter-control" th:attr="data-table-id=${tableId}" id="departmentFilter"
+                        th:onchange="debounceFilter(departmentFilterInterpreters, this)"
+                        th:oninput="debounceFilter(departmentFilterInterpreters, this)">
                     <option value="">Все направления</option>
                     <option th:each="department : ${departmentOptions}"
                             th:value="${department.name}"
@@ -24,9 +55,11 @@
                             th:attr="data-department-id=${department.id}"></option>
                 </select>
 
-                <button type="button" class="btn btn-success" onclick="exportToExcel('interpreters')">
-                    <i class="bi bi-file-excel"></i> Excel
-                </button>
+                <div class="filter-actions">
+                    <button type="button" class="btn btn-success" onclick="exportToExcel('interpreters')">
+                        <i class="bi bi-file-excel"></i> Excel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
