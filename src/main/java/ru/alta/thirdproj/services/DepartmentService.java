@@ -7,6 +7,8 @@ import ru.alta.thirdproj.repositories.UserSalaryRepImplRep;
 import java.util.Collections;
 import java.util.List;
 
+import ru.alta.thirdproj.entites.Department;
+
 @Service
 public class DepartmentService {
 
@@ -17,8 +19,8 @@ public class DepartmentService {
         this.userSalaryRepImplRep = userSalaryRepImplRep;
     }
 
-    public List<String> getDepartments() {
-        List<String> departments = userSalaryRepImplRep.getAllDepartments();
+    public List<Department> getDepartments() {
+        List<Department> departments = userSalaryRepImplRep.getAllDepartments();
         return departments != null ? Collections.unmodifiableList(departments) : Collections.emptyList();
     }
 }

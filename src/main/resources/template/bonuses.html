@@ -111,10 +111,11 @@
                     <div class="filter-group" th:with="departmentOptions=${departments}">
                         <label for="searchDepartment">Направление</label>
                         <select id="searchDepartment" class="form-select" onchange="filterBonusTable()">
-                            <option value="">Все направления</option>
+                            <option value="" data-department-id="">Все направления</option>
                             <option th:each="department : ${departmentOptions}"
-                                    th:value="${department}"
-                                    th:text="${department}"></option>
+                                    th:value="${department.name}"
+                                    th:text="${department.name}"
+                                    th:attr="data-department-id=${department.id}"></option>
                         </select>
                     </div>
                 </div>

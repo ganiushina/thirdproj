@@ -3,6 +3,7 @@ package ru.alta.thirdproj.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import ru.alta.thirdproj.entites.Department;
 import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.services.DepartmentService;
 import ru.alta.thirdproj.services.UserService;
@@ -61,8 +62,8 @@ public class GlobalModelAttributes {
     }
 
     @ModelAttribute("departments")
-    public List<String> populateDepartments() {
-        List<String> departments = departmentService.getDepartments();
+    public List<Department> populateDepartments() {
+        List<Department> departments = departmentService.getDepartments();
         return departments != null ? departments : Collections.emptyList();
     }
 

@@ -16,8 +16,9 @@
                             th:onchange="departmentFilter(this)">
                         <option value="">Все направления</option>
                         <option th:each="department : ${departmentOptions}"
-                                th:value="${department}"
-                                th:text="${department}"></option>
+                                th:value="${department.name}"
+                                th:text="${department.name}"
+                                th:attr="data-department-id=${department.id}"></option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-2">

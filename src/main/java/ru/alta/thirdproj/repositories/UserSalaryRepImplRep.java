@@ -54,8 +54,9 @@ public class UserSalaryRepImplRep  {
             "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\t\t\t\n" +
             "            WHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
     private static final String SELECT_DEPARTMENTS_QUERY =
-            "SELECT DISTINCT dep_name FROM depatment WHERE dep_name IS NOT NULL ORDER BY dep_name";
-    private static final String DEPARTMENT_COLUMN = "dep_name";
+            "SELECT DISTINCT id, dep_name FROM depatment WHERE dep_name IS NOT NULL ORDER BY dep_name";
+    private static final String DEPARTMENT_ID_COLUMN = "id";
+    private static final String DEPARTMENT_NAME_COLUMN = "dep_name";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -352,7 +353,7 @@ public class UserSalaryRepImplRep  {
 
     }
 
-    public List<String> getAllDepartments() {
+    public List<Department> getAllDepartments() {
         try (Connection connection = sql2o.open()) {
             Table table = connection.createQuery(SELECT_DEPARTMENTS_QUERY, false)
                     .executeAndFetchTable();
@@ -367,15 +368,65 @@ public class UserSalaryRepImplRep  {
                 return Collections.emptyList();
             }
 
-            return rows.stream()
-                    .map(row -> row.get(DEPARTMENT_COLUMN))
-                    .filter(Objects::nonNull)
-                    .map(Object::toString)
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .distinct()
-                    .collect(Collectors.toList());
+            Map<String, Department> departments = new LinkedHashMap<>();
+
+            for (Map<String, Object> row : rows) {
+                Department department = mapRowToDepartment(row);
+                if (department == null || department.getName() == null || department.getName().isEmpty()) {
+                    continue;
+                }
+
+                String key = department.getId() != null
+                        ? "ID:" + department.getId()
+                        : "NAME:" + department.getName().toLowerCase(Locale.ROOT);
+
+                departments.putIfAbsent(key, department);
+            }
+
+            return Collections.unmodifiableList(new ArrayList<>(departments.values()));
         }
+    }
+
+    private Department mapRowToDepartment(Map<String, Object> row) {
+        if (row == null || row.isEmpty()) {
+            return null;
+        }
+
+        Department department = new Department();
+        department.setId(extractInteger(row.get(DEPARTMENT_ID_COLUMN)));
+
+        Object nameValue = row.get(DEPARTMENT_NAME_COLUMN);
+        if (nameValue != null) {
+            String name = nameValue.toString().trim();
+            if (!name.isEmpty()) {
+                department.setName(name);
+            }
+        }
+
+        if (department.getId() == null && department.getName() == null) {
+            return null;
+        }
+
+        return department;
+    }
+
+    private Integer extractInteger(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+
+        if (value instanceof String) {
+            String trimmed = ((String) value).trim();
+            if (!trimmed.isEmpty()) {
+                try {
+                    return Integer.valueOf(trimmed);
+                } catch (NumberFormatException ex) {
+                    log.warn("Unable to parse department id '{}'", value);
+                }
+            }
+        }
+
+        return null;
     }
 
     public List<DepartmentUserSales> getAllUsersSales(LocalDate date1, LocalDate date2) {
