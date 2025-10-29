@@ -971,97 +971,140 @@
             // Дальнейшая логика сортировки...
         });
     }
+    const actByUserState = {
+        table: null,
+        groups: new Map(),
+        initialised: false
+    };
+
     // Функция фильтрации таблицы актов
     function filterTable() {
-        const actNumFilter = document.getElementById('filterActNum').value.toUpperCase();
-        const companyFilter = document.getElementById('filterCompany').value.toUpperCase();
-        const candidateFilter = document.getElementById('filterCandidate').value.toUpperCase();
-        const departmentFilter = document.getElementById('filterDepartment').value.toUpperCase();
-        const personFilter = document.getElementById('filterPerson').value.toUpperCase();
-
         const table = document.getElementById('actByUser');
-        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-
-            // Пропускаем строку с сообщением "нет данных"
-            if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
-                continue;
-            }
-
-            // Получаем значения ячеек для фильтрации
-            const actNum = row.cells[0]?.textContent?.toUpperCase() || '';
-            const company = row.cells[3]?.textContent?.toUpperCase() || '';
-            const candidate = row.cells[4]?.textContent?.toUpperCase() || '';
-            const department = row.cells[6]?.textContent?.toUpperCase() || '';
-            const consultant = row.cells[7]?.textContent?.toUpperCase() || '';
-            const researcher = row.cells[9]?.textContent?.toUpperCase() || '';
-
-            // Проверяем соответствие всем фильтрам
-            const showRow =
-                (actNumFilter === '' || actNum.includes(actNumFilter)) &&
-                (companyFilter === '' || company.includes(companyFilter)) &&
-                (candidateFilter === '' || candidate.includes(candidateFilter)) &&
-                (departmentFilter === '' || department.includes(departmentFilter)) &&
-                (personFilter === '' || consultant.includes(personFilter) || researcher.includes(personFilter));
-
-            row.style.display = showRow ? '' : 'none';
+        if (!table) {
+            return;
         }
 
-        // Обновляем объединенные ячейки после фильтрации
-        updateMergedCellsAfterFilter();
+        ensureActByUserState(table);
+
+        const filters = {
+            actNum: document.getElementById('filterActNum').value.trim().toLowerCase(),
+            company: document.getElementById('filterCompany').value.trim().toLowerCase(),
+            candidate: document.getElementById('filterCandidate').value.trim().toLowerCase(),
+            department: document.getElementById('filterDepartment').value.trim().toLowerCase(),
+            person: document.getElementById('filterPerson').value.trim().toLowerCase()
+        };
+
+        let hasVisibleRows = false;
+
+        actByUserState.groups.forEach(group => {
+            const visibleRows = group.rows.filter(row => matchesActRow(row, filters));
+
+            group.rows.forEach(row => {
+                row.style.display = 'none';
+            });
+
+            if (visibleRows.length > 0) {
+                hasVisibleRows = true;
+                visibleRows.forEach(row => {
+                    row.style.display = '';
+                });
+            }
+
+            applyGroupHeaders(group, visibleRows);
+        });
+
+        toggleNoDataMessage(table, hasVisibleRows);
     }
 
-    // Функция для обновления объединенных ячеек после фильтрации
-    function updateMergedCellsAfterFilter() {
-        const table = document.getElementById('actByUser');
-        const tbody = table.getElementsByTagName('tbody')[0];
-        const rows = Array.from(tbody.getElementsByTagName('tr')).filter(row => row.style.display !== 'none');
-
-        // Группируем строки по номеру акта (первая ячейка)
-        const groups = {};
-        let currentGroup = null;
-        let groupStartIndex = -1;
-
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const actNum = row.cells[0]?.textContent;
-
-            if (actNum && actNum !== currentGroup) {
-                currentGroup = actNum;
-                groupStartIndex = i;
-                groups[actNum] = {
-                    startIndex: i,
-                    count: 1
-                };
-            } else if (currentGroup) {
-                groups[currentGroup].count++;
-            }
+    function ensureActByUserState(table) {
+        if (actByUserState.table !== table || !actByUserState.initialised) {
+            buildActByUserGroups(table);
         }
+    }
 
-        // Обновляем rowspan для видимых групп
-        Object.values(groups).forEach(group => {
-            if (group.count > 1) {
-                const firstRow = rows[group.startIndex];
+    function buildActByUserGroups(table) {
+        actByUserState.table = table;
+        actByUserState.groups = new Map();
 
-                // Обновляем rowspan для объединенных ячеек
-                for (let j = 0; j < 6; j++) { // Первые 6 ячеек объединены
-                    if (firstRow.cells[j]) {
-                        firstRow.cells[j].rowSpan = group.count;
-                    }
-                }
+        const rows = Array.from(table.querySelectorAll('tbody tr.act-row'));
+
+        rows.forEach(row => {
+            const actNum = row.dataset.actNum;
+            if (!actNum) {
+                return;
+            }
+
+            if (!actByUserState.groups.has(actNum)) {
+                actByUserState.groups.set(actNum, {
+                    rows: [],
+                    headerTemplates: []
+                });
+            }
+
+            const group = actByUserState.groups.get(actNum);
+            group.rows.push(row);
+
+            const headerCells = row.querySelectorAll('[data-header-cell]');
+            if (headerCells.length) {
+                group.headerTemplates = Array.from(headerCells).map(cell => cell.cloneNode(true));
             }
         });
 
-        // Скрываем строку "нет данных", если есть видимые строки
-        const noDataRow = tbody.querySelector('tr td[colspan]');
-        if (noDataRow && noDataRow.closest('tr')) {
-            const hasVisibleRows = Array.from(tbody.getElementsByTagName('tr'))
-                .some(row => row.style.display !== 'none' && !row.querySelector('td[colspan]'));
+        actByUserState.initialised = true;
+    }
 
-            noDataRow.closest('tr').style.display = hasVisibleRows ? 'none' : '';
+    function matchesActRow(row, filters) {
+        const actNum = normalizeValue(row.dataset.actNum);
+        const company = normalizeValue(row.dataset.company);
+        const candidate = normalizeValue(row.dataset.candidate);
+        const department = normalizeValue(row.dataset.department);
+        const consultant = normalizeValue(row.dataset.consultant);
+        const researcher = normalizeValue(row.dataset.researcher);
+
+        return valueMatches(actNum, filters.actNum) &&
+            valueMatches(company, filters.company) &&
+            valueMatches(candidate, filters.candidate) &&
+            valueMatches(department, filters.department) &&
+            (!filters.person || consultant.includes(filters.person) || researcher.includes(filters.person));
+    }
+
+    function applyGroupHeaders(group, visibleRows) {
+        group.rows.forEach(row => {
+            row.querySelectorAll('[data-header-cell]').forEach(cell => cell.remove());
+            row.classList.remove('act-group-start');
+        });
+
+        if (!visibleRows.length) {
+            return;
         }
+
+        const headerClones = group.headerTemplates.map(template => {
+            const clone = template.cloneNode(true);
+            clone.setAttribute('rowspan', visibleRows.length);
+            return clone;
+        });
+
+        const targetRow = visibleRows[0];
+        targetRow.classList.add('act-group-start');
+
+        for (let i = headerClones.length - 1; i >= 0; i--) {
+            targetRow.insertBefore(headerClones[i], targetRow.firstChild);
+        }
+    }
+
+    function toggleNoDataMessage(table, hasVisibleRows) {
+        const noDataRow = table.querySelector('tbody tr.no-data-row');
+        if (noDataRow) {
+            noDataRow.style.display = hasVisibleRows ? 'none' : '';
+        }
+    }
+
+    function normalizeValue(value) {
+        return (value || '').toString().trim().toLowerCase();
+    }
+
+    function valueMatches(source, filter) {
+        return !filter || source.includes(filter);
     }
 
     // Функция очистки фильтров
