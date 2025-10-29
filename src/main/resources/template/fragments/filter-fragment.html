@@ -7,21 +7,28 @@
 
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
-            <div class="row" th:with="departmentOptions=${departments}">
-                <select th:id="${tableId + '_departmentFilter'}"
-                        th:attr="data-table-id=${tableId}"
-                        th:onchange="departmentFilter(this)">
-                    <option value="">Все направления</option>
-                    <option th:each="department : ${departmentOptions}"
-                            th:value="${department.name}"
-                            th:text="${department.name}"
-                            th:attr="data-department-id=${department.id}"></option>
-                </select>
-                <input type="text"
-                       th:id="${tableId + '_monthFilter'}"
-                       th:attr="data-table-id=${tableId}"
-                       placeholder="Искать по месяцу"
-                       th:oninput="monthFilter(this)" />
+            <div class="row g-3 align-items-end" th:with="departmentOptions=${departments}">
+                <div class="col-sm-6 col-lg-4">
+                    <label class="form-label" th:for="${tableId + '_departmentFilter'}">Направление</label>
+                    <select class="form-control form-select"
+                            th:id="${tableId + '_departmentFilter'}"
+                            th:attr="data-table-id=${tableId}"
+                            th:onchange="departmentFilter(this)">
+                        <option value="">Все направления</option>
+                        <option th:each="department : ${departmentOptions}"
+                                th:value="${department.name}"
+                                th:text="${department.name}"
+                                th:attr="data-department-id=${department.id}"></option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <label class="form-label" th:for="${tableId + '_monthFilter'}">Месяц</label>
+                    <input type="text" class="form-control"
+                           th:id="${tableId + '_monthFilter'}"
+                           th:attr="data-table-id=${tableId}"
+                           placeholder="Искать по месяцу"
+                           th:oninput="monthFilter(this)" />
+                </div>
             </div>
         </div>
     </div>

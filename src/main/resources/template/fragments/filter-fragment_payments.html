@@ -6,8 +6,8 @@
 <div th:fragment="filter-form(tableId)">
     <div class="card mb-3">
         <div class="filter-container mb-4 p-3 bg-light rounded">
-            <div class="row" th:with="departmentOptions=${departments}">
-                <div class="col-md-4 mb-2">
+            <div class="row g-3 align-items-end" th:with="departmentOptions=${departments}">
+                <div class="col-sm-6 col-lg-4">
                     <label class="form-label" th:for="${tableId + '_nameFilter'}">ФИО</label>
                     <input type="text" class="form-control"
                            th:id="${tableId + '_nameFilter'}"
@@ -15,7 +15,7 @@
                            placeholder="Искать по ФИО"
                            th:oninput="nameFilter(this)" />
                 </div>
-                <div class="col-md-4 mb-2">
+                <div class="col-sm-6 col-lg-4">
                     <label class="form-label" th:for="${tableId + '_monthFilter'}">Месяц</label>
                     <input type="text" class="form-control"
                            th:id="${tableId + '_monthFilter'}"
@@ -23,7 +23,7 @@
                            placeholder="Искать по месяцу"
                            th:oninput="monthFilter(this)" />
                 </div>
-                <div class="col-md-4 mb-2">
+                <div class="col-sm-6 col-lg-4">
                     <label class="form-label" th:for="${tableId + '_departmentFilter'}">Направление</label>
                     <select class="form-control form-select"
                             th:id="${tableId + '_departmentFilter'}"
