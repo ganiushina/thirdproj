@@ -55,6 +55,7 @@ public class UserSalaryRepImplRep  {
             "            WHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
     private static final String SELECT_DEPARTMENTS_QUERY =
             "SELECT DISTINCT dep_name FROM depatment WHERE dep_name IS NOT NULL ORDER BY dep_name";
+    private static final String DEPARTMENT_COLUMN = "dep_name";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -353,15 +354,23 @@ public class UserSalaryRepImplRep  {
 
     public List<String> getAllDepartments() {
         try (Connection connection = sql2o.open()) {
-            List<String> departments = connection.createQuery(SELECT_DEPARTMENTS_QUERY, false)
-                    .executeAndFetch(String.class);
+            Table table = connection.createQuery(SELECT_DEPARTMENTS_QUERY, false)
+                    .executeAndFetchTable();
 
-            if (departments == null) {
+            if (table == null) {
                 return Collections.emptyList();
             }
 
-            return departments.stream()
+            List<Map<String, Object>> rows = table.asList();
+
+            if (rows == null) {
+                return Collections.emptyList();
+            }
+
+            return rows.stream()
+                    .map(row -> row.get(DEPARTMENT_COLUMN))
                     .filter(Objects::nonNull)
+                    .map(Object::toString)
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .distinct()
