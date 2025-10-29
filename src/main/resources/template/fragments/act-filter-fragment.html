@@ -20,8 +20,16 @@
                     <div class="col-md-3">
                         <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">
                     </div>
-                    <div class="col-md-3">
-                        <input type="text" id="globalDepartmentSearch" class="form-control mb-2" placeholder="Поиск по направлению">
+                    <div class="col-md-3" th:with="departmentOptions=${departments}">
+                        <label for="globalDepartmentSearch" class="form-label">Направление</label>
+                        <select id="globalDepartmentSearch"
+                                class="form-select mb-2">
+                            <option value="">Все направления</option>
+                            <option th:each="department : ${departmentOptions}"
+                                    th:value="${department.name}"
+                                    th:text="${department.name}"
+                                    th:attr="data-department-id=${department.id}"></option>
+                        </select>
                     </div>
 
 

@@ -262,9 +262,15 @@
         <input type="text" id="searchFio" placeholder="Введите имя..." oninput="filterTable()">
     </div>
 
-    <div class="filter-group">
+    <div class="filter-group" th:with="departmentOptions=${departments}">
         <label for="searchDepartment">Поиск по отделу</label>
-        <input type="text" id="searchDepartment" placeholder="Введите отдел..." oninput="filterTable()">
+        <select id="searchDepartment" class="form-control" onchange="filterTable()">
+            <option value="">Все отделы</option>
+            <option th:each="department : ${departmentOptions}"
+                    th:value="${department.name}"
+                    th:text="${department.name}"
+                    th:attr="data-department-id=${department.id}"></option>
+        </select>
     </div>
 
     <div class="filter-group">
@@ -375,12 +381,14 @@
 
 <script>
     function filterTable() {
-        const nameFilter = document.getElementById('searchFio').value.toLowerCase();
-        const deptFilter = document.getElementById('searchDepartment').value.toLowerCase();
+        const nameInput = document.getElementById('searchFio');
+        const departmentSelect = document.getElementById('searchDepartment');
+        const nameFilter = (nameInput ? nameInput.value : '').toLowerCase();
+        const deptFilter = (departmentSelect ? departmentSelect.value : '').toLowerCase();
 
         document.querySelectorAll('.employer-row').forEach(row => {
-            const fio = row.getAttribute('data-fio').toLowerCase();
-            const department = row.getAttribute('data-department').toLowerCase();
+            const fio = (row.getAttribute('data-fio') || '').toLowerCase();
+            const department = (row.getAttribute('data-department') || '').toLowerCase();
 
             const nameMatch = fio.includes(nameFilter);
             const deptMatch = department.includes(deptFilter);
@@ -416,7 +424,10 @@
         }
 
         if (searchDepartment) {
-            document.getElementById('searchDepartment').value = searchDepartment;
+            const departmentSelect = document.getElementById('searchDepartment');
+            if (departmentSelect) {
+                departmentSelect.value = searchDepartment;
+            }
         }
 
         if (searchFio || searchDepartment) {

@@ -294,7 +294,8 @@
             currentFilters.candidate = document.getElementById('globalCandidateSearch').value.toLowerCase();
             currentFilters.project = document.getElementById('globalProjectSearch').value.toLowerCase();
             currentFilters.company = document.getElementById('globalCompanySearch').value.toLowerCase();
-            currentFilters.department = document.getElementById('globalDepartmentSearch').value.toLowerCase();
+            const departmentSelect = document.getElementById('globalDepartmentSearch');
+            currentFilters.department = departmentSelect ? departmentSelect.value.toLowerCase() : '';
             currentFilters.filterByCreationDate = document.getElementById('filterByCreationDate').checked;
             currentFilters.paymentStatus = document.getElementById('paymentStatus').value;
 
@@ -476,10 +477,13 @@
             applyFilters();
         });
         // Добавляем новый обработчик для фильтра по направлению
-        document.getElementById('globalDepartmentSearch').addEventListener('input', function() {
-            currentFilters.department = this.value.toLowerCase();
-            applyFilters();
-        });
+        const departmentFilter = document.getElementById('globalDepartmentSearch');
+        if (departmentFilter) {
+            departmentFilter.addEventListener('change', function() {
+                currentFilters.department = this.value.toLowerCase();
+                applyFilters();
+            });
+        }
 
         // Фильтр по оплате
         document.getElementById('filterByPayment').addEventListener('change', function() {
