@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.alta.thirdproj.dto.PaymentUpdateRequest;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
 
 import java.time.LocalDate;
@@ -35,15 +37,16 @@ public class AmountController {
     }
 
     @PostMapping("/updatePaymentStatus")
-    public ResponseEntity<Void> updatePaymentStatus(@RequestParam Map<String, String> rawParams) {
-        Long actId = extractActId(rawParams);
+    public ResponseEntity<Void> updatePaymentStatus(@RequestBody(required = false) PaymentUpdateRequest body,
+                                                    @RequestParam Map<String, String> rawParams) {
+        Long actId = extractActId(body, rawParams);
         if (actId == null) {
             logger.warn("Payment update request is missing act identifier. Raw params: {}", rawParams);
             return ResponseEntity.badRequest().build();
         }
 
-        boolean paid = extractPaid(rawParams);
-        LocalDate paymentDate = paid ? extractPaymentDate(rawParams).orElse(null) : null;
+        boolean paid = extractPaid(body, rawParams);
+        LocalDate paymentDate = paid ? extractPaymentDate(body, rawParams).orElse(null) : null;
 
         logger.info("Updating payment status: actId={}, paid={}, paymentDate={}", actId, paid, paymentDate);
 
@@ -51,27 +54,38 @@ public class AmountController {
         return ResponseEntity.ok().build();
     }
 
-    private Long extractActId(Map<String, String> rawParams) {
+    private Long extractActId(PaymentUpdateRequest body, Map<String, String> rawParams) {
+        if (body != null && body.getActId() != null) {
+            return body.getActId();
+        }
         return readFirst(rawParams, "actId", "act_id")
                 .flatMap(this::parseLongSafely)
                 .orElse(null);
     }
 
-    private boolean extractPaid(Map<String, String> rawParams) {
+    private boolean extractPaid(PaymentUpdateRequest body, Map<String, String> rawParams) {
+        if (body != null && body.getPaid() != null) {
+            return body.getPaid();
+        }
         return readFirst(rawParams, "paid", "is_paid")
-                .map(value -> {
-                    String normalized = value.trim().toLowerCase(Locale.ROOT);
-                    return normalized.equals("1")
-                            || normalized.equals("true")
-                            || normalized.equals("on")
-                            || normalized.equals("yes");
-                })
+                .map(this::parseBooleanSafely)
                 .orElse(false);
     }
 
-    private Optional<LocalDate> extractPaymentDate(Map<String, String> rawParams) {
+    private Optional<LocalDate> extractPaymentDate(PaymentUpdateRequest body, Map<String, String> rawParams) {
+        if (body != null && body.getPaymentDate() != null) {
+            return Optional.of(body.getPaymentDate());
+        }
         return readFirst(rawParams, "paymentDate", "payment_date")
                 .flatMap(this::parseDateSafely);
+    }
+
+    private boolean parseBooleanSafely(String value) {
+        String normalized = value.trim().toLowerCase(Locale.ROOT);
+        return normalized.equals("1")
+                || normalized.equals("true")
+                || normalized.equals("on")
+                || normalized.equals("yes");
     }
 
     private Optional<String> readFirst(Map<String, String> rawParams, String... keys) {
