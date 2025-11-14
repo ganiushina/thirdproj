@@ -457,6 +457,8 @@
             let paidTotal = parseFloat(paidText.replace(/\s+/g, '')) || 0;
             let notPaidTotal = parseFloat(notPaidText.replace(/\s+/g, '')) || 0;
 
+            const today = new Date().toISOString().split('T')[0]; // формат YYYY-MM-DD
+
             // Формируем данные для отправки
             const data = {
                 actId: parseInt(checkbox.getAttribute('data-act-id')),
@@ -464,8 +466,12 @@
                 candidate: checkbox.getAttribute('data-candidate'),
                 bonus: bonus,
                 paid: isChecked,
-                datePayment: datePaymentValue
+                datePayment: datePaymentValueб
+                paymentRealDate: isChecked ? today : null  // Добавьте это поле
             };
+
+            console.log("Sending data:", data); // Для отладки
+
 
             // Оптимистичное обновление UI
             if (isChecked) {

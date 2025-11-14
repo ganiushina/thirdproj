@@ -92,9 +92,20 @@ public class ActBonusPercentRepositories {
                     }
 
                     if (entry.getKey().equals("paied")) {
-                        boolean b = ((Integer) entry.getValue() == 1);
-                        act.setPaid(b);
+                        int paidValue = 0;
+                        if (entry.getValue() instanceof Integer) {
+                            paidValue = (Integer) entry.getValue();
+                        } else if (entry.getValue() instanceof BigDecimal) {
+                            paidValue = ((BigDecimal) entry.getValue()).intValue();
+                        }
+                        act.setPaid(paidValue);
                     }
+
+
+//                    if (entry.getKey().equals("paied")) {
+//                        boolean b = ((Integer) entry.getValue() == 1);
+//                        act.setPaid(b);
+//                    }
 
                     if (entry.getKey().equals("per")) {
                         act.setPercent((double) entry.getValue());

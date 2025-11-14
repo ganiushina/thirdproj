@@ -71,46 +71,6 @@ public class UserPaymentBonusServiceImpl {
         return userBonusPaymentRepository.userBonusPaymentList(date1,date2);
     }
 
-//    public String getAllMoney(List<EmployerNew> employerNews) {
-//        if (employerNews == null) {
-//            System.out.println("employerNews is null!");
-//            return "0 руб.";
-//        }
-//
-//        Locale ru = new Locale("ru", "RU");
-//        NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
-//
-//        double sum = 0.0;
-//        for (EmployerNew employer : employerNews) {
-//            if (employer == null) {
-//                System.out.println("Found null employer!");
-//                continue;
-//            }
-//
-//            List<Act> actList = employer.getActList();
-//            if (actList == null) {
-//                System.out.println("Employer " + employer + " has null actList!");
-//                continue;
-//            }
-//
-//            for (Act act : actList) {
-//                if (act == null) {
-//                    System.out.println("Found null act in list!");
-//                    continue;
-//                }
-//
-//                Double bonus = act.getBonus();
-//                if (bonus == null) {
-//                    System.out.println("Act " + act + " has null bonus!");
-//                    continue;
-//                }
-//
-//                sum += bonus;
-//            }
-//        }
-//
-//        return currencyInstance.format(sum);
-//    }
 
     public String getAllMoney(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
@@ -184,15 +144,24 @@ public class UserPaymentBonusServiceImpl {
         Currency rub = Currency.getInstance(ru);
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
-
-
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
-                if (employerNews.get(i).getActList().get(j).isPaid()) {
+                int paidStatus = employerNews.get(i).getActList().get(j).getPaid();
+                if (paidStatus == 1 || paidStatus == 2) {
                     doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
                 }
             }
         }
+
+
+
+//        for (int i = 0; i < employerNews.size(); i++) {
+//            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+//                if (employerNews.get(i).getActList().get(j).isPaid()) {
+//                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+//                }
+//            }
+//        }
 
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
@@ -203,14 +172,23 @@ public class UserPaymentBonusServiceImpl {
     public double getAllPaymentMoneyDouble(List<EmployerNew> employerNews) {
         ArrayList<Double> doubleArrayList = new ArrayList<>();
 
-
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
-                if (employerNews.get(i).getActList().get(j).isPaid()) {
+                int paidStatus = employerNews.get(i).getActList().get(j).getPaid();
+                if (paidStatus == 1 || paidStatus == 2) {
                     doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
                 }
             }
         }
+
+
+//        for (int i = 0; i < employerNews.size(); i++) {
+//            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+//                if (employerNews.get(i).getActList().get(j).isPaid()) {
+//                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+//                }
+//            }
+//        }
 
         return doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
@@ -226,11 +204,20 @@ public class UserPaymentBonusServiceImpl {
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
-                if (!employerNews.get(i).getActList().get(j).isPaid()) {
+                int paidStatus = employerNews.get(i).getActList().get(j).getPaid();
+                if (paidStatus == 1 || paidStatus == 2) {
                     doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
                 }
             }
         }
+
+//        for (int i = 0; i < employerNews.size(); i++) {
+//            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+//                if (!employerNews.get(i).getActList().get(j).isPaid()) {
+//                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+//                }
+//            }
+//        }
 
         double doublesSum = doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
@@ -243,11 +230,20 @@ public class UserPaymentBonusServiceImpl {
 
         for (int i = 0; i < employerNews.size(); i++) {
             for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
-                if (!employerNews.get(i).getActList().get(j).isPaid()) {
+                int paidStatus = employerNews.get(i).getActList().get(j).getPaid();
+                if (paidStatus == 1 || paidStatus == 2) {
                     doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
                 }
             }
         }
+
+//        for (int i = 0; i < employerNews.size(); i++) {
+//            for (int j = 0; j < employerNews.get(i).getActList().size(); j++) {
+//                if (!employerNews.get(i).getActList().get(j).isPaid()) {
+//                    doubleArrayList.add(employerNews.get(i).getActList().get(j).getBonus());
+//                }
+//            }
+//        }
         return doubleArrayList.stream()
                 .mapToDouble(Double::doubleValue)
                 .sum();

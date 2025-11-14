@@ -1,68 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <style>
-        /* Основной контейнер таблицы */
-        .table-scroll-container {
-            height: calc(100vh - 350px);
-            overflow-y: auto;
-            position: relative;
-            margin-bottom: 20px;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-        }
-
-        /* Фиксированные заголовки */
-        .fixed-header thead th {
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 10;
-            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
-        }
-
-        /* Раскраска строк */
-        .paid-true {
-            background-color: #e8f5e9 !important;
-        }
-        .paid-false {
-            background-color: #ffebee !important;
-        }
-
-        /* Оптимизация отображения таблицы */
-        .fixed-header {
-            width: 100%;
-            margin-bottom: 0;
-            table-layout: auto;
-        }
-        .fixed-header td {
-
-            overflow: hidden;
-            text-overflow: ellipsis;
-            vertical-align: middle;
-        }
-        .fixed-header td.company-col,
-        .fixed-header td.project-col {
-            white-space: normal !important;
-            word-break: break-word;
-            overflow: visible !important;
-            text-overflow: unset !important;
-            max-width: 250px; /* можно варьировать */
-        }
-        /* Фиксация заголовков таблицы именно во фрагменте */
-        #periodTable thead th {
-            position: sticky;
-            top: 56px; /* высота твоей .navbar */
-            background: white;
-            z-index: 500;
-            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
-        }
-}
-    </style>
-</head>
 <body>
 <div th:fragment="actUnpaidTab">
-
     <div class="table-scroll-container">
         <table id="unpaidTable" class="table table-bordered table-hover fixed-header" data-numeric-cols="Сумма">
             <thead class="table-light">
@@ -74,6 +13,7 @@
                 <th>Кандидат</th>
                 <th>Проект</th>
                 <th>Оплата до</th>
+                <th>Частично оплачено</th>
             </tr>
             </thead>
             <tbody>
@@ -85,22 +25,12 @@
                 <td th:text="${act.candidate}"></td>
                 <td th:text="${act.projectName}"></td>
                 <td th:text="${act.dateClientPay}"></td>
+                <td th:text="${act.sumPaidFor}"></td>
             </tr>
             </tbody>
         </table>
     </div>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // Применяем стили при загрузке фрагмента
-        document.addEventListener('DOMContentLoaded', function() {
-            const navbarHeight = document.querySelector('.navbar').offsetHeight;
-            document.querySelectorAll('.fixed-header thead th').forEach(th => {
-                th.style.top = navbarHeight + 'px';
-            });
-        });
-        /*]]>*/
-    </script>
 </div>
-
 </body>
 </html>
+

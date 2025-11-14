@@ -36,8 +36,9 @@
         }
 
         /* Остальные ваши стили */
-        .paid-true { background-color: #e8f5e9 !important; }
-        .paid-false { background-color: #ffebee !important; }
+        .paid-1 { background-color: #e8f5e9 !important; }
+        .paid-0 { background-color: #ffebee !important; }
+        .paid-2 { background-color: #e1f5fe !important; }
         td { vertical-align: middle; padding: 0.5rem !important; }
         tr:hover td { background-color: #f8f9fa !important; }
 
@@ -385,9 +386,9 @@
                     // Проверка фильтра по оплате
                     let paymentMatch = true;
                     if (currentFilters.paymentStatus !== 'all' && columnIndexes.paymentStatus !== -1) {
-                        const isPaid = cells[columnIndexes.paymentStatus]?.textContent.toLowerCase().includes('да');
-                        paymentMatch = (currentFilters.paymentStatus === 'paid' && isPaid) ||
-                                      (currentFilters.paymentStatus === 'unpaid' && !isPaid);
+                        // Получаем числовое значение статуса из data-атрибута или класса строки
+                        const rowStatus = getPaidStatusFromRow(row);
+                        paymentMatch = rowStatus.toString() === currentFilters.paymentStatus;
                     }
 
                     // Комбинированная проверка всех фильтров
@@ -404,6 +405,18 @@
                     row.style.display = matches ? '' : 'none';
                 });
             }
+        }
+
+        // Вспомогательная функция для определения статуса оплаты из строки
+        function getPaidStatusFromRow(row) {
+            // Пробуем получить статус из класса строки (paid-0, paid-1, paid-2)
+            const classList = row.classList;
+            for (let className of classList) {
+                if (className.startsWith('paid-')) {
+                    return className.replace('paid-', '');
+                }
+            }
+            return '';
         }
 
 
@@ -428,12 +441,6 @@
     if (toPlusOne) toPlusOne.setDate(toPlusOne.getDate() + 1);
 
     return (!from || checkDate >= from) && (!toPlusOne || checkDate < toPlusOne);
-<!--        if (!date) return false;-->
-<!--        const from = dateFrom ? new Date(dateFrom) : null;-->
-<!--        const to = dateTo ? new Date(dateTo) : null;-->
-<!--        if (to) to.setHours(23, 59, 59); // Учитываем весь день-->
-
-<!--        return (!from || date >= from) && (!to || date <= to);-->
     }
 
 
@@ -509,9 +516,55 @@
      // Инициализация функций таблицы
      function initTableFeatures() {
          initTableSorting();
-         applyPaidRowStyles();
          adjustStickyHeaders();
+          // Раскраска для таблицы неоплаченных актов
+         applyUnpaidTableStyles();
      }
+
+     function applyUnpaidTableStyles() {
+        const unpaidTable = document.querySelector('#unpaidTable');
+        if (!unpaidTable) return;
+
+        console.log('Applying styles to unpaid table');
+
+        const rows = unpaidTable.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            // 8-я ячейка - "Частично оплачено"
+            const paidCell = row.cells[7];
+            if (paidCell) {
+                const paidText = paidCell.textContent.trim();
+                console.log('Paid text:', paidText);
+
+                // Проверяем, является ли сумма нулевой
+                const isZero = isZeroAmount(paidText);
+                console.log('Is zero:', isZero);
+
+                // Удаляем все классы оплаты
+                row.classList.remove('paid-0', 'paid-1', 'paid-2');
+
+                // Добавляем соответствующий класс
+                if (isZero) {
+                    row.classList.add('paid-0'); // Бледно-розовый - не оплачено
+                    console.log('Added paid-0 class');
+                } else {
+                    row.classList.add('paid-2'); // Бледно-голубой - частично оплачено
+                    console.log('Added paid-2 class');
+                }
+            }
+        });
+    }
+
+    function isZeroAmount(amountText) {
+        // Убираем все нецифровые символы кроме запятой и точки
+        const cleanAmount = amountText.replace(/[^\d,.]/g, '');
+        console.log('Cleaned amount:', cleanAmount);
+
+        // Заменяем запятую на точку для парсинга
+        const numericAmount = parseFloat(cleanAmount.replace(',', '.'));
+        console.log('Numeric amount:', numericAmount);
+
+        return numericAmount === 0 || isNaN(numericAmount);
+    }
 
      function adjustStickyHeaders() {
          // Вычисляем общую высоту всех фиксированных элементов над таблицей
@@ -563,17 +616,6 @@
          }
          return direction === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
      }
-
-     function applyPaidRowStyles() {
-         document.querySelectorAll('#periodTable tbody tr').forEach(row => {
-             const paidCell = row.querySelector('td:nth-child(8)');
-             if (paidCell) {
-                 row.classList.remove('paid-true', 'paid-false');
-                 row.classList.add(paidCell.textContent.trim() === 'Да' ? 'paid-true' : 'paid-false');
-             }
-         });
-     }
-
 
       function exportFilteredActsToExcel() {
          // 1. Получаем выбранный период

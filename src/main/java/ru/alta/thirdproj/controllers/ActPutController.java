@@ -53,9 +53,14 @@ public class ActPutController {
         double allActMoney = actNoPayList.stream().mapToDouble(Act::getBonus).sum();
 
         double allActMoneyPeriod = actList.stream()
-                .filter(e -> !e.isPaid())
+                .filter(e -> e.getPaid() == 0 || e.getPaid() == 2) // неоплаченные + частично оплаченные
                 .mapToDouble(Act::getBonus)
                 .sum();
+
+//        double allActMoneyPeriod = actList.stream()
+//                .filter(e -> !e.isPaid())
+//                .mapToDouble(Act::getBonus)
+//                .sum();
 
         double allActForClientMoneyPeriod = actList.stream()
                 .mapToDouble(Act::getBonus)

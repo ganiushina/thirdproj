@@ -35,12 +35,16 @@ public class ActPutRepository {
             "\n" +
             "where pb.act_id = :act_id";
 
-    private static final String SELECT_ACT_NO_PAYMENT_QUERY = "SELECT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total, ab.total_no_nds, ab.project_name, \n" +
-            "\tab.candidate, (SELECT [dbo].[date_notholiday] (ab.date_act, p.project_delay_pay)) date_for_client_pay \n" +
-            "\tFROM dbo.act_buh ab\n" +
-            "\tLEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
-            "\tWHERE ab.id NOT IN (SELECT pb.act_id FROM dbo.payment_buh pb) \n" +
-            "\tAND convert(date, ab.date_act) >= convert(date, dateadd(yy, -1, :date1))";
+    private static final String SELECT_ACT_NO_PAYMENT_QUERY = "select s.id, s.date_act, left(s.act_num, 11) act_num, s.company_name, s.total, s.total_no_nds, s.project_name,\n" +
+            "              s.candidate, date_for_client_pay, isnull(s.summ, 0) summ from (\n" +
+            "SELECT distinct ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total, ab.total_no_nds, ab.project_name,\n" +
+            "            ab.candidate, (SELECT [dbo].[date_notholiday] (ab.date_act, p.project_delay_pay)) date_for_client_pay, \n" +
+            "\t\t\tpb.act_id pbactid, sum(pb.sum) over (partition by pb.act_id) summ\n" +
+            "            FROM dbo.act_buh ab\n" +
+            "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
+            "\t\t\tleft join payment_buh pb ON pb.act_id = ab.id\n" +
+            "            WHERE convert(date, ab.date_act) >= convert(date, dateadd(yy, -1, :date1))\n" +
+            "\t\t\t) s where pbactid is null or s.summ < s.total";
 
     private static final String SELECT_ACT_DETAILS_BY_COMPANY_BY_DEPARTMENT = "SELECT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
             "\tab.candidate, ab.organization, pb.depatment_id, d.dep_name, pb.percent_responsible_user_by_candidate_percent*100 dep_percent,\n" +
@@ -90,6 +94,14 @@ public class ActPutRepository {
                         }
                     }
 
+                    if (entry.getKey().equals("sum")) {
+                        BigDecimal bd = (BigDecimal) entry.getValue();
+                        double d = bd.doubleValue();
+                        if (d != 0.0) {
+                            act.setSumPaidFor(currencyInstance.format(d));
+                        }
+                    }
+
                     if (entry.getKey().equals("company_name")) {
                         act.setCompanies((String) entry.getValue());
                     }
@@ -99,8 +111,7 @@ public class ActPutRepository {
                     }
 
                     if (entry.getKey().equals("paied")) {
-                        boolean b = ((Integer) entry.getValue() == 1);
-                        act.setPaid(b);
+                        act.setPaid((Integer) entry.getValue());
                     }
 
                     if (entry.getKey().equals("project_name")) {
@@ -201,6 +212,13 @@ public class ActPutRepository {
                     if (entry.getKey().equals("total_no_nds")) {
                         act.setBonus((double) entry.getValue());
                         act.setBonusRUB(currencyInstance.format((double) entry.getValue()));
+                    }
+
+                    if (entry.getKey().equals("summ")) {
+                        if (!entry.getValue().equals(0)) {
+                            act.setSumPaidFor(currencyInstance.format((double) entry.getValue()));
+                        }
+
                     }
 
                     if (entry.getKey().equals("company_name")) {

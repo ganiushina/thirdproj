@@ -70,7 +70,7 @@ public class ActsController {
         double allActMoney = actNoPayList.stream().mapToDouble(Act::getBonus).sum();
 
         double allActMoneyPeriod = actList.stream()
-                .filter(e -> !e.isPaid())
+                .filter(e -> e.getPaid() == 0) // только неоплаченные
                 .mapToDouble(Act::getBonus)
                 .sum();
 

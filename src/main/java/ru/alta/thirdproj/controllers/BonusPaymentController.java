@@ -9,23 +9,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ValidationUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.alta.thirdproj.entites.*;
 import ru.alta.thirdproj.exceptions.UserBonusNotFoundException;
 import ru.alta.thirdproj.export.ExcelGenerator;
-import ru.alta.thirdproj.response.JsonResponse;
 import ru.alta.thirdproj.services.BonusPaymentSuccessServiceImpl;
 import ru.alta.thirdproj.services.UserPaymentBonusServiceImpl;
 import ru.alta.thirdproj.services.UserService;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.*;
+import java.time.LocalDate;
 import java.util.*;
 
 //@RestController

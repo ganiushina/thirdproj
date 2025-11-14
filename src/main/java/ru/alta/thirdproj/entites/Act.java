@@ -16,7 +16,8 @@ public class Act {
     private String datePayment;
     private Double bonus;
     private String dateForPay;
-    private boolean paid;
+    private int paid;
+    private String sumPaidFor;
     private String paymentRealDate;
     private LocalDate paymentDate;
     private String employerPaid;

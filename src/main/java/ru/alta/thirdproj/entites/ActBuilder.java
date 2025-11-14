@@ -15,7 +15,7 @@ public final class ActBuilder {
     private String datePayment;
     private Double bonus;
     private String dateForPay;
-    private boolean paid;
+    private int paid;
     private String paymentRealDate;
     private LocalDate paymentDate;
     private String employerPaid;
@@ -81,7 +81,7 @@ public final class ActBuilder {
         return this;
     }
 
-    public ActBuilder withPaid(boolean paid) {
+    public ActBuilder withPaid(int paid) {
         this.paid = paid;
         return this;
     }

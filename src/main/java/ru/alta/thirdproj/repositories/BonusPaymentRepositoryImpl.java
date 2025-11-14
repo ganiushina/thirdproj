@@ -105,21 +105,70 @@ public class BonusPaymentRepositoryImpl {
         setIfNotEmpty(act::setCandidate, (String) row.get("candidate"));
         setIfNotEmpty(act::setCompanies, (String) row.get("company_name"));
         setIfNotEmpty(act::setNum, (String) row.get("act_num"));
+        setIfNotEmpty(act::setEmployerPaid, (String) row.get("emploeduser"));
+
+        // Обработка процента - поле integer
+        Object percentValue = row.get("persent");
+        if (percentValue != null) {
+            Integer percentInt = null;
+            if (percentValue instanceof Integer) {
+                percentInt = (Integer) percentValue;
+            } else if (percentValue instanceof BigDecimal) {
+                percentInt = ((BigDecimal) percentValue).intValue();
+            } else if (percentValue instanceof Long) {
+                percentInt = ((Long) percentValue).intValue();
+            }
+
+            if (percentInt != null) {
+                act.setPercent(percentInt.doubleValue());
+            }
+        }
+
 
         BigDecimal bonus = (BigDecimal) row.get("bonus");
         if (bonus != null && bonus.doubleValue() != 0.0) {
             act.setBonus(bonus.doubleValue());
         }
 
-        setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
-        setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
-        setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
-        setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
+        Object paidValue = row.get("paid");
+        if (paidValue != null) {
+            if (paidValue instanceof Integer) {
+                act.setPaid((Integer) paidValue);
+            } else if (paidValue instanceof BigDecimal) {
+                act.setPaid(((BigDecimal) paidValue).intValue());
+            } else if (paidValue instanceof Boolean) {
+                // Для обратной совместимости, если где-то еще используется boolean
+                act.setPaid((Boolean) paidValue ? 1 : 0);
+            } else if (paidValue instanceof String) {
+                // На случай, если приходит строка
+                act.setPaid(Integer.parseInt((String) paidValue));
+            }
+        } else {
+            act.setPaid(0); // значение по умолчанию
+        }
+//        Object paidValue = row.get("paid");
+//        if (paidValue != null) {
+//            if (paidValue instanceof Integer) {
+//                act.setPaid((Integer) paidValue == 1);
+//            } else if (paidValue instanceof BigDecimal) {
+//                act.setPaid(((BigDecimal) paidValue).intValue() == 1);
+//            } else if (paidValue instanceof Boolean) {
+//                act.setPaid((Boolean) paidValue);
+//            }
+//        }
 
         setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
         setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
         setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
         setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
+
+
+
+
+//        setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
+//        setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
+//        setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
+//        setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
 
         return act;
     }
