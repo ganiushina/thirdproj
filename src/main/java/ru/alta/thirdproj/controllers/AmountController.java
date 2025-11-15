@@ -6,14 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.alta.thirdproj.dto.PaymentUpdateRequest;
 import ru.alta.thirdproj.services.UserBonusServiceImpl;
@@ -46,19 +43,22 @@ public class AmountController {
     }
 
     @PostMapping("/updatePaymentStatus")
-    public ResponseEntity<Void> updatePaymentStatus(HttpServletRequest request,
-                                                    @RequestParam MultiValueMap<String, String> rawParams) {
+    public ResponseEntity<Void> updatePaymentStatus(HttpServletRequest request) {
         PaymentUpdateRequest payload = readBody(request);
-        mergeParameters(payload, rawParams);
+
+        mergeParameters(payload, request);
 
         Long actId = payload.getActId();
         if (actId == null) {
-            logger.warn("Запрос на обновление выплаты не содержит идентификатора акта. Параметры: {}", rawParams);
+            logger.warn("Запрос на обновление выплаты не содержит идентификатора акта. Параметры: {}", request != null ? request.getParameterMap() : null);
             return ResponseEntity.badRequest().build();
         }
 
         boolean paid = Boolean.TRUE.equals(payload.getPaid());
         LocalDate paymentDate = paid ? payload.getPaymentDate() : null;
+        if (paid && paymentDate == null) {
+            paymentDate = LocalDate.now();
+        }
 
         logger.info("Обновление статуса выплаты: actId={}, paid={}, paymentDate={}", actId, paid, paymentDate);
 
@@ -92,25 +92,25 @@ public class AmountController {
         return new PaymentUpdateRequest();
     }
 
-    private void mergeParameters(PaymentUpdateRequest target, MultiValueMap<String, String> rawParams) {
-        if (target == null) {
+    private void mergeParameters(PaymentUpdateRequest target, HttpServletRequest request) {
+        if (target == null || request == null) {
             return;
         }
 
         if (target.getActId() == null) {
-            readFirst(rawParams, "actId", "act_id", "ActId")
+            readFirst(request, "actId", "act_id", "ActId", "id")
                     .flatMap(this::parseLongSafely)
                     .ifPresent(target::setActId);
         }
 
         if (target.getPaid() == null) {
-            readFirst(rawParams, "paid", "is_paid", "checked")
+            readFirst(request, "paid", "is_paid", "checked", "value")
                     .flatMap(this::parseBooleanSafely)
                     .ifPresent(target::setPaid);
         }
 
         if (target.getPaymentDate() == null) {
-            readFirst(rawParams, "paymentDate", "payment_date")
+            readFirst(request, "paymentDate", "payment_date", "date")
                     .flatMap(this::parseDateSafely)
                     .ifPresent(target::setPaymentDate);
         }
@@ -128,14 +128,26 @@ public class AmountController {
         }
     }
 
-    private Optional<String> readFirst(MultiValueMap<String, String> rawParams, String... keys) {
-        if (CollectionUtils.isEmpty(rawParams) || keys == null) {
+    private Optional<String> readFirst(HttpServletRequest request, String... keys) {
+        if (request == null || keys == null) {
             return Optional.empty();
         }
         for (String key : keys) {
-            String value = rawParams.getFirst(key);
-            if (StringUtils.hasText(value)) {
-                return Optional.of(value);
+            String[] values = request.getParameterValues(key);
+            if (values != null) {
+                for (String value : values) {
+                    if (StringUtils.hasText(value)) {
+                        return Optional.of(value);
+                    }
+                }
+            }
+
+            Object attribute = request.getAttribute(key);
+            if (attribute != null) {
+                String attributeValue = attribute.toString();
+                if (StringUtils.hasText(attributeValue)) {
+                    return Optional.of(attributeValue);
+                }
             }
         }
         return Optional.empty();
