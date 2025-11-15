@@ -21,7 +21,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -43,7 +45,12 @@ public class AmountController {
     }
 
     @PostMapping("/updatePaymentStatus")
-    public ResponseEntity<Void> updatePaymentStatus(HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> updatePaymentStatus(HttpServletRequest request) {
+        if (request != null) {
+            // Force Servlet containers to parse form parameters before we touch the input stream.
+            request.getParameterMap();
+        }
+
         PaymentUpdateRequest payload = readBody(request);
 
         mergeParameters(payload, request);
@@ -63,7 +70,13 @@ public class AmountController {
         logger.info("Обновление статуса выплаты: actId={}, paid={}, paymentDate={}", actId, paid, paymentDate);
 
         userBonusService.updatePaymentStatus(actId, paid, paymentDate);
-        return ResponseEntity.ok().build();
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("actId", actId);
+        response.put("paid", paid);
+        response.put("paymentDate", paymentDate);
+
+        return ResponseEntity.ok(response);
     }
 
     private PaymentUpdateRequest readBody(HttpServletRequest request) {
@@ -72,13 +85,20 @@ public class AmountController {
         }
 
         try {
-            String rawBody = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
+            MediaType mediaType = resolveMediaType(request.getContentType());
+            boolean likelyJson = mediaType != null && MediaType.APPLICATION_JSON.includes(mediaType);
+            boolean hasFormParameters = request.getParameterMap() != null && !request.getParameterMap().isEmpty();
+
+            if (!likelyJson && hasFormParameters) {
+                return new PaymentUpdateRequest();
+            }
+
+            String rawBody = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8).trim();
             if (!StringUtils.hasText(rawBody)) {
                 return new PaymentUpdateRequest();
             }
 
-            MediaType mediaType = resolveMediaType(request.getContentType());
-            if (mediaType == null || MediaType.APPLICATION_JSON.includes(mediaType) || rawBody.trim().startsWith("{")) {
+            if (likelyJson || rawBody.startsWith("{") || rawBody.startsWith("[")) {
                 try {
                     return objectMapper.readValue(rawBody, PaymentUpdateRequest.class);
                 } catch (IOException ex) {
@@ -110,7 +130,7 @@ public class AmountController {
         }
 
         if (target.getPaymentDate() == null) {
-            readFirst(request, "paymentDate", "payment_date", "date")
+            readFirst(request, "paymentDate", "payment_date", "paymentRealDate", "payment_real_date", "date")
                     .flatMap(this::parseDateSafely)
                     .ifPresent(target::setPaymentDate);
         }

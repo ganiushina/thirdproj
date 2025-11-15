@@ -20,7 +20,7 @@ public class PaymentUpdateRequest {
     private Boolean paid;
 
     @JsonProperty("paymentDate")
-    @JsonAlias({"payment_date"})
+    @JsonAlias({"payment_date", "paymentRealDate", "payment_real_date"})
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate paymentDate;
