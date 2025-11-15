@@ -2,6 +2,8 @@ package ru.alta.hhdictdownloader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +19,11 @@ import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -33,6 +37,7 @@ final class DictionaryDownloader {
     private final Config config;
     private final HttpClient client;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final AreaHierarchyBuilder areaHierarchyBuilder = new AreaHierarchyBuilder();
 
     DictionaryDownloader(Config config) {
         this.config = config;
@@ -61,9 +66,12 @@ final class DictionaryDownloader {
 
             saveResponse(outputDir, endpoint, response.body());
             if (endpoint.startsWith("/areas")) {
+                areaHierarchyBuilder.accept(endpoint, response.body());
                 enqueueAreaChildren(response.body(), queue, scheduled, processed);
             }
         }
+
+        areaHierarchyBuilder.writeHierarchy(outputDir);
     }
 
     private HttpResponse<String> executeRequest(String endpoint) {
@@ -92,6 +100,10 @@ final class DictionaryDownloader {
         String fileName = createFileName(endpoint);
         Path file = outputDir.resolve(fileName);
         try {
+            if (Files.exists(file)) {
+                LOGGER.warn("File {} already exists, skipping write", file.toAbsolutePath());
+                return;
+            }
             Files.writeString(file, body, StandardCharsets.UTF_8);
             LOGGER.info("Saved {} bytes to {}", body.length(), file.toAbsolutePath());
         } catch (IOException e) {
@@ -159,5 +171,125 @@ final class DictionaryDownloader {
             return trimmed;
         }
         return trimmed.substring(0, 237) + "...";
+    }
+
+    private final class AreaHierarchyBuilder {
+        private final Map<String, AreaNode> nodes = new HashMap<>();
+        private final Set<String> roots = new LinkedHashSet<>();
+
+        void accept(String endpoint, String body) {
+            if (body == null || body.isBlank()) {
+                return;
+            }
+            try {
+                JsonNode payload = mapper.readTree(body);
+                if ("/areas".equals(endpoint)) {
+                    if (payload.isArray()) {
+                        for (JsonNode element : payload) {
+                            ingestArea(element, null);
+                        }
+                    }
+                } else {
+                    ingestArea(payload, null);
+                }
+            } catch (IOException e) {
+                LOGGER.error("Unable to parse area payload for hierarchy", e);
+            }
+        }
+
+        void writeHierarchy(Path outputDir) {
+            if (nodes.isEmpty()) {
+                return;
+            }
+            Path hierarchyFile = outputDir.resolve("areas_hierarchy.json");
+            if (Files.exists(hierarchyFile)) {
+                LOGGER.warn("Hierarchy file {} already exists, skipping write", hierarchyFile.toAbsolutePath());
+                return;
+            }
+            try {
+                List<ObjectNode> serializedRoots = new ArrayList<>();
+                for (String rootId : roots) {
+                    AreaNode node = nodes.get(rootId);
+                    if (node != null) {
+                        serializedRoots.add(serialize(node));
+                    }
+                }
+                Files.writeString(
+                        hierarchyFile,
+                        mapper.writerWithDefaultPrettyPrinter().writeValueAsString(serializedRoots),
+                        StandardCharsets.UTF_8
+                );
+                LOGGER.info("Saved consolidated area hierarchy to {}", hierarchyFile.toAbsolutePath());
+            } catch (IOException e) {
+                LOGGER.error("Failed to write area hierarchy", e);
+            }
+        }
+
+        private void ingestArea(JsonNode node, String parentOverride) {
+            if (node == null || !node.isObject()) {
+                return;
+            }
+            JsonNode idNode = node.get("id");
+            if (idNode == null || idNode.isNull()) {
+                return;
+            }
+            String id = idNode.asText();
+            String parentId = parentOverride;
+            JsonNode parentNode = node.get("parent_id");
+            if (parentNode != null && !parentNode.isNull()) {
+                parentId = parentNode.asText();
+            }
+
+            AreaNode areaNode = nodes.computeIfAbsent(id, AreaNode::new);
+            areaNode.parentId = parentId;
+            areaNode.data = (ObjectNode) node.deepCopy();
+
+            if (parentId == null || parentId.isBlank()) {
+                roots.add(id);
+            } else {
+                roots.remove(id);
+                AreaNode parent = nodes.computeIfAbsent(parentId, AreaNode::new);
+                parent.childIds.add(id);
+            }
+
+            JsonNode children = node.get("areas");
+            if (children != null && children.isArray()) {
+                for (JsonNode child : children) {
+                    ingestArea(child, id);
+                }
+            }
+        }
+
+        private ObjectNode serialize(AreaNode node) {
+            ObjectNode dataCopy = node.data != null ? node.data.deepCopy() : mapper.createObjectNode();
+            if (!dataCopy.has("id")) {
+                dataCopy.put("id", node.id);
+            }
+            if (node.parentId != null) {
+                dataCopy.put("parent_id", node.parentId);
+            } else {
+                dataCopy.putNull("parent_id");
+            }
+            ArrayNode childrenArray = mapper.createArrayNode();
+            for (String childId : node.childIds) {
+                AreaNode child = nodes.get(childId);
+                if (child != null) {
+                    childrenArray.add(serialize(child));
+                }
+            }
+            dataCopy.set("areas", childrenArray);
+            return dataCopy;
+        }
+    }
+
+    private static final class AreaNode {
+        private final String id;
+        private final Set<String> childIds = new LinkedHashSet<>();
+        private ObjectNode data;
+        private String parentId;
+
+        private AreaNode(String id) {
+            this.id = id;
+        }
     }
 }
