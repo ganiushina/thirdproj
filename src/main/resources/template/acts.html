@@ -272,6 +272,7 @@
                     document.getElementById(targetDiv).innerHTML = html;
                     initTableFeatures();
                     adjustStickyHeaders();
+                    populateOrganizationFilterOptions();
                     restoreOrganizationFilterSelection();
                     applyFilters();
                 }
@@ -532,6 +533,48 @@
         // При изменении дат тоже применяем фильтры
         document.getElementById('dateFrom').addEventListener('change', applyFilters);
         document.getElementById('dateTo').addEventListener('change', applyFilters);
+    }
+
+    function populateOrganizationFilterOptions() {
+        const organizationSelect = document.getElementById('actOrganizationFilter');
+        const periodTable = document.getElementById('periodTable');
+        if (!organizationSelect || !periodTable) {
+            return;
+        }
+
+        const previousValue = currentFilters.organization || '';
+        const uniqueOrganizations = new Set();
+
+        organizationSelect.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Все организации';
+        organizationSelect.appendChild(defaultOption);
+
+        periodTable.querySelectorAll('tbody tr').forEach(row => {
+            const organizationCell = row.cells[0];
+            if (!organizationCell) {
+                return;
+            }
+
+            const organization = organizationCell.textContent.trim();
+            if (organization && !uniqueOrganizations.has(organization)) {
+                uniqueOrganizations.add(organization);
+                const option = document.createElement('option');
+                option.value = organization;
+                option.textContent = organization;
+                organizationSelect.appendChild(option);
+            }
+        });
+
+        if (previousValue && uniqueOrganizations.has(previousValue)) {
+            organizationSelect.value = previousValue;
+        } else {
+            organizationSelect.value = '';
+            if (previousValue) {
+                currentFilters.organization = '';
+            }
+        }
     }
 
     function restoreOrganizationFilterSelection() {

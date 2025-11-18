@@ -56,14 +56,10 @@
         <span th:text="${date2 != null} ? ${#temporals.format(date2)}">...</span></p>
 
     <div class="row g-3 mb-3">
-        <div class="col-md-4"
-             th:with="organizationOptions=${#sets.set(actPutList.?[organization != null].![organization])}">
+        <div class="col-md-4">
             <label for="actOrganizationFilter" class="form-label">Фильтр по организации (От компании)</label>
             <select id="actOrganizationFilter" class="form-select">
                 <option value="">Все организации</option>
-                <option th:each="org : ${organizationOptions}"
-                        th:value="${org}"
-                        th:text="${org}"></option>
             </select>
         </div>
     </div>
