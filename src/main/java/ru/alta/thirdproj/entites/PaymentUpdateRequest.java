@@ -26,8 +26,8 @@ public class PaymentUpdateRequest {
     @Override
     public String toString() {
         return String.format(
-                "PaymentUpdateRequest[actId=%d, paid=%b, paymentDate=%s]",
-                actId, paid, paymentRealDate
+                "PaymentUpdateRequest[actId=%d, employerId=%d, candidate=%s, bonus=%.2f, paid=%b, datePayment=%s, paymentRealDate=%s]",
+                actId, employerId, candidate, bonus, paid, datePayment, paymentRealDate
         );
     }
 }

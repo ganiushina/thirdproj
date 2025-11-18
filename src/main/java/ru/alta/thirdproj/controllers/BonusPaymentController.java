@@ -3,6 +3,7 @@ package ru.alta.thirdproj.controllers;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import java.util.*;
 //@RestController
 @Controller
 @CrossOrigin("*")
+@Slf4j
 @Tag(name="RestBonusPaymentController", description="Выплаты по бонусам")
 public class BonusPaymentController {
 
@@ -120,87 +122,303 @@ public class BonusPaymentController {
         return "payment";
     }
 
-
     @PostMapping("/amount/updatePaymentStatus")
     @ResponseBody
     public ResponseEntity<?> updatePaymentStatus(@RequestBody PaymentUpdateRequest request, Principal principal) {
+
+        System.out.println("Received payment update request: " + request);
+        Map<String, Object> response = new HashMap<>();
+
         try {
-//            if (request.getActId() == null) {
-//                throw new IllegalArgumentException("ID акта обязательно");
-//            }
+            // Детальное логирование входящего запроса
+            logIncomingRequest(request, principal);
 
-            LocalDate paymentDate = null;
-            LocalDate dateForKpi = null;
-            int type = 0;
-            int month = 0;
-            System.out.println("Received payment update request: " + request);
-            User user = userService.findByUserName(principal.getName());
-
-
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-
-
-            if (request.getPaymentRealDate() != null) {
-             paymentDate = request.getPaymentRealDate() != null ?
-                     request.getPaymentRealDate() :
-                     LocalDate.now();
-            }
-            if (request.isPaid()) {
-                if (request.getActId() == 0){
-                    Date date = format.parse(request.getDatePayment());
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(date);
-                    month = cal.get(Calendar.MONTH) + 1;
-                    type = 2;
-                }
-                else {
-                    type =1;
-                    month = 0;
-                }
-                paymentSuccessService.addPayment(user.getUserId(), request.getEmployerId(), request.getBonus(),
-                        request.getActId(), request.getCandidate(), 0, month, type);
-            } else {
-                paymentSuccessService.deletePayment(user.getUserId(), request.getEmployerId(),
-                        paymentDate,
-                        request.getBonus(),
-                        request.getActId(), request.getCandidate(), request.getBonus());
-            }
-            Optional<PaymentSuccess> act =  paymentSuccessService.findByActId(user.getUserId(), request.getActId(),
-                    request.getCandidate(), request.getBonus());
-
-            double bonus = request.getBonus();
-            if (request.isPaid()) {
-                allPaymentAmount += bonus;
-                if (allNotPaymentAmount != 0.0) {
-                    allNotPaymentAmount -= bonus;
-                }
-            } else {
-                allPaymentAmount -= bonus;
-                allNotPaymentAmount += bonus;
+            // Валидация обязательных полей
+            List<String> validationErrors = validateRequest(request);
+            if (!validationErrors.isEmpty()) {
+                return buildValidationErrorResponse(validationErrors);
             }
 
-            // Форматируем для отображения
-            String formattedPayment = formatMoney(allPaymentAmount);
-            String formattedNotPayment = formatMoney(allNotPaymentAmount);
+            // Получение пользователя
+            User user = getUser(principal);
+            if (user == null) {
+                return buildErrorResponse("Пользователь не найден");
+            }
 
+            // Обработка платежа
+            processPayment(request, user);
 
+            // Получение обновленных данных
+            PaymentSuccess paymentRecord = getPaymentRecord(request, user);
 
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "paid", request.isPaid(),
-                    "paymentRealDate", !act.isEmpty() ?
-                            act.get().getPaymentDateOnly() : "",
-                    "employerPaid", !act.isEmpty() ?
-                            user.getUserFIOShot() + ' ' +request.getBonus() : "",
-                    "allPaymentMoney", formattedPayment,
-                    "allNotPaymentMoney", formattedNotPayment
-            ));
+            // Расчет итоговых сумм
+            updatePaymentTotals(request);
+
+            // Формирование ответа
+            return buildSuccessResponse(request, paymentRecord, user);
+
         } catch (Exception e) {
-            System.err.println("Error updating payment status: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonMap("error", e.getMessage()));
+            log.error("Critical error updating payment status", e);
+            return buildErrorResponse("Критическая ошибка: " + e.getMessage());
         }
     }
+
+// Вспомогательные методы
+
+    private void logIncomingRequest(PaymentUpdateRequest request, Principal principal) {
+        System.out.println("=== INCOMING PAYMENT UPDATE REQUEST ===");
+        System.out.println("User: " + (principal != null ? principal.getName() : "null"));
+        System.out.println("actId: " + request.getActId());
+        System.out.println("employerId: " + request.getEmployerId());
+        System.out.println("candidate: " + request.getCandidate());
+        System.out.println("bonus: " + request.getBonus());
+        System.out.println("paid: " + request.isPaid());
+        System.out.println("datePayment: " + request.getDatePayment());
+        System.out.println("paymentRealDate: " + request.getPaymentRealDate());
+        System.out.println("========================================");
+    }
+
+    private List<String> validateRequest(PaymentUpdateRequest request) {
+        List<String> errors = new ArrayList<>();
+
+        if (request.getEmployerId() == null) {
+            errors.add("employerId обязателен");
+        }
+
+        if (request.getBonus() == null || request.getBonus() <= 0) {
+            errors.add("bonus должен быть положительным числом");
+        }
+
+        if (request.getActId() == null) {
+            errors.add("actId обязателен");
+        }
+
+        if (request.getCandidate() == null || request.getCandidate().trim().isEmpty()) {
+            errors.add("candidate обязателен");
+        }
+
+        return errors;
+    }
+
+    private User getUser(Principal principal) {
+        try {
+            return userService.findByUserName(principal.getName());
+        } catch (Exception e) {
+            log.error("Error finding user", e);
+            return null;
+        }
+    }
+
+    private void processPayment(PaymentUpdateRequest request, User user) throws Exception {
+        LocalDate paymentDate = request.getPaymentRealDate() != null ?
+                request.getPaymentRealDate() : LocalDate.now();
+
+        if (request.isPaid()) {
+            // Оплата бонуса
+            int type = 0;
+            int month = 0;
+
+            if (request.getActId() == 0) {
+                // Обработка для actId = 0
+                Date date = new SimpleDateFormat("dd-MM-yyyy").parse(request.getDatePayment());
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(date);
+                month = cal.get(Calendar.MONTH) + 1;
+                type = 2;
+            } else {
+                // Обычная обработка
+                type = 1;
+                month = 0;
+            }
+
+            paymentSuccessService.addPayment(
+                    user.getUserId(),
+                    request.getEmployerId(),
+                    request.getBonus(),
+                    request.getActId(),
+                    request.getCandidate(),
+                    0,
+                    month,
+                    type
+            );
+        } else {
+            // Отмена оплаты
+            paymentSuccessService.deletePayment(
+                    user.getUserId(),
+                    request.getEmployerId(),
+                    paymentDate,
+                    request.getBonus(),
+                    request.getActId(),
+                    request.getCandidate(),
+                    request.getBonus()
+            );
+        }
+    }
+
+    private PaymentSuccess getPaymentRecord(PaymentUpdateRequest request, User user) {
+        try {
+            Optional<PaymentSuccess> paymentRecord = paymentSuccessService.findByActId(
+                    user.getUserId(),
+                    request.getActId(),
+                    request.getCandidate(),
+                    request.getBonus()
+            );
+            return paymentRecord.orElse(null);
+        } catch (Exception e) {
+            log.error("Error finding payment record", e);
+            return null;
+        }
+    }
+
+    private void updatePaymentTotals(PaymentUpdateRequest request) {
+        double bonus = request.getBonus() != null ? request.getBonus() : 0.0;
+
+        if (request.isPaid()) {
+            allPaymentAmount += bonus;
+            if (allNotPaymentAmount != 0.0) {
+                allNotPaymentAmount -= bonus;
+            }
+        } else {
+            allPaymentAmount -= bonus;
+            allNotPaymentAmount += bonus;
+        }
+
+        // Защита от отрицательных значений
+        allPaymentAmount = Math.max(0, allPaymentAmount);
+        allNotPaymentAmount = Math.max(0, allNotPaymentAmount);
+    }
+
+    private ResponseEntity<?> buildSuccessResponse(PaymentUpdateRequest request,
+                                                   PaymentSuccess paymentRecord,
+                                                   User user) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("paid", request.isPaid());
+
+        // Данные о дате платежа
+        if (paymentRecord != null && paymentRecord.getPaymentDateOnly() != null) {
+            response.put("paymentRealDate", paymentRecord.getPaymentDateOnly());
+        } else {
+            response.put("paymentRealDate", request.getPaymentRealDate() != null ?
+                    request.getPaymentRealDate().toString() : "");
+        }
+
+        // Данные о сотруднике
+        if (paymentRecord != null && user != null) {
+            response.put("employerPaid", user.getUserFIOShot() + ' ' + request.getBonus());
+        } else {
+            response.put("employerPaid", "");
+        }
+
+        // Итоговые суммы
+        response.put("allPaymentMoney", formatMoney(allPaymentAmount));
+        response.put("allNotPaymentMoney", formatMoney(allNotPaymentAmount));
+
+        return ResponseEntity.ok(response);
+    }
+
+    private ResponseEntity<?> buildValidationErrorResponse(List<String> errors) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "error");
+        response.put("message", "Ошибки валидации");
+        response.put("errors", errors);
+
+        System.err.println("Validation errors: " + errors);
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    private ResponseEntity<?> buildErrorResponse(String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "error");
+        response.put("message", message);
+
+        System.err.println("Error: " + message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+
+//    @PostMapping("/amount/updatePaymentStatus")
+//    @ResponseBody
+//    public ResponseEntity<?> updatePaymentStatus(@RequestBody PaymentUpdateRequest request, Principal principal) {
+//        try {
+////            if (request.getActId() == null) {
+////                throw new IllegalArgumentException("ID акта обязательно");
+////            }
+//
+//
+//
+//            LocalDate paymentDate = null;
+//            LocalDate dateForKpi = null;
+//            int type = 0;
+//            int month = 0;
+//            System.out.println("Received payment update request: " + request);
+//            User user = userService.findByUserName(principal.getName());
+//
+//
+//            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+//
+//
+//            if (request.getPaymentRealDate() != null) {
+//             paymentDate = request.getPaymentRealDate() != null ?
+//                     request.getPaymentRealDate() :
+//                     LocalDate.now();
+//            }
+//            if (request.isPaid()) {
+//                if (request.getActId() == 0){
+//                    Date date = format.parse(request.getDatePayment());
+//                    Calendar cal = Calendar.getInstance();
+//                    cal.setTime(date);
+//                    month = cal.get(Calendar.MONTH) + 1;
+//                    type = 2;
+//                }
+//                else {
+//                    type =1;
+//                    month = 0;
+//                }
+//                paymentSuccessService.addPayment(user.getUserId(), request.getEmployerId(), request.getBonus(),
+//                        request.getActId(), request.getCandidate(), 0, month, type);
+//            } else {
+//                paymentSuccessService.deletePayment(user.getUserId(), request.getEmployerId(),
+//                        paymentDate,
+//                        request.getBonus(),
+//                        request.getActId(), request.getCandidate(), request.getBonus());
+//            }
+//            Optional<PaymentSuccess> act =  paymentSuccessService.findByActId(user.getUserId(), request.getActId(),
+//                    request.getCandidate(), request.getBonus());
+//
+//            double bonus = request.getBonus();
+//            if (request.isPaid()) {
+//                allPaymentAmount += bonus;
+//                if (allNotPaymentAmount != 0.0) {
+//                    allNotPaymentAmount -= bonus;
+//                }
+//            } else {
+//                allPaymentAmount -= bonus;
+//                allNotPaymentAmount += bonus;
+//            }
+//
+//            // Форматируем для отображения
+//            String formattedPayment = formatMoney(allPaymentAmount);
+//            String formattedNotPayment = formatMoney(allNotPaymentAmount);
+//
+//
+//
+//            return ResponseEntity.ok(Map.of(
+//                    "status", "success",
+//                    "paid", request.isPaid(),
+//                    "paymentRealDate", !act.isEmpty() ?
+//                            act.get().getPaymentDateOnly() : "",
+//                    "employerPaid", !act.isEmpty() ?
+//                            user.getUserFIOShot() + ' ' +request.getBonus() : "",
+//                    "allPaymentMoney", formattedPayment,
+//                    "allNotPaymentMoney", formattedNotPayment
+//            ));
+//        } catch (Exception e) {
+//            System.err.println("Error updating payment status: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(Collections.singletonMap("error", e.getMessage()));
+//        }
+//    }
     private double parseMoney(String moneyStr) {
         return Double.parseDouble(moneyStr.replaceAll("[^\\d.]", ""));
     }

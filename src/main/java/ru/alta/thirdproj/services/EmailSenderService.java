@@ -84,54 +84,5 @@ public class EmailSenderService {
             }
         }
     }
-//    public void sendHtmlMessage(Email email) throws MessagingException {
-//        MimeMessage message = emailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
-//        Context context = new Context();
-//        context.setVariables(email.getProperties());
-//        helper.setFrom(email.getFrom());
-//
-//        List<InternetAddress> validAddresses = new ArrayList<>();
-//
-//        // Проверяем каждый адрес отдельно
-//        for (String recipient : email.getTo()) {
-//            try {
-//                InternetAddress address = new InternetAddress(recipient.trim());
-//                address.validate(); // Проверка формата адреса
-//                validAddresses.add(address);
-//            } catch (AddressException e) {
-//                log.error("Invalid email address: {} - {}", recipient, e.getMessage());
-//            }
-//        }
-//
-//        // Если нет валидных адресов - выходим
-//        if (validAddresses.isEmpty()) {
-//            log.warn("No valid email addresses found for sending");
-//            return;
-//        }
-//
-//        // Устанавливаем получателей
-//        helper.setTo(validAddresses.toArray(new InternetAddress[0]));
-//        helper.setSubject(email.getSubject());
-//        String html = templateEngine.process(email.getTemplate(), context);
-//        helper.setText(html, true);
-//
-//        for (String key : email.getProperties().keySet()) {
-//            if (key.startsWith("img_")) {
-//                byte[] imgBytes = (byte[]) email.getProperties().get(key);
-//                ByteArrayResource imageResource = new ByteArrayResource(imgBytes);
-//                helper.addInline(key, imageResource, "image/png");
-//            }
-//        }
-//
-//        log.info("Sending email to valid addresses: {}", validAddresses);
-//
-//        try {
-//            emailSender.send(message);
-//        } catch (MailSendException e) {
-//            // Логируем ошибки отправки, но не прерываем выполнение
-//            log.error("Error sending email to some addresses: {}", e.getFailedMessages());
-//        }
-//    }
 
 }

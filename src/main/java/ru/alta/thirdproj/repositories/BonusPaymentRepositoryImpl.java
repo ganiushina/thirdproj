@@ -101,6 +101,19 @@ public class BonusPaymentRepositoryImpl {
 
     private Act createAct(Map<String, Object> row, DateFormat dateFormatter) {
         Act act = new Act();
+        // ВАЖНО: Добавляем установку act_id
+        Object actIdValue = row.get("act_id");
+        if (actIdValue != null) {
+            if (actIdValue instanceof Integer) {
+                act.setId((Integer) actIdValue);
+            } else if (actIdValue instanceof Long) {
+                act.setId(((Long) actIdValue).intValue());
+            } else if (actIdValue instanceof BigDecimal) {
+                act.setId(((BigDecimal) actIdValue).intValue());
+            } else if (actIdValue instanceof String) {
+                act.setId(Integer.parseInt((String) actIdValue));
+            }
+        }
 
         setIfNotEmpty(act::setCandidate, (String) row.get("candidate"));
         setIfNotEmpty(act::setCompanies, (String) row.get("company_name"));

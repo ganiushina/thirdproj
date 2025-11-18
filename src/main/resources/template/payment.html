@@ -369,7 +369,7 @@
                         th:text="${percentValue != null} ? ${percentValue} : ''"></td>
                     <td th:text="${act.dateForPay}"></td>
                     <td th:text="${act.datePayment}"></td>
-                    <td th:text="${act.paymentRealDate}"></td> <!-- Будет пусто, если null -->
+                    <td th:text="${act.paymentRealDate}"></td>
                     <td th:text="${act.employerPaid}"></td>
                 </tr>
                 </tbody>
@@ -380,6 +380,19 @@
 </table>
 
 <script>
+    // Глобальные функции - должны быть доступны из HTML
+    function applyDateFilter() {
+        const date1 = document.getElementById('date1').value;
+        const date2 = document.getElementById('date2').value;
+
+        if (!date1 || !date2) {
+            alert('Please select both date ranges');
+            return;
+        }
+
+        window.location.href = `/amount/allpayment3?date1=${date1}&date2=${date2}`;
+    }
+
     function filterTable() {
         const nameInput = document.getElementById('searchFio');
         const departmentSelect = document.getElementById('searchDepartment');
@@ -401,19 +414,7 @@
         });
     }
 
-    function applyDateFilter() {
-        const date1 = document.getElementById('date1').value;
-        const date2 = document.getElementById('date2').value;
-
-        if (!date1 || !date2) {
-            alert('Please select both date ranges');
-            return;
-        }
-
-        window.location.href = `/amount/allpayment3?date1=${date1}&date2=${date2}`;
-    }
-
-    // Initialize filters from URL parameters if present
+    // Остальной код оставьте как есть...
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const searchFio = urlParams.get('searchFio');
@@ -435,137 +436,216 @@
         }
     });
 
-     function updatePaymentStatus(checkbox) {
-        try {
-            const isChecked = checkbox.checked;
-            const bonus = parseFloat(checkbox.getAttribute('data-bonus'));
-            const row = checkbox.closest('tr');
-            const datePaymentValue = checkbox.getAttribute('data-date-payment');
 
-            const paidSpan = document.getElementById('paidTotal');
-            const notPaidSpan = document.getElementById('notPaidTotal');
+    function updatePaymentStatus(checkbox) {
+    try {
+        const isChecked = checkbox.checked;
+        const bonus = parseFloat(checkbox.getAttribute('data-bonus') || 0);
+        const actId = parseInt(checkbox.getAttribute('data-act-id') || 0);
+        const employerId = parseInt(checkbox.getAttribute('data-employer-id') || 0);
+        const candidate = checkbox.getAttribute('data-candidate') || '';
+        const datePaymentValue = checkbox.getAttribute('data-date-payment') || '';
 
-            // Проверяем, что элементы существуют
-            if (!paidSpan || !notPaidSpan) {
-                throw new Error("Не найдены элементы для отображения сумм");
+        // Валидация данных
+        if (!employerId || !candidate || !bonus || bonus <= 0) {
+            throw new Error("Неверные данные: employerId=" + employerId +
+                          ", candidate=" + candidate + ", bonus=" + bonus);
+        }
+
+        // ФОРМИРУЕМ ДАТУ ПРАВИЛЬНО
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const currentDate = `${year}-${month}-${day}`;
+
+        const data = {
+            actId: actId,
+            employerId: employerId,
+            candidate: candidate,
+            bonus: bonus,
+            paid: isChecked,
+            datePayment: datePaymentValue,
+            paymentRealDate: isChecked ? currentDate : null
+        };
+
+        console.log("Sending payment data:", JSON.stringify(data, null, 2));
+
+        // Сохраняем исходное состояние для отката
+        const originalChecked = !isChecked;
+        const originalPaidTotal = document.getElementById('paidTotal').textContent;
+        const originalNotPaidTotal = document.getElementById('notPaidTotal').textContent;
+
+        const row = checkbox.closest('tr');
+
+        // ДЕБАГ: посмотрим структуру строки
+        console.log("=== ROW STRUCTURE DEBUG ===");
+        const cells = row.querySelectorAll('td');
+        cells.forEach((cell, index) => {
+            console.log(`Cell ${index + 1}:`, cell.textContent?.substring(0, 30));
+        });
+        console.log("=== END DEBUG ===");
+
+        // ВРЕМЕННОЕ ОБНОВЛЕНИЕ UI
+        if (isChecked) {
+            // Обновляем общие суммы
+            updateTotalSums(bonus, true);
+
+            // Временно обновляем поля в таблице
+            if (row) {
+                // ПРАВИЛЬНЫЕ ИНДЕКСЫ для вложенной таблицы актов:
+                const paymentDateCell = row.querySelector('td:nth-child(9)');  // Дата оплаты компанией (8-я колонка)
+                const employerPaidCell = row.querySelector('td:nth-child(10)');  // Оплативший сотрудник (9-я колонка)
+
+                console.log("Temporary UI update - cells found:", {
+                    paymentDateCell: !!paymentDateCell,
+                    employerPaidCell: !!employerPaidCell
+                });
+
+                if (paymentDateCell) {
+                    // Форматируем дату для отображения
+                    const displayDate = `${day}.${month}.${year}`;
+                    paymentDateCell.textContent = displayDate;
+                    console.log("Set paymentDateCell to:", displayDate);
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = "Обновление...";
+                    console.log("Set employerPaidCell to: Обновление...");
+                }
+            }
+        } else {
+            updateTotalSums(bonus, false);
+
+            // Очищаем поля при снятии галочки
+            if (row) {
+                const paymentDateCell = row.querySelector('td:nth-child(9)');
+                const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                if (paymentDateCell) {
+                    paymentDateCell.textContent = "";
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = "";
+                }
+            }
+        }
+
+        // ОТПРАВКА НА СЕРВЕР
+        fetch('/amount/updatePaymentStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            console.log("Response status:", response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error("Server error response:", text);
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(responseData => {
+            console.log("Server response:", responseData);
+
+            if (responseData.status === "success") {
+                // ОБНОВЛЯЕМ UI С ДАННЫМИ ОТ СЕРВЕРА
+                if (responseData.allPaymentMoney) {
+                    document.getElementById('paidTotal').textContent = responseData.allPaymentMoney;
+                }
+                if (responseData.allNotPaymentMoney) {
+                    document.getElementById('notPaidTotal').textContent = responseData.allNotPaymentMoney;
+                }
+
+                // ОБНОВЛЯЕМ ДАТУ И СОТРУДНИКА ИЗ ОТВЕТА СЕРВЕРА
+                if (row) {
+                    const paymentDateCell = row.querySelector('td:nth-child(9)');  // Дата оплаты компанией
+                    const employerPaidCell = row.querySelector('td:nth-child(10)');  // Оплативший сотрудник
+
+                    console.log("Final UI update - cells found:", {
+                        paymentDateCell: !!paymentDateCell,
+                        employerPaidCell: !!employerPaidCell
+                    });
+
+                    if (paymentDateCell && responseData.paymentRealDate) {
+                        paymentDateCell.textContent = responseData.paymentRealDate;
+                        console.log("Set paymentDateCell to:", responseData.paymentRealDate);
+                    }
+                    if (employerPaidCell && responseData.employerPaid) {
+                        employerPaidCell.textContent = responseData.employerPaid;
+                        console.log("Set employerPaidCell to:", responseData.employerPaid);
+                    }
+                }
+
+                console.log("Payment status updated successfully");
+            } else {
+                throw new Error(responseData.message || "Unknown server error");
+            }
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            // ОТКАТЫВАЕМ ИЗМЕНЕНИЯ ПРИ ОШИБКЕ
+            checkbox.checked = originalChecked;
+            document.getElementById('paidTotal').textContent = originalPaidTotal;
+            document.getElementById('notPaidTotal').textContent = originalNotPaidTotal;
+
+            if (row) {
+                const paymentDateCell = row.querySelector('td:nth-child(9)');
+                const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                if (paymentDateCell) {
+                    paymentDateCell.textContent = "";
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = "";
+                }
             }
 
-            // Получаем текущие значения с проверкой
+            alert('Ошибка при обновлении: ' + error.message);
+        });
+
+    } catch (error) {
+        console.error("Validation error:", error);
+        checkbox.checked = !checkbox.checked;
+        alert('Ошибка валидации: ' + error.message);
+    }
+}
+
+
+
+    // Вспомогательная функция для обновления сумм
+    function updateTotalSums(bonus, isAdding) {
+        const paidSpan = document.getElementById('paidTotal');
+        const notPaidSpan = document.getElementById('notPaidTotal');
+
+        if (paidSpan && notPaidSpan) {
             const paidText = paidSpan.textContent || "0";
             const notPaidText = notPaidSpan.textContent || "0";
 
             let paidTotal = parseFloat(paidText.replace(/\s+/g, '')) || 0;
             let notPaidTotal = parseFloat(notPaidText.replace(/\s+/g, '')) || 0;
 
-            const today = new Date().toISOString().split('T')[0]; // формат YYYY-MM-DD
-
-            // Формируем данные для отправки
-            const data = {
-                actId: parseInt(checkbox.getAttribute('data-act-id')),
-                employerId: parseInt(checkbox.getAttribute('data-employer-id')),
-                candidate: checkbox.getAttribute('data-candidate'),
-                bonus: bonus,
-                paid: isChecked,
-                datePayment: datePaymentValueб
-                paymentRealDate: isChecked ? today : null  // Добавьте это поле
-            };
-
-            console.log("Sending data:", data); // Для отладки
-
-
-            // Оптимистичное обновление UI
-            if (isChecked) {
+            if (isAdding) {
                 paidTotal += bonus;
-                notPaidTotal -= bonus;
+                notPaidTotal = Math.max(0, notPaidTotal - bonus);
             } else {
-                paidTotal -= bonus;
+                paidTotal = Math.max(0, paidTotal - bonus);
                 notPaidTotal += bonus;
             }
 
             paidSpan.textContent = formatMoney(paidTotal);
             notPaidSpan.textContent = formatMoney(notPaidTotal);
-
-            // Обновляем дату и сотрудника, если элементы существуют
-            if (row) {
-                const paymentDateCell = row.querySelector('td:nth-child(9)');
-                const employerPaidCell = row.querySelector('td:nth-child(10)');
-
-                if (paymentDateCell) {
-                    paymentDateCell.textContent = isChecked ? new Date().toLocaleDateString() : '';
-                }
-                if (employerPaidCell) {
-                    employerPaidCell.textContent = isChecked ? "Обновление..." : '';
-                }
-            }
-
-            // Отправка на сервер
-            fetch('/amount/updatePaymentStatus', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.error || "Ошибка сервера") });
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Финализируем обновление
-                if (data.allPaymentMoney) {
-                    paidSpan.textContent = data.allPaymentMoney;
-                }
-                if (data.allNotPaymentMoney) {
-                    notPaidSpan.textContent = data.allNotPaymentMoney;
-                }
-
-                if (row) {
-                    const paymentDateCell = row.querySelector('td:nth-child(9)');
-                    const employerPaidCell = row.querySelector('td:nth-child(10)');
-
-                    if (paymentDateCell && data.paymentRealDate !== undefined) {
-                        paymentDateCell.textContent = data.paymentRealDate || '';
-                    }
-                    if (employerPaidCell && data.employerPaid !== undefined) {
-                        employerPaidCell.textContent = data.employerPaid || '';
-                    }
-                }
-            })
-            .catch(error => {
-                console.error("Ошибка:", error);
-                // Откатываем изменения
-                checkbox.checked = !isChecked;
-                paidSpan.textContent = paidText;
-                notPaidSpan.textContent = notPaidText;
-
-                if (row) {
-                    const paymentDateCell = row.querySelector('td:nth-child(9)');
-                    const employerPaidCell = row.querySelector('td:nth-child(10)');
-
-                    if (paymentDateCell) {
-                        paymentDateCell.textContent = isChecked ? '' : (data?.paymentRealDate || '');
-                    }
-                    if (employerPaidCell) {
-                        employerPaidCell.textContent = isChecked ? '' : (data?.employerPaid || '');
-                    }
-                }
-
-                alert('Ошибка при обновлении: ' + error.message);
-            });
-
-        } catch (error) {
-            console.error("Критическая ошибка:", error);
-            checkbox.checked = !checkbox.checked;
-            alert('Произошла ошибка: ' + error.message);
         }
     }
 
     function formatMoney(amount) {
         return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ');
     }
+
 
     function exportToExcel() {
         const script = document.createElement('script');
@@ -625,7 +705,7 @@
         document.head.appendChild(script);
     }
 
-     function prepareExcelData() {
+    function prepareExcelData() {
         const excelData = [];
         const rows = document.querySelectorAll('#mainTable tbody tr.employer-row');
 
@@ -679,7 +759,7 @@
 
         return excelData;
     }
-    // Добавьте в скрипт
+
     function parseExcelDate(dateStr) {
         if (!dateStr) return null;
         const parts = dateStr.split('.');
@@ -688,6 +768,7 @@
         }
         return null;
     }
+
     function convertToExcelNumber(value) {
         if (typeof value === 'number') return value;
         if (!value) return 0;
@@ -704,6 +785,8 @@
     function formatExcelNumber(value) {
         return parseFloat(value.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
     }
+
+
 
 </script>
 </div>
