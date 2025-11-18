@@ -27,6 +27,10 @@ public class UserBonusServiceImpl  {
         return userBonusProvider.getUserBonuses(date1, date2, userId, departmentId);
     }
 
+    public void updatePaymentStatus(Long actId, boolean paid, LocalDate paymentDate) {
+        userBonusProvider.updatePaymentStatus(actId, paid, paymentDate);
+    }
+
 //    public Page<UserBonus> findAll(Specification<UserBonus> spec, Integer page) {
 //        if (page < 1L) {
 //            page = 1;
