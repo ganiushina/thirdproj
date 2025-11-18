@@ -201,6 +201,7 @@
         candidate: '',
         project: '',
         company: '',
+        organization: '',
         department: '', // Добавляем новое поле для направления
         filterByCreationDate: false, // По умолчанию не отмечено
         paymentStatus: 'all'
@@ -271,6 +272,7 @@
                     document.getElementById(targetDiv).innerHTML = html;
                     initTableFeatures();
                     adjustStickyHeaders();
+                    restoreOrganizationFilterSelection();
                     applyFilters();
                 }
             })
@@ -295,6 +297,10 @@
             currentFilters.candidate = document.getElementById('globalCandidateSearch').value.toLowerCase();
             currentFilters.project = document.getElementById('globalProjectSearch').value.toLowerCase();
             currentFilters.company = document.getElementById('globalCompanySearch').value.toLowerCase();
+            const organizationSelect = document.getElementById('actOrganizationFilter');
+            if (organizationSelect) {
+                currentFilters.organization = organizationSelect.value;
+            }
             const departmentSelect = document.getElementById('globalDepartmentSearch');
             currentFilters.department = departmentSelect ? departmentSelect.value.toLowerCase() : '';
             currentFilters.filterByCreationDate = document.getElementById('filterByCreationDate').checked;
@@ -359,11 +365,21 @@
                     actNum: findColumnIndex(headers, ['номер акта']),
                     candidate: findColumnIndex(headers, ['кандидат']),
                     project: findColumnIndex(headers, ['проект']),
-                    company: findColumnIndex(headers, ['компания', 'организация']),
+                    organization: findColumnIndex(headers, ['от компании', 'organization']),
+                    company: -1,
                     department: findColumnIndex(headers, ['направление']),
                     actDate: findColumnIndex(headers, ['дата акта']),
                     paymentStatus: findColumnIndex(headers, ['оплата', 'статус оплаты'])
                 };
+
+                columnIndexes.company = findColumnIndex(
+                    headers,
+                    ['компания', 'организация'],
+                    [columnIndexes.organization].filter(index => index !== -1)
+                );
+
+                const organizationFilterValue = currentFilters.organization ? currentFilters.organization.toLowerCase() : '';
+                const organizationFilterActive = organizationFilterValue && columnIndexes.organization !== -1;
 
                 rows.forEach(row => {
                     const cells = row.querySelectorAll('td');
@@ -372,6 +388,7 @@
                     const actNumText = columnIndexes.actNum !== -1 ? cells[columnIndexes.actNum]?.textContent.toLowerCase() : '';
                     const candidateText = columnIndexes.candidate !== -1 ? cells[columnIndexes.candidate]?.textContent.toLowerCase() : '';
                     const projectText = columnIndexes.project !== -1 ? cells[columnIndexes.project]?.textContent.toLowerCase() : '';
+                    const organizationText = columnIndexes.organization !== -1 ? cells[columnIndexes.organization]?.textContent.toLowerCase() : '';
                     const companyText = columnIndexes.company !== -1 ? cells[columnIndexes.company]?.textContent.toLowerCase() : '';
                     const departmentText = columnIndexes.department !== -1 ? cells[columnIndexes.department]?.textContent.toLowerCase() : '';
 
@@ -396,6 +413,7 @@
                         !currentFilters.actNum || actNumText.includes(currentFilters.actNum),
                         !currentFilters.candidate || candidateText.includes(currentFilters.candidate),
                         !currentFilters.project || projectText.includes(currentFilters.project),
+                        !organizationFilterActive || organizationText.includes(organizationFilterValue),
                         !currentFilters.company || companyText.includes(currentFilters.company),
                         !currentFilters.department || departmentText.includes(currentFilters.department),
                         dateMatch,
@@ -445,8 +463,12 @@
 
 
     // Поиск индекса столбца по ключевым словам
-    function findColumnIndex(headers, keywords) {
+    function findColumnIndex(headers, keywords, excludeIndexes = []) {
+        const excluded = new Set(excludeIndexes);
         for (let i = 0; i < headers.length; i++) {
+            if (excluded.has(i)) {
+                continue;
+            }
             const headerText = headers[i].textContent.toLowerCase();
             if (keywords.some(keyword => headerText.includes(keyword))) {
                 return i;
@@ -511,6 +533,28 @@
         document.getElementById('dateFrom').addEventListener('change', applyFilters);
         document.getElementById('dateTo').addEventListener('change', applyFilters);
     }
+
+    function restoreOrganizationFilterSelection() {
+        const organizationSelect = document.getElementById('actOrganizationFilter');
+        if (!organizationSelect) {
+            return;
+        }
+
+        const storedValue = currentFilters.organization || '';
+        const hasOption = Array.from(organizationSelect.options).some(option => option.value === storedValue);
+        organizationSelect.value = hasOption ? storedValue : '';
+
+        if (!hasOption && storedValue) {
+            currentFilters.organization = '';
+        }
+    }
+
+    document.addEventListener('change', function(event) {
+        if (event.target && event.target.id === 'actOrganizationFilter') {
+            currentFilters.organization = event.target.value;
+            applyFilters();
+        }
+    });
 
 
      // Инициализация функций таблицы

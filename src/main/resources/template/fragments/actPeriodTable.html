@@ -55,6 +55,19 @@
     <p>Акты за период <span th:text="${date1 != null} ? ${#temporals.format(date1)}">...</span>
         <span th:text="${date2 != null} ? ${#temporals.format(date2)}">...</span></p>
 
+    <div class="row g-3 mb-3">
+        <div class="col-md-4"
+             th:with="organizationOptions=${#sets.set(actPutList.?[organization != null].![organization])}">
+            <label for="actOrganizationFilter" class="form-label">Фильтр по организации (От компании)</label>
+            <select id="actOrganizationFilter" class="form-select">
+                <option value="">Все организации</option>
+                <option th:each="org : ${organizationOptions}"
+                        th:value="${org}"
+                        th:text="${org}"></option>
+            </select>
+        </div>
+    </div>
+
     <div class="table-scroll-container">
         <table id="periodTable" class="table table-bordered table-hover fixed-header" data-numeric-cols="Сумма">
             <thead class="table-light">
