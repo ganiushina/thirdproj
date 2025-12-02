@@ -44,64 +44,16 @@
             <tr>
                 <th>Должность</th>
                 <th>Название схемы</th>
-                <th>Лимит</th>
-                <th>ГЭП, %</th>
+                <th>Процент</th>
                 <th>Дата</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="scheme : ${schemeLimitDetails}">
+            <tr th:each="scheme : ${schemeRanges}">
                 <td th:text="${scheme.positionName}"></td>
                 <td th:text="${scheme.schemeName}"></td>
-                <td th:text="${scheme.limits}"></td>
-                <td th:text="${scheme.gapPercent}"></td>
+                <td th:text="${scheme.percentRange}"></td>
                 <td th:text="${scheme.dateScheme}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <section style="margin-top: 30px;">
-        <h3>Схемы BDM</h3>
-        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Должность</th>
-                <th>ГЭП</th>
-                <th>Дивизион</th>
-                <th>Лимит</th>
-                <th>Дата</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="bdm : ${bdmLimits}">
-                <td th:text="${bdm.id}"></td>
-                <td th:text="${bdm.positionId}"></td>
-                <td th:text="${bdm.gapId}"></td>
-                <td th:text="${bdm.divisionId}"></td>
-                <td th:text="${bdm.limits}"></td>
-                <td th:text="${bdm.schemeLimitsDate}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <section style="margin-top: 30px;">
-        <h3>ГЭПы</h3>
-        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>%</th>
-                <th>Дата</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="gap : ${gaps}">
-                <td th:text="${gap.gapId}"></td>
-                <td th:text="${gap.gapPercent}"></td>
-                <td th:text="${gap.schemeDate}"></td>
             </tr>
             </tbody>
         </table>
