@@ -3,7 +3,7 @@ package ru.alta.thirdproj.entites;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +15,7 @@ public class BonusSchemeLimit {
     private BigDecimal limits;
     private Integer positionId;
     private Integer gapId;
-    private LocalDate dateScheme;
+    private Timestamp dateScheme;
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 
