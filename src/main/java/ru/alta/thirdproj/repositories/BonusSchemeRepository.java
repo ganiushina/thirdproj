@@ -31,7 +31,7 @@ public class BonusSchemeRepository {
             "JOIN scheme s ON s.id = sl.scheme_id " +
             "JOIN (SELECT scheme_id, position_id, MAX(date_scheme) AS max_date FROM scheme_limits GROUP BY scheme_id, position_id) latest " +
             "  ON latest.scheme_id = sl.scheme_id AND latest.position_id = sl.position_id AND latest.max_date = sl.date_scheme " +
-            "ORDER BY p.pos_name, s.scheme_name, sl.limits";
+            "ORDER BY s.scheme_name, p.pos_name, sl.limits";
     private static final String INSERT_SCHEME = "INSERT INTO scheme_limits(scheme_id, limits, position_id, gap_id, date_scheme)\n" +
             "     VALUES (:scheme_id, :limits, :position_id, :gap_id, :date_scheme)";
 

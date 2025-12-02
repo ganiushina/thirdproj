@@ -53,8 +53,8 @@ public class BonusSchemeServiceImpl implements BonusSchemeService {
     @Override
     public List<BonusSchemeRangeView> getSchemeRanges() {
         List<BonusSchemeLimitView> details = repository.findAllLimitDetails();
-        details.sort(Comparator.comparing(BonusSchemeLimitView::getPositionName)
-                .thenComparing(BonusSchemeLimitView::getSchemeName)
+        details.sort(Comparator.comparing(BonusSchemeLimitView::getSchemeName)
+                .thenComparing(BonusSchemeLimitView::getPositionName)
                 .thenComparing(BonusSchemeLimitView::getDateScheme)
                 .thenComparing(BonusSchemeLimitView::getLimits));
 
@@ -81,8 +81,8 @@ public class BonusSchemeServiceImpl implements BonusSchemeService {
             }
         }
 
-        ranges.sort(Comparator.comparing(BonusSchemeRangeView::getPositionName)
-                .thenComparing(BonusSchemeRangeView::getSchemeName)
+        ranges.sort(Comparator.comparing(BonusSchemeRangeView::getSchemeName)
+                .thenComparing(BonusSchemeRangeView::getPositionName)
                 .thenComparing(BonusSchemeRangeView::getDateScheme)
                 .thenComparing(BonusSchemeRangeView::getPercentRange));
         return ranges;
