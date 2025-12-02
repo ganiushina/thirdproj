@@ -29,6 +29,7 @@ public class BonusSchemeController {
         model.addAttribute("gaps", bonusSchemeService.getGaps());
         model.addAttribute("positions", bonusSchemeService.getPositions());
         model.addAttribute("schemeLimits", bonusSchemeService.getSchemeLimits());
+        model.addAttribute("schemeLimitDetails", bonusSchemeService.getSchemeLimitDetails());
         model.addAttribute("bdmLimits", bonusSchemeService.getBdmLimits());
         model.addAttribute("schemeNames", bonusSchemeService.getSchemeNames());
         model.addAttribute("newScheme", new BonusSchemeEntry());
@@ -43,6 +44,7 @@ public class BonusSchemeController {
             model.addAttribute("gaps", bonusSchemeService.getGaps());
             model.addAttribute("positions", bonusSchemeService.getPositions());
             model.addAttribute("schemeLimits", bonusSchemeService.getSchemeLimits());
+            model.addAttribute("schemeLimitDetails", bonusSchemeService.getSchemeLimitDetails());
             model.addAttribute("bdmLimits", bonusSchemeService.getBdmLimits());
             model.addAttribute("schemeNames", bonusSchemeService.getSchemeNames());
             return "bonus-schemes";

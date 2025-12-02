@@ -5,6 +5,7 @@ import ru.alta.thirdproj.entites.BonusPosition;
 import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 import ru.alta.thirdproj.entites.BonusSchemeEntry;
 import ru.alta.thirdproj.entites.BonusSchemeLimit;
+import ru.alta.thirdproj.entites.BonusSchemeLimitView;
 import ru.alta.thirdproj.entites.BonusSchemeName;
 
 import java.util.List;
@@ -16,6 +17,8 @@ public interface BonusSchemeService {
     List<BonusPosition> getPositions();
 
     List<BonusSchemeLimit> getSchemeLimits();
+
+    List<BonusSchemeLimitView> getSchemeLimitDetails();
 
     List<BonusSchemeBdmLimit> getBdmLimits();
 

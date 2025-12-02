@@ -42,21 +42,19 @@
         <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Схема</th>
                 <th>Должность</th>
-                <th>ГЭП</th>
+                <th>Название схемы</th>
                 <th>Лимит</th>
+                <th>ГЭП, %</th>
                 <th>Дата</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="scheme : ${schemeLimits}">
-                <td th:text="${scheme.id}"></td>
-                <td th:text="${scheme.schemeId}"></td>
-                <td th:text="${scheme.positionId}"></td>
-                <td th:text="${scheme.gapId}"></td>
+            <tr th:each="scheme : ${schemeLimitDetails}">
+                <td th:text="${scheme.positionName}"></td>
+                <td th:text="${scheme.schemeName}"></td>
                 <td th:text="${scheme.limits}"></td>
+                <td th:text="${scheme.gapPercent}"></td>
                 <td th:text="${scheme.dateScheme}"></td>
             </tr>
             </tbody>

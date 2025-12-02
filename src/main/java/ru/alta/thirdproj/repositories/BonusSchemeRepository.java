@@ -8,6 +8,7 @@ import ru.alta.thirdproj.entites.BonusGap;
 import ru.alta.thirdproj.entites.BonusPosition;
 import ru.alta.thirdproj.entites.BonusSchemeEntry;
 import ru.alta.thirdproj.entites.BonusSchemeLimit;
+import ru.alta.thirdproj.entites.BonusSchemeLimitView;
 import ru.alta.thirdproj.entites.BonusSchemeName;
 import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 
@@ -23,6 +24,12 @@ public class BonusSchemeRepository {
     private static final String SELECT_LIMITS = "SELECT id, scheme_id, limits, position_id, gap_id, date_scheme FROM scheme_limits";
     private static final String SELECT_SCHEMES_BDN = "SELECT id, limits, position_id, gap_id, division_id, scheme_limits_date  FROM scheme_limits_bdm";
     private static final String SELECT_SCHEMES_NAME = "SELECT id, scheme_name FROM scheme";
+    private static final String SELECT_LIMIT_DETAILS = "SELECT p.pos_name, s.scheme_name, sl.limits, g.gap_percent, sl.date_scheme " +
+            "FROM scheme_limits sl " +
+            "JOIN gap g ON g.gap_id = sl.gap_id " +
+            "JOIN position p ON p.id = sl.position_id " +
+            "JOIN scheme s ON s.id = sl.scheme_id " +
+            "WHERE sl.date_scheme = (SELECT MAX(date_scheme) FROM scheme_limits)";
     private static final String INSERT_SCHEME = "INSERT INTO scheme_limits(scheme_id, limits, position_id, gap_id, date_scheme)\n" +
             "     VALUES (:scheme_id, :limits, :position_id, :gap_id, :date_scheme)";
 
@@ -52,6 +59,14 @@ public class BonusSchemeRepository {
             return connection.createQuery(SELECT_LIMITS, false)
                     .setColumnMappings(BonusSchemeLimit.COLUMN_MAPPINGS)
                     .executeAndFetch(BonusSchemeLimit.class);
+        }
+    }
+
+    public List<BonusSchemeLimitView> findAllLimitDetails() {
+        try (Connection connection = sql2o.open()) {
+            return connection.createQuery(SELECT_LIMIT_DETAILS, false)
+                    .setColumnMappings(BonusSchemeLimitView.COLUMN_MAPPINGS)
+                    .executeAndFetch(BonusSchemeLimitView.class);
         }
     }
 

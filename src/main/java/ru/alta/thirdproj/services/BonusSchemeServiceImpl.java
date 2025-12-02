@@ -7,6 +7,7 @@ import ru.alta.thirdproj.entites.BonusPosition;
 import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 import ru.alta.thirdproj.entites.BonusSchemeEntry;
 import ru.alta.thirdproj.entites.BonusSchemeLimit;
+import ru.alta.thirdproj.entites.BonusSchemeLimitView;
 import ru.alta.thirdproj.entites.BonusSchemeName;
 import ru.alta.thirdproj.repositories.BonusSchemeRepository;
 
@@ -36,6 +37,11 @@ public class BonusSchemeServiceImpl implements BonusSchemeService {
     @Override
     public List<BonusSchemeLimit> getSchemeLimits() {
         return repository.findAllLimits();
+    }
+
+    @Override
+    public List<BonusSchemeLimitView> getSchemeLimitDetails() {
+        return repository.findAllLimitDetails();
     }
 
     @Override
