@@ -16,7 +16,8 @@
 
         /* Отступ под фиксированное меню, как на вкладке "Акты" */
         .main-content {
-            padding-top: 80px;
+            position: relative;
+            padding-top: 56px; /* высота навигации */
         }
 
         .table-sticky-wrap {
@@ -30,7 +31,7 @@
 
         .table-sticky thead th {
             position: sticky;
-            top: 80px; /* под фиксированным меню и отступом */
+            top: 56px; /* под фиксированной навигацией */
             background: #fff;
             z-index: 1020;
             border-bottom: 2px solid #dee2e6;
