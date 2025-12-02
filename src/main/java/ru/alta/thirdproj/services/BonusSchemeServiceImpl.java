@@ -4,11 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.BonusGap;
 import ru.alta.thirdproj.entites.BonusPosition;
+import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 import ru.alta.thirdproj.entites.BonusSchemeEntry;
 import ru.alta.thirdproj.entites.BonusSchemeLimit;
+import ru.alta.thirdproj.entites.BonusSchemeName;
 import ru.alta.thirdproj.repositories.BonusSchemeRepository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -32,19 +34,24 @@ public class BonusSchemeServiceImpl implements BonusSchemeService {
     }
 
     @Override
-    public List<BonusSchemeLimit> getLimits() {
+    public List<BonusSchemeLimit> getSchemeLimits() {
         return repository.findAllLimits();
     }
 
     @Override
-    public List<BonusSchemeEntry> getSchemes() {
-        return repository.findAllSchemes();
+    public List<BonusSchemeBdmLimit> getBdmLimits() {
+        return repository.findAllBdmSchemes();
+    }
+
+    @Override
+    public List<BonusSchemeName> getSchemeNames() {
+        return repository.findAllSchemeNames();
     }
 
     @Override
     public void addScheme(BonusSchemeEntry entry) {
         if (entry.getDateScheme() == null) {
-            entry.setDateScheme(LocalDateTime.now());
+            entry.setDateScheme(LocalDate.now());
         }
         repository.saveSchemeEntry(entry);
     }

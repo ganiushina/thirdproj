@@ -8,6 +8,8 @@ import ru.alta.thirdproj.entites.BonusGap;
 import ru.alta.thirdproj.entites.BonusPosition;
 import ru.alta.thirdproj.entites.BonusSchemeEntry;
 import ru.alta.thirdproj.entites.BonusSchemeLimit;
+import ru.alta.thirdproj.entites.BonusSchemeName;
+import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 
 import java.util.List;
 
@@ -17,11 +19,12 @@ public class BonusSchemeRepository {
     private final Sql2o sql2o;
 
     private static final String SELECT_GAPS = "SELECT gap_id, gap_percent, scheme_date FROM gap";
-    private static final String SELECT_POSITIONS = "SELECT id, pos_name FROM positions";
-    private static final String SELECT_LIMITS = "SELECT id, limits, position_id, gap_id, division_id, scheme_limits_date FROM scheme_limits";
-    private static final String SELECT_SCHEMES = "SELECT id, scheme_id, limits, position_id, gap_id, date_scheme FROM bonus_scheme";
-    private static final String INSERT_SCHEME = "INSERT INTO bonus_scheme (scheme_id, limits, position_id, gap_id, date_scheme) " +
-            "VALUES (:scheme_id, :limits, :position_id, :gap_id, :date_scheme)";
+    private static final String SELECT_POSITIONS = "SELECT id, pos_name FROM position";
+    private static final String SELECT_LIMITS = "SELECT id, scheme_id, limits, position_id, gap_id, date_scheme FROM scheme_limits";
+    private static final String SELECT_SCHEMES_BDN = "SELECT id, limits, position_id, gap_id, division_id, scheme_limits_date  FROM scheme_limits_bdm";
+    private static final String SELECT_SCHEMES_NAME = "SELECT id, scheme_name FROM scheme";
+    private static final String INSERT_SCHEME = "INSERT INTO scheme_limits(scheme_id, limits, position_id, gap_id, date_scheme)\n" +
+            "     VALUES (:scheme_id, :limits, :position_id, :gap_id, :date_scheme)";
 
     @Autowired
     public BonusSchemeRepository(Sql2o sql2o) {
@@ -52,11 +55,19 @@ public class BonusSchemeRepository {
         }
     }
 
-    public List<BonusSchemeEntry> findAllSchemes() {
+    public List<BonusSchemeBdmLimit> findAllBdmSchemes() {
         try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_SCHEMES, false)
-                    .setColumnMappings(BonusSchemeEntry.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusSchemeEntry.class);
+            return connection.createQuery(SELECT_SCHEMES_BDN, false)
+                    .setColumnMappings(BonusSchemeBdmLimit.COLUMN_MAPPINGS)
+                    .executeAndFetch(BonusSchemeBdmLimit.class);
+        }
+    }
+
+    public List<BonusSchemeName> findAllSchemeNames() {
+        try (Connection connection = sql2o.open()) {
+            return connection.createQuery(SELECT_SCHEMES_NAME, false)
+                    .setColumnMappings(BonusSchemeName.COLUMN_MAPPINGS)
+                    .executeAndFetch(BonusSchemeName.class);
         }
     }
 

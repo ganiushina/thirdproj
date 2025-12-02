@@ -28,8 +28,9 @@ public class BonusSchemeController {
     public String showSchemePage(Model model) {
         model.addAttribute("gaps", bonusSchemeService.getGaps());
         model.addAttribute("positions", bonusSchemeService.getPositions());
-        model.addAttribute("limits", bonusSchemeService.getLimits());
-        model.addAttribute("schemes", bonusSchemeService.getSchemes());
+        model.addAttribute("schemeLimits", bonusSchemeService.getSchemeLimits());
+        model.addAttribute("bdmLimits", bonusSchemeService.getBdmLimits());
+        model.addAttribute("schemeNames", bonusSchemeService.getSchemeNames());
         model.addAttribute("newScheme", new BonusSchemeEntry());
         return "bonus-schemes";
     }
@@ -41,8 +42,9 @@ public class BonusSchemeController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("gaps", bonusSchemeService.getGaps());
             model.addAttribute("positions", bonusSchemeService.getPositions());
-            model.addAttribute("limits", bonusSchemeService.getLimits());
-            model.addAttribute("schemes", bonusSchemeService.getSchemes());
+            model.addAttribute("schemeLimits", bonusSchemeService.getSchemeLimits());
+            model.addAttribute("bdmLimits", bonusSchemeService.getBdmLimits());
+            model.addAttribute("schemeNames", bonusSchemeService.getSchemeNames());
             return "bonus-schemes";
         }
 

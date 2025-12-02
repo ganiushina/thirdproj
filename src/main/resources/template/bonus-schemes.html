@@ -10,10 +10,12 @@
     <h1>Схемы бонусов</h1>
 
     <section style="margin-top: 20px;">
-        <h3>Добавить новую схему</h3>
+        <h3>Добавить новую запись схемы</h3>
         <form th:action="@{/bonus-schemes}" th:object="${newScheme}" method="post" class="form-inline">
-            <label for="schemeId">ID схемы:</label>
-            <input id="schemeId" type="number" th:field="*{schemeId}" required>
+            <label for="schemeId">Схема:</label>
+            <select id="schemeId" th:field="*{schemeId}">
+                <option th:each="scheme : ${schemeNames}" th:value="${scheme.id}" th:text="${scheme.schemeName}"></option>
+            </select>
 
             <label for="positionId">Должность:</label>
             <select id="positionId" th:field="*{positionId}">
@@ -28,12 +30,15 @@
             <label for="limits">Лимит:</label>
             <input id="limits" type="number" step="0.01" th:field="*{limits}" required>
 
+            <label for="dateScheme">Дата:</label>
+            <input id="dateScheme" type="date" th:field="*{dateScheme}">
+
             <button type="submit">Сохранить</button>
         </form>
     </section>
 
     <section style="margin-top: 30px;">
-        <h3>Текущие схемы</h3>
+        <h3>Список схем</h3>
         <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
             <thead>
             <tr>
@@ -46,13 +51,39 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="scheme : ${schemes}">
+            <tr th:each="scheme : ${schemeLimits}">
                 <td th:text="${scheme.id}"></td>
                 <td th:text="${scheme.schemeId}"></td>
                 <td th:text="${scheme.positionId}"></td>
                 <td th:text="${scheme.gapId}"></td>
                 <td th:text="${scheme.limits}"></td>
                 <td th:text="${scheme.dateScheme}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section style="margin-top: 30px;">
+        <h3>Схемы BDM</h3>
+        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Должность</th>
+                <th>ГЭП</th>
+                <th>Дивизион</th>
+                <th>Лимит</th>
+                <th>Дата</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="bdm : ${bdmLimits}">
+                <td th:text="${bdm.id}"></td>
+                <td th:text="${bdm.positionId}"></td>
+                <td th:text="${bdm.gapId}"></td>
+                <td th:text="${bdm.divisionId}"></td>
+                <td th:text="${bdm.limits}"></td>
+                <td th:text="${bdm.schemeLimitsDate}"></td>
             </tr>
             </tbody>
         </table>
@@ -73,32 +104,6 @@
                 <td th:text="${gap.gapId}"></td>
                 <td th:text="${gap.gapPercent}"></td>
                 <td th:text="${gap.schemeDate}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <section style="margin-top: 30px;">
-        <h3>Лимиты</h3>
-        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Должность</th>
-                <th>ГЭП</th>
-                <th>Дивизион</th>
-                <th>Лимит</th>
-                <th>Дата</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="limit : ${limits}">
-                <td th:text="${limit.id}"></td>
-                <td th:text="${limit.positionId}"></td>
-                <td th:text="${limit.gapId}"></td>
-                <td th:text="${limit.divisionId}"></td>
-                <td th:text="${limit.limits}"></td>
-                <td th:text="${limit.schemeLimitsDate}"></td>
             </tr>
             </tbody>
         </table>
