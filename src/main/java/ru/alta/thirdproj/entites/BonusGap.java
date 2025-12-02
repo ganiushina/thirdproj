@@ -2,7 +2,8 @@ package ru.alta.thirdproj.entites;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,8 +11,8 @@ import java.util.Map;
 public class BonusGap {
 
     private Integer gapId;
-    private Integer gapPercent;
-    private LocalDateTime schemeDate;
+    private BigDecimal gapPercent;
+    private Timestamp schemeDate;
 
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 
