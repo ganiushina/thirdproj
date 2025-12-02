@@ -173,12 +173,41 @@ public class MarginController {
                 actByUserList.stream()
                         .collect(Collectors.groupingBy(ActByUserCheck::getActNum)) :
                 new HashMap<>();
+        if (groupedActs != null) {
+            groupedActs.values().forEach(this::hideDuplicateResearchers);
+        }
 
         model.addAttribute("groupedActs", groupedActs);
         model.addAttribute("actByUserList", actByUserList != null ? actByUserList : Collections.emptyList());
 
         return "actByUserCheck :: actByUserTab";
     }
+
+    private void hideDuplicateResearchers(List<ActByUserCheck> acts) {
+        // Ключ: ресечер + его департамент + сумма
+        Set<String> seenResearchers = new HashSet<>();
+
+        for (ActByUserCheck act : acts) {
+            String name = act.getResecherName();
+            if (name == null || name.isBlank()) {
+                continue; // нечего обрабатывать
+            }
+
+            String key = name + "|" +
+                    Objects.toString(act.getResecherDepartmentName(), "") + "|" +
+                    Objects.toString(act.getSummResecher(), "");
+
+            if (seenResearchers.contains(key)) {
+                // Повтор — очищаем поля, чтобы не дублировались в таблице
+                act.setResecherName(null);
+                act.setResecherDepartmentName(null);
+                act.setSummResecher(null);
+            } else {
+                seenResearchers.add(key);
+            }
+        }
+    }
+
 
 
     @PostMapping("/margin/send-verification-emails")

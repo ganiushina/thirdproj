@@ -19,4 +19,18 @@ public class ActByUserCheck {
     private Double summResecher;
     private Double candidatePercent;
     private Double summResponsibleUser;
+    private String resecherDepartmentName;
+
+    public String getResecherDisplay() {
+        String name = resecherName != null ? resecherName.trim() : "";
+        String dep  = resecherDepartmentName != null ? resecherDepartmentName.trim() : "";
+
+        if (!name.isEmpty() && !dep.isEmpty()) {
+            return name + " (" + dep + ")" ;
+        } else if (!name.isEmpty()) {
+            return name;
+        } else {
+            return dep; // если имени нет, но департамент есть
+        }
+    }
 }

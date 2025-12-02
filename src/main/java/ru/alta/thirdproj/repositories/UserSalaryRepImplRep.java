@@ -44,15 +44,38 @@ public class UserSalaryRepImplRep  {
             "select ps.user_id, m.man_fio, ps.dateFrom, ps.dateTo, ps.success from paymentPeriodSuccess ps\n" +
             "join man m on m.man_id = ps.user_id " +
                     "where convert(date, ps.dateFrom) = convert(date,:dateFrom) and convert(date,ps.dateTo) = convert(date,:dateTo)";
-    private static final String SELECT_ACT_BY_USER_CHECK = "SELECT ab.id as act_id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
-            "            ab.candidate, ab.organization, d.dep_name, pb.responsible_user_name, isnull(pb.resecher_name, '') resecher_name, isnull(pb.summ_resecher, 0) summ_resecher,\n" +
-            "\t\t\tpb.percent_responsible_user_by_candidate_percent*100 candidate_percent,\n" +
-            "            pb.summ_responsible_user          \n" +
-            "            FROM dbo.act_buh ab\n" +
-            "            join project_buh pb on pb.act_id = ab.id\n" +
-            "            join depatment d on d.id = pb.depatment_id\n" +
-            "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\t\t\t\n" +
-            "            WHERE convert(date, ab.date_act) BETWEEN :date1 AND :date2";
+    private static final String SELECT_ACT_BY_USER_CHECK = "SELECT \n" +
+            "    ab.id AS act_id,\n" +
+            "    ab.date_act,\n" +
+            "    LEFT(ab.act_num, 11) AS act_num,\n" +
+            "    ab.company_name,\n" +
+            "    ab.total_no_nds,\n" +
+            "    ab.project_name,\n" +
+            "    ab.candidate,\n" +
+            "    ab.organization,\n" +
+            "    d.dep_name AS dep_name,\n" +
+            "    pb.responsible_user_name,\n" +
+            "    ISNULL(pb.resecher_name, '') AS resecher_name,\n" +
+            "\n" +
+            "    CASE \n" +
+            "        WHEN pb.resecher_name IS NULL OR pb.resecher_name = '' \n" +
+            "            THEN '' \n" +
+            "        ELSE ISNULL(d1.dep_name, d.dep_name)\n" +
+            "    END AS resecher_dep_name,\n" +
+            "\n" +
+            "    ISNULL(pb.summ_resecher, 0) AS summ_resecher,\n" +
+            "    pb.percent_responsible_user_by_candidate_percent * 100 AS candidate_percent,\n" +
+            "    pb.summ_responsible_user\n" +
+            "FROM dbo.act_buh ab\n" +
+            "JOIN project_buh pb \n" +
+            "    ON pb.act_id = ab.id\n" +
+            "JOIN depatment d \n" +
+            "    ON d.id = pb.depatment_id\n" +
+            "LEFT JOIN depatment d1 \n" +
+            "    ON d1.id = pb.depatment_resecher_id\n" +
+            "LEFT JOIN dbo.project p \n" +
+            "    ON p.project_id = ab.project_id\n" +
+            "WHERE CONVERT(date, ab.date_act) BETWEEN :date1 AND :date2;";
     private static final String SELECT_DEPARTMENTS_QUERY =
             "SELECT DISTINCT id, dep_name FROM depatment WHERE dep_name IS NOT NULL " +
                     "and id not in (5,9,7,10) ORDER BY dep_name";
@@ -814,6 +837,7 @@ public class UserSalaryRepImplRep  {
                 item.setCandidate((String) row.get("candidate"));
                 item.setOrganization((String) row.get("organization"));
                 item.setDepartmentName((String) row.get("dep_name"));
+                item.setResecherDepartmentName((String) row.get("resecher_dep_name"));
                 item.setResponsibleUserName((String) row.get("responsible_user_name"));
                 item.setResecherName((String) row.get("resecher_name"));
                 Double summResecher = (Double) row.get("summ_resecher");
