@@ -9,6 +9,7 @@ import ru.alta.thirdproj.entites.BonusPosition;
 import ru.alta.thirdproj.entites.BonusSchemeEntry;
 import ru.alta.thirdproj.entites.BonusSchemeLimit;
 import ru.alta.thirdproj.entites.BonusSchemeLimitView;
+import ru.alta.thirdproj.entites.BonusSchemeRangeView;
 import ru.alta.thirdproj.entites.BonusSchemeName;
 import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 
@@ -25,6 +26,18 @@ public class BonusSchemeRepository {
     private static final String SELECT_SCHEMES_BDN = "SELECT id, limits, position_id, gap_id, division_id, scheme_limits_date  FROM scheme_limits_bdm";
     private static final String SELECT_SCHEMES_NAME = "SELECT id, scheme_name FROM scheme";
     private static final String SELECT_LIMIT_DETAILS = "SELECT p.pos_name, s.scheme_name, sl.limits, g.gap_percent, sl.date_scheme " +
+            "FROM scheme_limits sl " +
+            "JOIN gap g ON g.gap_id = sl.gap_id " +
+            "JOIN position p ON p.id = sl.position_id " +
+            "JOIN scheme s ON s.id = sl.scheme_id " +
+            "JOIN (SELECT scheme_id, position_id, MAX(date_scheme) AS max_date FROM scheme_limits GROUP BY scheme_id, position_id) latest " +
+            "  ON latest.scheme_id = sl.scheme_id AND latest.position_id = sl.position_id AND latest.max_date = sl.date_scheme " +
+            "ORDER BY s.scheme_name, p.pos_name, sl.limits";
+
+    private static final String SELECT_RANGE_DETAILS = "SELECT p.pos_name, s.scheme_name, " +
+            "       sl.limits AS limit_from, " +
+            "       LEAD(sl.limits) OVER (PARTITION BY s.id, p.id, sl.date_scheme ORDER BY sl.limits) AS limit_to, " +
+            "       g.gap_percent, sl.date_scheme " +
             "FROM scheme_limits sl " +
             "JOIN gap g ON g.gap_id = sl.gap_id " +
             "JOIN position p ON p.id = sl.position_id " +
@@ -69,6 +82,14 @@ public class BonusSchemeRepository {
             return connection.createQuery(SELECT_LIMIT_DETAILS, false)
                     .setColumnMappings(BonusSchemeLimitView.COLUMN_MAPPINGS)
                     .executeAndFetch(BonusSchemeLimitView.class);
+        }
+    }
+
+    public List<BonusSchemeRangeView> findAllRangeDetails() {
+        try (Connection connection = sql2o.open()) {
+            return connection.createQuery(SELECT_RANGE_DETAILS, false)
+                    .setColumnMappings(BonusSchemeRangeView.COLUMN_MAPPINGS)
+                    .executeAndFetch(BonusSchemeRangeView.class);
         }
     }
 
