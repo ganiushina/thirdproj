@@ -13,9 +13,7 @@ import ru.alta.thirdproj.entites.BonusSchemeRangeTable;
 import ru.alta.thirdproj.entites.BonusSchemeName;
 import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.sql2o.data.Table;
 
@@ -88,14 +86,10 @@ public class BonusSchemeRepository {
                     .map(column -> column.getName())
                     .collect(Collectors.toList());
 
-            List<Map<String, Object>> rows = table.rows().stream()
-                    .map(row -> {
-                        Map<String, Object> mappedRow = new LinkedHashMap<>();
-                        for (String columnName : columnNames) {
-                            mappedRow.put(columnName, row.getObject(columnName));
-                        }
-                        return mappedRow;
-                    })
+            List<List<Object>> rows = table.rows().stream()
+                    .map(row -> columnNames.stream()
+                            .map(row::getObject)
+                            .collect(Collectors.toList()))
                     .collect(Collectors.toList());
 
             return new BonusSchemeRangeTable(columnNames, rows);
