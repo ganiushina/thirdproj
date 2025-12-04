@@ -98,8 +98,8 @@
                                 </thead>
                                 <tbody>
                                 <tr th:each="row : ${rangeRows}">
-                                    <td th:each="column : ${rangeColumns}"
-                                        th:text="${column == 'date_scheme' ? #dates.format(row[column], 'yyyy-MM-dd') : row[column]}"></td>
+                                    <td th:each="column, iterStat : ${rangeColumns}"
+                                        th:text="${column == 'date_scheme' ? #dates.format(row[iterStat.index], 'yyyy-MM-dd') : row[iterStat.index]}"></td>
                                 </tr>
                                 </tbody>
                             </table>
