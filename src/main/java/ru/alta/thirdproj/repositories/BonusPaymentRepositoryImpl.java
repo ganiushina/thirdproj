@@ -137,7 +137,6 @@ public class BonusPaymentRepositoryImpl {
             }
         }
 
-
         BigDecimal bonus = (BigDecimal) row.get("bonus");
         if (bonus != null && bonus.doubleValue() != 0.0) {
             act.setBonus(bonus.doubleValue());
@@ -159,29 +158,11 @@ public class BonusPaymentRepositoryImpl {
         } else {
             act.setPaid(0); // значение по умолчанию
         }
-//        Object paidValue = row.get("paid");
-//        if (paidValue != null) {
-//            if (paidValue instanceof Integer) {
-//                act.setPaid((Integer) paidValue == 1);
-//            } else if (paidValue instanceof BigDecimal) {
-//                act.setPaid(((BigDecimal) paidValue).intValue() == 1);
-//            } else if (paidValue instanceof Boolean) {
-//                act.setPaid((Boolean) paidValue);
-//            }
-//        }
 
         setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
         setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
         setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
         setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
-
-
-
-
-//        setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
-//        setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
-//        setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
-//        setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
 
         return act;
     }
@@ -224,163 +205,5 @@ public class BonusPaymentRepositoryImpl {
             setter.accept(formatter.format(date));
         }
     }
-
-
-//    public List<EmployerNew> userBonusPaymentList(LocalDate date1, LocalDate date12){
-//
-//        try (Connection connection = sql2o.open()) {
-//            Query query =connection.createQuery(SELECT_BONUS_PAYMENT_QUERY_NEW, false)
-//                    .addParameter("date1", date1)
-//                    .addParameter("date2", date12)
-//                    .addParameter("userId", "")
-//                    .addParameter("department_id", "");
-//            Table table = query.executeAndFetchTable();
-//            List<Map<String, Object>> list = table.asList();
-//
-//            List<EmployerNew> employerList = new ArrayList<>();
-//            DateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
-//
-//            Locale ru = new Locale("ru", "RU");
-//            Currency rub = Currency.getInstance(ru);
-//            NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
-//
-//
-//            for (Map<String, Object> n : list) {
-//
-//                EmployerNew employer = new EmployerNew();
-//                Act act = new Act();
-//                List<Act> actList = new ArrayList<>();
-//                List<Integer> percent = new ArrayList<>();
-//                boolean isNotNew = false;
-//                String manFIO = null;
-//
-//                    for (var entry : n.entrySet()) {
-//
-//                            if (entry.getKey().equals("man_id")) {
-//                                employer.setManId((Integer) entry.getValue());
-//                            }
-//                            if (entry.getKey().equals("man_fio")) {
-//                                for (int j = 0; j < employerList.size(); j++) {
-//                                    if (entry.getKey().equals("man_fio")) {
-//                                        if (employerList.get(j).getManFIO().equals(entry.getValue())) {
-//                                            manFIO = (String) entry.getValue();//
-//                                            isNotNew = true;
-//                                        }
-//                                    }
-//                                }
-//                                employer.setManFIO((String) entry.getValue());
-//                            }
-//
-//                            if (entry.getKey().equals("dep_name"))
-//                                employer.setUserDepartment((String) entry.getValue());
-//
-//
-//                            if (entry.getKey().equals("candidate")) {
-//                                if (!(entry.getValue()).equals(""))
-//                                    act.setCandidate((String) entry.getValue());
-//
-//                            }
-//                            if (entry.getKey().equals("company_name")) {
-//                                if (!(entry.getValue()).equals(""))
-//                                act.setCompanies((String) entry.getValue());
-//                            }
-//                            if (entry.getKey().equals("persent")) {
-//                                if ((Integer) entry.getValue() != 0) {
-//                                    percent.add((Integer) entry.getValue());
-//                                    employer.setPercent(percent);
-//                                }
-//                            }
-//
-//                            if (entry.getKey().equals("bonus")) {
-//                                BigDecimal bd = (BigDecimal) entry.getValue();
-//                                double d = bd.doubleValue();
-//                                if (d != 0.0) {
-//                                    act.setBonus(d);
-//                                    act.setBonusRUB(currencyInstance.format(d));
-//                                }
-//                            }
-//
-//                            if (entry.getKey().equals("all_bonus")) {
-//                                BigDecimal bd = (BigDecimal) entry.getValue();
-//                                double d = bd.doubleValue();
-//                                if (d != 0.0) {
-//                                    employer.setAllBonus(d);
-//                                    employer.setAllBonusRUB(currencyInstance.format(d));
-//                                }
-//                            }
-//
-//                            if (entry.getKey().equals("date_for_pay")) {
-//                                if (entry.getValue() != null)
-//                                    act.setDateForPay(formatter1.format((Date) entry.getValue()));
-//                                else act.setDateForPay("");
-//
-//                            }
-//
-//                            if (entry.getKey().equals("payment_date")) {
-//                                if (entry.getValue() != null)
-//                                    act.setDatePayment(formatter1.format((Date) entry.getValue()));
-//                                else act.setDatePayment("");//
-//                            }
-//
-//                            if (entry.getKey().equals("payment_real_date")) {
-//                                if (entry.getValue() != null)
-//                                    act.setPaymentRealDate(formatter1.format((Date) entry.getValue()));
-//                            }
-//
-//                            if (entry.getKey().equals("act_num")) {
-//                                if (!(entry.getValue()).equals(""))
-//                                act.setNum((String) entry.getValue());
-//                            }
-//
-//                            if (entry.getKey().equals("act_id")) {
-//                                if ((Integer) entry.getValue() != 0)
-//                                act.setId((Integer) entry.getValue());
-//                            }
-//                            if (entry.getKey().equals("paid")) {
-//                                if (entry.getValue() != null)
-//                                act.setPaid ((Boolean) entry.getValue());
-//                            }
-//
-//                            if (entry.getKey().equals("date_act")) {
-//                                if (entry.getValue() != null)
-//                                    act.setDate(formatter1.format((Date) entry.getValue()));
-//                            }
-//
-//
-//                            if (entry.getKey().equals("emploeduser")) {
-//                                if (entry.getValue() != null)
-//                                    act.setEmployerPaid((String) entry.getValue());
-//                            }
-//                    }
-//
-//                actList.add(act);
-//                employer.setActList(actList);
-//
-//                if (isNotNew) {
-//                    String finalManFIO = manFIO;
-//                    List<EmployerNew> result = employerList.stream()
-//                            .filter(a -> Objects.equals(a.getManFIO(), finalManFIO))
-//                            .collect(Collectors.toList());
-//
-//                    result.get(0).getActList().add(employer.getActList().get(0));
-//                    if (employer.getPercent() != null) {
-//                        if (result.get(0).getPercent() == null) {
-//                            result.get(0).setPercent(employer.getPercent());
-//                        } else result.get(0).getPercent().add(employer.getPercent().get(0));
-//                    }
-//                }
-//                else {
-//
-//                    employerList.add(employer);
-//                }
-//
-//            }
-//
-//            return employerList;
-//        }
-//
-//
-//    }
-
 
 }

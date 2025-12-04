@@ -9,26 +9,117 @@
             --nav-height: 56px;
         }
 
+        body {
+            padding-top: var(--nav-height);
+            margin: 0;
+            padding: 3px;
+            font-family: Arial, sans-serif;
+        }
+
         .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1030;
+            height: var(--nav-height);
         }
 
         .main-content {
             position: relative;
-            padding-top: var(--nav-height);
+            margin-top: 0;
+            padding: 15px;
         }
 
+        /* Стиль для таблицы с прилипающим заголовком */
         .table-sticky thead th {
             position: sticky;
-            top: var(--nav-height);
-            background: #fff;
+            top: var(--nav-height); /* Прилипает к нижней границе навигации */
+            background: #f2f2f2;
             z-index: 1020;
             border-bottom: 2px solid #dee2e6;
             box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .table-bordered > :not(caption) > * > * {
-            border-color: #dee2e6;
+        /* Общие стили для таблицы */
+        .table-sticky {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+
+        .table-sticky th,
+        .table-sticky td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            word-wrap: break-word;
+            vertical-align: middle;
+        }
+
+        /* Заголовки в левой части таблицы */
+        .table-sticky th.left-header,
+        .table-sticky td.left-header {
+            text-align: left;
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        /* Стили для заголовков процентов */
+        .percent-header {
+            background-color: #e9ecef;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        /* Стили для значений процентов */
+        .percent-value {
+            background-color: #f8f9fa;
+            font-weight: 500;
+            min-height: 40px;
+        }
+
+        /* Стили для карточек */
+        .card {
+            border: 1px solid rgba(0,0,0,.125);
+            border-radius: 0.375rem;
+            margin-bottom: 20px;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        /* Стили для формы */
+        .row.g-3 {
+            margin-right: -0.75rem;
+            margin-left: -0.75rem;
+        }
+
+        .row.g-3 > [class^="col-"] {
+            padding-right: 0.75rem;
+            padding-left: 0.75rem;
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control, .form-select {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+
+        .btn-primary {
+            padding: 0.375rem 0.75rem;
         }
     </style>
 </head>
@@ -36,12 +127,13 @@
 <div th:replace="~{navigation :: navi('BonusSchemes')}"></div>
 
 <main class="main-content">
-    <div class="container-fluid mt-4 px-3">
+    <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-12">
-                <div class="card mb-4 shadow-sm">
+                <!-- Карточка с формой -->
+                <div class="card shadow-sm">
                     <div class="card-body">
-                        <h3 class="card-title mb-3">Добавить бонусную схему</h3>
+                        <h3 class="card-title">Добавить бонусную схему</h3>
                         <form th:action="@{/bonus-schemes}" th:object="${schemeEntry}" method="post" class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label" for="schemeId">Название схемы</label>
@@ -85,36 +177,697 @@
                     </div>
                 </div>
 
+                <!-- Карточка с таблицей -->
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h3 class="card-title mb-3">Бонусные схемы</h3>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered align-middle mb-0 table-sticky">
-                                <thead>
-                                <tr>
-                                    <th scope="col">Название схемы</th>
-                                    <th scope="col">Должность</th>
-                                    <th scope="col">Процент</th>
-                                    <th scope="col">Дата</th>
+                        <h3 class="card-title">Бонусные схемы</h3>
+
+                        <!-- Таблица с прилипающим заголовком -->
+                        <table class="table table-bordered table-sticky" id="bonusTable">
+                            <thead>
+                            <tr>
+                                <th class="left-header" style="width: 20%;">Название схемы</th>
+                                <th class="left-header" style="width: 15%;">Должность</th>
+                                <th class="percent-header" style="width: 8%;">8%</th>
+                                <th class="percent-header" style="width: 8%;">12%</th>
+                                <th class="percent-header" style="width: 8%;">16%</th>
+                                <th class="percent-header" style="width: 8%;">20%</th>
+                                <th class="percent-header" style="width: 8%;">25%</th>
+                                <th style="width: 15%;">Дата схемы</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Создаем map для группировки данных на стороне Thymeleaf -->
+                            <th:block th:with="groupedData=${#maps.createHashMap()}">
+                                <!-- Сначала группируем данные по schemeName + positionName -->
+                                <th:block th:each="scheme : ${bonusSchemeView}">
+                                    <th:block th:with="key=${scheme.schemeName + '||' + scheme.positionName}">
+                                        <th:block th:if="${not groupedData.containsKey(key)}">
+                                            <th:block th:with="percentsMap=${#maps.createHashMap()}">
+                                                <th:block th:expr="${groupedData.put(key, #maps.createHashMap(
+                                                    'schemeName', scheme.schemeName,
+                                                    'positionName', scheme.positionName,
+                                                    'dateScheme', scheme.dateScheme,
+                                                    'percents', percentsMap
+                                                ))}"></th:block>
+                                            </th:block>
+                                        </th:block>
+                                        <!-- Добавляем процент в map -->
+                                        <th:block th:with="currentGroup=${groupedData.get(key)}">
+                                            <th:block th:expr="${currentGroup.percents.put(
+                                                scheme.gapPercent.toString(),
+                                                (scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')
+                                                + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')
+                                            )}"></th:block>
+                                        </th:block>
+                                    </th:block>
+                                </th:block>
+
+                                <!-- Теперь рендерим таблицу из сгруппированных данных -->
+                                <tr th:each="entry : ${groupedData.entrySet()}">
+                                    <td class="left-header" th:text="${entry.value.schemeName}"></td>
+                                    <td class="left-header" th:text="${entry.value.positionName}"></td>
+
+                                    <!-- Процент 8% -->
+                                    <td class="percent-value" th:text="${entry.value.percents.get('8')} ?: ''"></td>
+
+                                    <!-- Процент 12% -->
+                                    <td class="percent-value" th:text="${entry.value.percents.get('12')} ?: ''"></td>
+
+                                    <!-- Процент 16% -->
+                                    <td class="percent-value" th:text="${entry.value.percents.get('16')} ?: ''"></td>
+
+                                    <!-- Процент 20% -->
+                                    <td class="percent-value" th:text="${entry.value.percents.get('20')} ?: ''"></td>
+
+                                    <!-- Процент 25% -->
+                                    <td class="percent-value" th:text="${entry.value.percents.get('25')} ?: ''"></td>
+
+                                    <!-- Дата схемы -->
+                                    <td th:text="${#dates.format(entry.value.dateScheme, 'yyyy-MM-dd')}"></td>
                                 </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="scheme : ${bonusSchemeView}">
-                                    <td th:text="${scheme.schemeName}"></td>
-                                    <td th:text="${scheme.positionName}"></td>
-                                    <td th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')
-                                                    + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')
-                                                    + ' - ' + #numbers.formatDecimal(scheme.gapPercent, 0, 'DEFAULT', 0, 'DEFAULT') + ' %'}"></td>
-                                    <td th:text="${#dates.format(scheme.dateScheme, 'yyyy-MM-dd')}"></td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                            </th:block>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Динамически вычисляем высоту навигации
+        function updateNavHeight() {
+            const nav = document.querySelector('.navbar');
+            if (nav) {
+                const navHeight = nav.offsetHeight;
+                document.documentElement.style.setProperty('--nav-height', navHeight + 'px');
+            }
+        }
+
+        updateNavHeight();
+        setTimeout(updateNavHeight, 100);
+        setTimeout(updateNavHeight, 500);
+        window.addEventListener('resize', updateNavHeight);
+        window.addEventListener('load', updateNavHeight);
+    });
+</script>
 </body>
 </html>
+
+<!-- в разныз колонках отображается-->
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Бонусные схемы</title>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        :root {-->
+<!--            &#45;&#45;nav-height: 56px;-->
+<!--        }-->
+
+<!--        body {-->
+<!--            padding-top: var(&#45;&#45;nav-height);-->
+<!--            margin: 0;-->
+<!--            padding: 3px;-->
+<!--            font-family: Arial, sans-serif;-->
+<!--        }-->
+
+<!--        .navbar {-->
+<!--            position: fixed;-->
+<!--            top: 0;-->
+<!--            left: 0;-->
+<!--            right: 0;-->
+<!--            z-index: 1030;-->
+<!--            height: var(&#45;&#45;nav-height);-->
+<!--        }-->
+
+<!--        .main-content {-->
+<!--            position: relative;-->
+<!--            margin-top: 0;-->
+<!--            padding: 15px;-->
+<!--        }-->
+
+<!--        /* Стиль для таблицы с прилипающим заголовком */-->
+<!--        .table-sticky thead th {-->
+<!--            position: sticky;-->
+<!--            top: var(&#45;&#45;nav-height); /* Прилипает к нижней границе навигации */-->
+<!--            background: #f2f2f2;-->
+<!--            z-index: 1020;-->
+<!--            border-bottom: 2px solid #dee2e6;-->
+<!--            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);-->
+<!--        }-->
+
+<!--        /* Общие стили для таблицы */-->
+<!--        .table-sticky {-->
+<!--            width: 100%;-->
+<!--            border-collapse: collapse;-->
+<!--            margin-top: 20px;-->
+<!--            font-size: 0.9rem;-->
+<!--        }-->
+
+<!--        .table-sticky th,-->
+<!--        .table-sticky td {-->
+<!--            border: 1px solid #ddd;-->
+<!--            padding: 8px;-->
+<!--            text-align: center;-->
+<!--            word-wrap: break-word;-->
+<!--            vertical-align: middle;-->
+<!--        }-->
+
+<!--        /* Заголовки в левой части таблицы */-->
+<!--        .table-sticky th.left-header,-->
+<!--        .table-sticky td.left-header {-->
+<!--            text-align: left;-->
+<!--            font-weight: bold;-->
+<!--            background-color: #f8f9fa;-->
+<!--        }-->
+
+<!--        /* Стили для заголовков процентов */-->
+<!--        .percent-header {-->
+<!--            background-color: #e9ecef;-->
+<!--            font-weight: bold;-->
+<!--            color: #495057;-->
+<!--        }-->
+
+<!--        /* Стили для значений процентов */-->
+<!--        .percent-value {-->
+<!--            background-color: #f8f9fa;-->
+<!--            font-weight: 500;-->
+<!--            min-height: 40px;-->
+<!--        }-->
+
+<!--        /* Группировка схем */-->
+<!--        .scheme-name-cell {-->
+<!--            background-color: #e3f2fd !important;-->
+<!--            font-weight: bold;-->
+<!--            border-right: 2px solid #90caf9 !important;-->
+<!--        }-->
+
+<!--        /* Разделитель между группами */-->
+<!--        .scheme-group {-->
+<!--            border-bottom: 2px solid #dee2e6;-->
+<!--        }-->
+
+<!--        /* Стили для карточек */-->
+<!--        .card {-->
+<!--            border: 1px solid rgba(0,0,0,.125);-->
+<!--            border-radius: 0.375rem;-->
+<!--            margin-bottom: 20px;-->
+<!--        }-->
+
+<!--        .card-body {-->
+<!--            padding: 1.25rem;-->
+<!--        }-->
+
+<!--        .card-title {-->
+<!--            margin-bottom: 1rem;-->
+<!--            font-weight: bold;-->
+<!--        }-->
+
+<!--        /* Стили для формы */-->
+<!--        .row.g-3 {-->
+<!--            margin-right: -0.75rem;-->
+<!--            margin-left: -0.75rem;-->
+<!--        }-->
+
+<!--        .row.g-3 > [class^="col-"] {-->
+<!--            padding-right: 0.75rem;-->
+<!--            padding-left: 0.75rem;-->
+<!--        }-->
+
+<!--        .form-label {-->
+<!--            margin-bottom: 0.5rem;-->
+<!--            font-weight: 500;-->
+<!--        }-->
+
+<!--        .form-control, .form-select {-->
+<!--            padding: 0.375rem 0.75rem;-->
+<!--            border: 1px solid #ced4da;-->
+<!--            border-radius: 0.375rem;-->
+<!--        }-->
+
+<!--        .btn-primary {-->
+<!--            padding: 0.375rem 0.75rem;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div th:replace="~{navigation :: navi('BonusSchemes')}"></div>-->
+
+<!--<main class="main-content">-->
+<!--    <div class="container-fluid">-->
+<!--        <div class="row justify-content-center">-->
+<!--            <div class="col-12">-->
+<!--                &lt;!&ndash; Карточка с формой &ndash;&gt;-->
+<!--                <div class="card shadow-sm">-->
+<!--                    <div class="card-body">-->
+<!--                        <h3 class="card-title">Добавить бонусную схему</h3>-->
+<!--                        <form th:action="@{/bonus-schemes}" th:object="${schemeEntry}" method="post" class="row g-3">-->
+<!--                            <div class="col-md-3">-->
+<!--                                <label class="form-label" for="schemeId">Название схемы</label>-->
+<!--                                <select class="form-select" id="schemeId" th:field="*{schemeId}" required>-->
+<!--                                    <option value="" disabled selected>Выберите схему</option>-->
+<!--                                    <option th:each="scheme : ${schemeNames}"-->
+<!--                                            th:value="${scheme.id}"-->
+<!--                                            th:text="${scheme.schemeName}"></option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-3">-->
+<!--                                <label class="form-label" for="positionId">Должность</label>-->
+<!--                                <select class="form-select" id="positionId" th:field="*{positionId}" required>-->
+<!--                                    <option value="" disabled selected>Выберите должность</option>-->
+<!--                                    <option th:each="position : ${positions}"-->
+<!--                                            th:value="${position.id}"-->
+<!--                                            th:text="${position.posName}"></option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-2">-->
+<!--                                <label class="form-label" for="limits">Лимит</label>-->
+<!--                                <input type="number" step="1" min="0" class="form-control" id="limits" th:field="*{limits}" required>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-2">-->
+<!--                                <label class="form-label" for="gapId">Процент</label>-->
+<!--                                <select class="form-select" id="gapId" th:field="*{gapId}" required>-->
+<!--                                    <option value="" disabled selected>Выберите процент</option>-->
+<!--                                    <option th:each="gap : ${gaps}"-->
+<!--                                            th:value="${gap.gapId}"-->
+<!--                                            th:text="${#numbers.formatDecimal(gap.gapPercent, 0, 'DEFAULT', 0, 'DEFAULT')} + ' %'"></option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-2">-->
+<!--                                <label class="form-label" for="dateScheme">Дата схемы</label>-->
+<!--                                <input type="date" class="form-control" id="dateScheme" th:field="*{dateScheme}">-->
+<!--                            </div>-->
+<!--                            <div class="col-12 d-flex justify-content-end">-->
+<!--                                <button type="submit" class="btn btn-primary">Сохранить</button>-->
+<!--                            </div>-->
+<!--                        </form>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Карточка с таблицей &ndash;&gt;-->
+<!--                <div class="card shadow-sm">-->
+<!--                    <div class="card-body">-->
+<!--                        <h3 class="card-title">Бонусные схемы</h3>-->
+
+<!--                        &lt;!&ndash; Таблица с прилипающим заголовком &ndash;&gt;-->
+<!--                        <table class="table table-bordered table-sticky">-->
+<!--                            <thead>-->
+<!--                            <tr>-->
+<!--                                <th class="left-header" style="width: 20%;">Название схемы</th>-->
+<!--                                <th class="left-header" style="width: 15%;">Должность</th>-->
+<!--                                <th class="percent-header" style="width: 8%;">8%</th>-->
+<!--                                <th class="percent-header" style="width: 8%;">12%</th>-->
+<!--                                <th class="percent-header" style="width: 8%;">16%</th>-->
+<!--                                <th class="percent-header" style="width: 8%;">20%</th>-->
+<!--                                <th class="percent-header" style="width: 8%;">25%</th>-->
+<!--                                <th style="width: 15%;">Дата схемы</th>-->
+<!--                            </tr>-->
+<!--                            </thead>-->
+<!--                            <tbody>-->
+<!--                            &lt;!&ndash; Вариант 1: Простая таблица с объединением на клиенте &ndash;&gt;-->
+<!--                            <tr th:each="scheme, iterStat : ${bonusSchemeView}">-->
+<!--                                &lt;!&ndash; Название схемы - показываем только если это первая запись с таким названием &ndash;&gt;-->
+<!--                                <td th:class="${'left-header scheme-name-cell' + (iterStat.index == 0 or bonusSchemeView[iterStat.index-1].schemeName != scheme.schemeName ? ' first-in-group' : '')}"-->
+<!--                                    th:text="${iterStat.index == 0 or bonusSchemeView[iterStat.index-1].schemeName != scheme.schemeName ? scheme.schemeName : ''}">-->
+<!--                                </td>-->
+
+<!--                                &lt;!&ndash; Должность &ndash;&gt;-->
+<!--                                <td class="left-header" th:text="${scheme.positionName}"></td>-->
+
+<!--                                &lt;!&ndash; Процент 8% &ndash;&gt;-->
+<!--                                <td class="percent-value">-->
+<!--                                    <div th:if="${scheme.gapPercent == 8}">-->
+<!--                                        <span th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')-->
+<!--                                                      + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')}"></span>-->
+<!--                                    </div>-->
+<!--                                </td>-->
+
+<!--                                &lt;!&ndash; Процент 12% &ndash;&gt;-->
+<!--                                <td class="percent-value">-->
+<!--                                    <div th:if="${scheme.gapPercent == 12}">-->
+<!--                                        <span th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')-->
+<!--                                                      + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')}"></span>-->
+<!--                                    </div>-->
+<!--                                </td>-->
+
+<!--                                &lt;!&ndash; Процент 16% &ndash;&gt;-->
+<!--                                <td class="percent-value">-->
+<!--                                    <div th:if="${scheme.gapPercent == 16}">-->
+<!--                                        <span th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')-->
+<!--                                                      + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')}"></span>-->
+<!--                                    </div>-->
+<!--                                </td>-->
+
+<!--                                &lt;!&ndash; Процент 20% &ndash;&gt;-->
+<!--                                <td class="percent-value">-->
+<!--                                    <div th:if="${scheme.gapPercent == 20}">-->
+<!--                                        <span th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')-->
+<!--                                                      + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')}"></span>-->
+<!--                                    </div>-->
+<!--                                </td>-->
+
+<!--                                &lt;!&ndash; Процент 25% &ndash;&gt;-->
+<!--                                <td class="percent-value">-->
+<!--                                    <div th:if="${scheme.gapPercent == 25}">-->
+<!--                                        <span th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')-->
+<!--                                                      + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')}"></span>-->
+<!--                                    </div>-->
+<!--                                </td>-->
+
+<!--                                &lt;!&ndash; Дата схемы &ndash;&gt;-->
+<!--                                <td th:text="${#dates.format(scheme.dateScheme, 'yyyy-MM-dd')}"></td>-->
+<!--                            </tr>-->
+<!--                            </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+
+<!--<script>-->
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        // Динамически вычисляем высоту навигации-->
+<!--        function updateNavHeight() {-->
+<!--            const nav = document.querySelector('.navbar');-->
+<!--            if (nav) {-->
+<!--                const navHeight = nav.offsetHeight;-->
+<!--                document.documentElement.style.setProperty('&#45;&#45;nav-height', navHeight + 'px');-->
+<!--            }-->
+<!--        }-->
+
+<!--        // Обновляем высоту несколько раз для надежности-->
+<!--        updateNavHeight();-->
+<!--        setTimeout(updateNavHeight, 100);-->
+<!--        setTimeout(updateNavHeight, 500);-->
+
+<!--        // Обновляем при изменении размера окна-->
+<!--        window.addEventListener('resize', updateNavHeight);-->
+
+<!--        // Также обновляем после полной загрузки страницы-->
+<!--        window.addEventListener('load', updateNavHeight);-->
+
+<!--        // Объединяем ячейки с названием схемы-->
+<!--        setTimeout(function() {-->
+<!--            const table = document.querySelector('.table-sticky');-->
+<!--            if (table) {-->
+<!--                const rows = table.querySelectorAll('tbody tr');-->
+<!--                let currentScheme = '';-->
+<!--                let startRow = 0;-->
+<!--                let spanCount = 0;-->
+
+<!--                for (let i = 0; i < rows.length; i++) {-->
+<!--                    const schemeCell = rows[i].querySelector('td:first-child');-->
+<!--                    const schemeName = schemeCell.textContent.trim();-->
+
+<!--                    if (schemeName) {-->
+<!--                        // Это начало новой группы-->
+<!--                        if (spanCount > 0) {-->
+<!--                            // Объединяем предыдущую группу-->
+<!--                            for (let j = startRow; j < i; j++) {-->
+<!--                                const cellToRemove = rows[j].querySelector('td:first-child');-->
+<!--                                if (j !== startRow && cellToRemove) {-->
+<!--                                    cellToRemove.remove();-->
+<!--                                }-->
+<!--                            }-->
+<!--                            // Устанавливаем rowspan для первой ячейки группы-->
+<!--                            const firstCell = rows[startRow].querySelector('td:first-child');-->
+<!--                            if (firstCell) {-->
+<!--                                firstCell.rowSpan = spanCount;-->
+<!--                                firstCell.style.verticalAlign = 'top';-->
+<!--                            }-->
+<!--                        }-->
+
+<!--                        currentScheme = schemeName;-->
+<!--                        startRow = i;-->
+<!--                        spanCount = 1;-->
+<!--                    } else if (i > 0) {-->
+<!--                        // Продолжение текущей группы-->
+<!--                        spanCount++;-->
+<!--                    }-->
+<!--                }-->
+
+<!--                // Обрабатываем последнюю группу-->
+<!--                if (spanCount > 0) {-->
+<!--                    for (let j = startRow; j < rows.length; j++) {-->
+<!--                        const cellToRemove = rows[j].querySelector('td:first-child');-->
+<!--                        if (j !== startRow && cellToRemove) {-->
+<!--                            cellToRemove.remove();-->
+<!--                        }-->
+<!--                    }-->
+<!--                    const firstCell = rows[startRow].querySelector('td:first-child');-->
+<!--                    if (firstCell) {-->
+<!--                        firstCell.rowSpan = spanCount;-->
+<!--                        firstCell.style.verticalAlign = 'top';-->
+<!--                    }-->
+<!--                }-->
+<!--            }-->
+<!--        }, 100);-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Бонусные схемы</title>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        :root {-->
+<!--            &#45;&#45;nav-height: 56px;-->
+<!--        }-->
+
+<!--        body {-->
+<!--            padding-top: var(&#45;&#45;nav-height);-->
+<!--            margin: 0;-->
+<!--            padding: 3px;-->
+<!--            font-family: Arial, sans-serif;-->
+<!--        }-->
+
+<!--        .navbar {-->
+<!--            position: fixed;-->
+<!--            top: 0;-->
+<!--            left: 0;-->
+<!--            right: 0;-->
+<!--            z-index: 1030;-->
+<!--            height: var(&#45;&#45;nav-height);-->
+<!--        }-->
+
+<!--        .main-content {-->
+<!--            position: relative;-->
+<!--            margin-top: 0;-->
+<!--            padding: 15px;-->
+<!--        }-->
+
+<!--        /* Стиль для таблицы с прилипающим заголовком */-->
+<!--        .table-sticky thead th {-->
+<!--            position: sticky;-->
+<!--            top: var(&#45;&#45;nav-height); /* Прилипает к нижней границе навигации */-->
+<!--            background: #f2f2f2;-->
+<!--            z-index: 1020;-->
+<!--            border-bottom: 2px solid #dee2e6;-->
+<!--            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);-->
+<!--        }-->
+
+<!--        /* Общие стили для таблицы */-->
+<!--        .table-sticky {-->
+<!--            width: 100%;-->
+<!--            border-collapse: collapse;-->
+<!--            margin-top: 20px;-->
+<!--        }-->
+
+<!--        .table-sticky th,-->
+<!--        .table-sticky td {-->
+<!--            border: 1px solid #ddd;-->
+<!--            padding: 8px;-->
+<!--            text-align: left;-->
+<!--            word-wrap: break-word;-->
+<!--        }-->
+
+<!--        .table-sticky tbody tr:nth-child(even) {-->
+<!--            background-color: #f9f9f9;-->
+<!--        }-->
+
+<!--        /* Стили для карточек */-->
+<!--        .card {-->
+<!--            border: 1px solid rgba(0,0,0,.125);-->
+<!--            border-radius: 0.375rem;-->
+<!--            margin-bottom: 20px;-->
+<!--        }-->
+
+<!--        .card-body {-->
+<!--            padding: 1.25rem;-->
+<!--        }-->
+
+<!--        .card-title {-->
+<!--            margin-bottom: 1rem;-->
+<!--            font-weight: bold;-->
+<!--        }-->
+
+<!--        /* Стили для формы */-->
+<!--        .row.g-3 {-->
+<!--            margin-right: -0.75rem;-->
+<!--            margin-left: -0.75rem;-->
+<!--        }-->
+
+<!--        .row.g-3 > [class^="col-"] {-->
+<!--            padding-right: 0.75rem;-->
+<!--            padding-left: 0.75rem;-->
+<!--        }-->
+
+<!--        .form-label {-->
+<!--            margin-bottom: 0.5rem;-->
+<!--            font-weight: 500;-->
+<!--        }-->
+
+<!--        .form-control, .form-select {-->
+<!--            padding: 0.375rem 0.75rem;-->
+<!--            border: 1px solid #ced4da;-->
+<!--            border-radius: 0.375rem;-->
+<!--        }-->
+
+<!--        .btn-primary {-->
+<!--            padding: 0.375rem 0.75rem;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div th:replace="~{navigation :: navi('BonusSchemes')}"></div>-->
+
+<!--<main class="main-content">-->
+<!--    <div class="container-fluid">-->
+<!--        <div class="row justify-content-center">-->
+<!--            <div class="col-12">-->
+<!--                &lt;!&ndash; Карточка с формой &ndash;&gt;-->
+<!--                <div class="card shadow-sm">-->
+<!--                    <div class="card-body">-->
+<!--                        <h3 class="card-title">Добавить бонусную схему</h3>-->
+<!--                        <form th:action="@{/bonus-schemes}" th:object="${schemeEntry}" method="post" class="row g-3">-->
+<!--                            <div class="col-md-3">-->
+<!--                                <label class="form-label" for="schemeId">Название схемы</label>-->
+<!--                                <select class="form-select" id="schemeId" th:field="*{schemeId}" required>-->
+<!--                                    <option value="" disabled selected>Выберите схему</option>-->
+<!--                                    <option th:each="scheme : ${schemeNames}"-->
+<!--                                            th:value="${scheme.id}"-->
+<!--                                            th:text="${scheme.schemeName}"></option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-3">-->
+<!--                                <label class="form-label" for="positionId">Должность</label>-->
+<!--                                <select class="form-select" id="positionId" th:field="*{positionId}" required>-->
+<!--                                    <option value="" disabled selected>Выберите должность</option>-->
+<!--                                    <option th:each="position : ${positions}"-->
+<!--                                            th:value="${position.id}"-->
+<!--                                            th:text="${position.posName}"></option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-2">-->
+<!--                                <label class="form-label" for="limits">Лимит</label>-->
+<!--                                <input type="number" step="1" min="0" class="form-control" id="limits" th:field="*{limits}" required>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-2">-->
+<!--                                <label class="form-label" for="gapId">Процент</label>-->
+<!--                                <select class="form-select" id="gapId" th:field="*{gapId}" required>-->
+<!--                                    <option value="" disabled selected>Выберите процент</option>-->
+<!--                                    <option th:each="gap : ${gaps}"-->
+<!--                                            th:value="${gap.gapId}"-->
+<!--                                            th:text="${#numbers.formatDecimal(gap.gapPercent, 0, 'DEFAULT', 0, 'DEFAULT')} + ' %'"></option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                            <div class="col-md-2">-->
+<!--                                <label class="form-label" for="dateScheme">Дата схемы</label>-->
+<!--                                <input type="date" class="form-control" id="dateScheme" th:field="*{dateScheme}">-->
+<!--                            </div>-->
+<!--                            <div class="col-12 d-flex justify-content-end">-->
+<!--                                <button type="submit" class="btn btn-primary">Сохранить</button>-->
+<!--                            </div>-->
+<!--                        </form>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Карточка с таблицей &ndash;&gt;-->
+<!--                <div class="card shadow-sm">-->
+<!--                    <div class="card-body">-->
+<!--                        <h3 class="card-title">Бонусные схемы</h3>-->
+
+<!--                        &lt;!&ndash; Таблица с прилипающим заголовком &ndash;&gt;-->
+<!--                        <table class="table table-striped table-bordered table-sticky">-->
+<!--                            <thead>-->
+<!--                            <tr>-->
+<!--                                <th style="width: 25%;">Название схемы</th>-->
+<!--                                <th style="width: 25%;">Должность</th>-->
+<!--                                <th style="width: 25%;">Процент</th>-->
+<!--                                <th style="width: 25%;">Дата</th>-->
+<!--                            </tr>-->
+<!--                            </thead>-->
+<!--                            <tbody>-->
+<!--                            <tr th:each="scheme : ${bonusSchemeView}">-->
+<!--                                <td th:text="${scheme.schemeName}"></td>-->
+<!--                                <td th:text="${scheme.positionName}"></td>-->
+<!--                                <td th:text="${(scheme.limitFrom != null ? #numbers.formatDecimal(scheme.limitFrom, 0, 'DEFAULT', 0, 'DEFAULT') : '0')-->
+<!--                                                + (scheme.limitTo != null ? ' - ' + #numbers.formatDecimal(scheme.limitTo, 0, 'DEFAULT', 0, 'DEFAULT') : '+')-->
+<!--                                                + ' - ' + #numbers.formatDecimal(scheme.gapPercent, 0, 'DEFAULT', 0, 'DEFAULT') + ' %'}"></td>-->
+<!--                                <td th:text="${#dates.format(scheme.dateScheme, 'yyyy-MM-dd')}"></td>-->
+<!--                            </tr>-->
+<!--                            </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
+
+<!--<script>-->
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        // Динамически вычисляем высоту навигации-->
+<!--        function updateNavHeight() {-->
+<!--            const nav = document.querySelector('.navbar');-->
+<!--            if (nav) {-->
+<!--                const navHeight = nav.offsetHeight;-->
+<!--                console.log('Найдена навигация, высота:', navHeight);-->
+<!--                document.documentElement.style.setProperty('&#45;&#45;nav-height', navHeight + 'px');-->
+
+<!--                // Проверяем таблицу-->
+<!--                const table = document.querySelector('.table-sticky');-->
+<!--                if (table) {-->
+<!--                    const thead = table.querySelector('thead');-->
+<!--                    console.log('Таблица найдена, thead:', thead);-->
+<!--                    if (thead) {-->
+<!--                        const th = thead.querySelector('th');-->
+<!--                        console.log('Стили th:', th ? {-->
+<!--                            position: window.getComputedStyle(th).position,-->
+<!--                            top: window.getComputedStyle(th).top-->
+<!--                        } : 'нет th');-->
+<!--                    }-->
+<!--                }-->
+<!--            } else {-->
+<!--                console.log('Навигация не найдена');-->
+<!--            }-->
+<!--        }-->
+
+<!--        // Обновляем высоту несколько раз для надежности-->
+<!--        updateNavHeight();-->
+<!--        setTimeout(updateNavHeight, 100);-->
+<!--        setTimeout(updateNavHeight, 500);-->
+
+<!--        // Обновляем при изменении размера окна-->
+<!--        window.addEventListener('resize', updateNavHeight);-->
+
+<!--        // Также обновляем после полной загрузки страницы-->
+<!--        window.addEventListener('load', updateNavHeight);-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->

@@ -34,17 +34,7 @@ public class BonusSchemeRepository {
             "  ON latest.scheme_id = sl.scheme_id AND latest.position_id = sl.position_id AND latest.max_date = sl.date_scheme " +
             "ORDER BY s.scheme_name, p.pos_name, sl.limits";
 
-    private static final String SELECT_RANGE_DETAILS = "SELECT p.pos_name, s.scheme_name, " +
-            "       sl.limits AS limit_from, " +
-            "       LEAD(sl.limits) OVER (PARTITION BY s.id, p.id, sl.date_scheme ORDER BY sl.limits) AS limit_to, " +
-            "       g.gap_percent, sl.date_scheme " +
-            "FROM scheme_limits sl " +
-            "JOIN gap g ON g.gap_id = sl.gap_id " +
-            "JOIN position p ON p.id = sl.position_id " +
-            "JOIN scheme s ON s.id = sl.scheme_id " +
-            "JOIN (SELECT scheme_id, position_id, MAX(date_scheme) AS max_date FROM scheme_limits GROUP BY scheme_id, position_id) latest " +
-            "  ON latest.scheme_id = sl.scheme_id AND latest.position_id = sl.position_id AND latest.max_date = sl.date_scheme " +
-            "ORDER BY s.scheme_name, p.pos_name, sl.limits";
+    private static final String SELECT_RANGE_DETAILS = "EXEC dbo.GetRangeDetails;";
     private static final String INSERT_SCHEME = "INSERT INTO scheme_limits(scheme_id, limits, position_id, gap_id, date_scheme)\n" +
             "     VALUES (:scheme_id, :limits, :position_id, :gap_id, :date_scheme)";
 
