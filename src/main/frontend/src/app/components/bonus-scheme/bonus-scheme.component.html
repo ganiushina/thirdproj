@@ -1,0 +1,172 @@
+<div class="page">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Новая схема бонусов</p>
+      <h1>Управление схемами бонусов</h1>
+      <p class="lead">Заполните форму, чтобы добавить новую запись в справочник схем и посмотрите актуальные лимиты, проценты и должности.</p>
+    </div>
+    <div class="card">
+      <form [formGroup]="schemeForm" (ngSubmit)="addScheme()" class="form-grid">
+        <label>
+          ID схемы
+          <input type="number" formControlName="schemeId" min="1" />
+          <span class="hint">Например: 1, 2 или 3</span>
+        </label>
+        <label>
+          Должность
+          <select formControlName="positionId">
+            <option *ngFor="let position of orderedPositions()" [value]="position.id">{{ position.name }}</option>
+          </select>
+        </label>
+        <label>
+          GAP %
+          <select formControlName="gapId">
+            <option *ngFor="let gap of orderedGaps()" [value]="gap.id">{{ gap.percent }} %</option>
+          </select>
+        </label>
+        <label>
+          Подразделение
+          <input type="number" formControlName="divisionId" min="1" />
+        </label>
+        <label>
+          Лимит, ₽
+          <input type="number" formControlName="limit" min="0" step="1000" />
+          <span class="hint">Сумма рассчитывается в рублях</span>
+        </label>
+        <label>
+          Дата схемы
+          <input type="date" formControlName="dateScheme" />
+        </label>
+        <button type="submit" class="primary">Сохранить запись</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Справочник</p>
+          <h2>GAP проценты</h2>
+        </div>
+        <span class="badge">{{ orderedGaps().length }} записей</span>
+      </header>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Процент</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let gap of orderedGaps()">
+              <td>{{ gap.id }}</td>
+              <td>{{ gap.percent }} %</td>
+              <td>{{ gap.schemeDate }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Справочник</p>
+          <h2>Должности</h2>
+        </div>
+        <span class="badge">{{ orderedPositions().length }} записей</span>
+      </header>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Название</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let position of orderedPositions()">
+              <td>{{ position.id }}</td>
+              <td>{{ position.name }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Контроль</p>
+          <h2>Лимиты по схемам</h2>
+        </div>
+        <span class="badge">{{ orderedLimits().length }} записей</span>
+      </header>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Должность</th>
+              <th>GAP %</th>
+              <th>Подразделение</th>
+              <th>Лимит</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let limit of orderedLimits()">
+              <td>{{ limit.id }}</td>
+              <td>{{ positionName(limit.positionId) }}</td>
+              <td>{{ gapPercent(limit.gapId) }} %</td>
+              <td>{{ limit.divisionId }}</td>
+              <td>{{ formatCurrency(limit.limits) }}</td>
+              <td>{{ limit.schemeLimitsDate }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <header class="card-header">
+      <div>
+        <p class="eyebrow">Справочник</p>
+        <h2>Текущие схемы</h2>
+      </div>
+      <span class="badge">{{ orderedSchemes().length }} записей</span>
+    </header>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Схема</th>
+            <th>Должность</th>
+            <th>GAP %</th>
+            <th>Лимит</th>
+            <th>Подразделение</th>
+            <th>Дата</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let scheme of orderedSchemes()">
+            <td>{{ scheme.id }}</td>
+            <td>#{{ scheme.schemeId }}</td>
+            <td>{{ positionName(scheme.positionId) }}</td>
+            <td>{{ gapPercent(scheme.gapId) }} %</td>
+            <td>{{ formatCurrency(scheme.limit) }}</td>
+            <td>{{ scheme.divisionId ?? '—' }}</td>
+            <td>{{ scheme.dateScheme }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
