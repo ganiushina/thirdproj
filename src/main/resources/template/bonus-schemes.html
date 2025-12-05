@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Схемы бонусов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --header-bg: #c8d9ee;
+            --row-alt-bg: #f4f1e1;
+            --border-color: #4a4a4a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: 'Roboto', sans-serif;
+            background: #f8f9fa;
+            color: #2c2c2c;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        p {
+            margin: 0 0 12px;
+            color: #555;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: white;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 820px;
+        }
+
+        thead tr:first-child th {
+            background: var(--header-bg);
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        thead tr:nth-child(2) th {
+            background: #e5edf8;
+            font-weight: 500;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        th.role {
+            min-width: 150px;
+        }
+
+        th.percent-tag {
+            font-weight: 700;
+            color: #0f4c81;
+        }
+
+        tbody tr:nth-child(odd) td {
+            background: var(--row-alt-bg);
+        }
+
+        .row-title {
+            font-weight: 700;
+            text-align: left;
+            min-width: 160px;
+        }
+
+        .currency {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<h1>Схемы начисления бонусов</h1>
+<p>Проценты в шапке показываются только для тех должностей, у которых значения отличаются от базового.</p>
+
+<div class="table-wrapper">
+    <table id="bonusSchemesTable">
+        <thead>
+        <tr id="titleRow">
+            <th rowspan="2" class="row-title">Параметр</th>
+        </tr>
+        <tr id="percentRow"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const BASE_PERCENT = 19;
+
+    const roles = [
+        { key: 'director', label: 'Директор', percent: 19 },
+        { key: 'seniorShift', label: 'Старший смены', percent: 19 },
+        { key: 'dutyAdmin', label: 'Дежурный администратор', percent: 14 },
+        { key: 'assistant', label: 'Ассистент смены', percent: 14 },
+        { key: 'instructor', label: 'Инструктор зала', percent: 19 }
+    ];
+
+    const rows = [
+        {
+            title: 'Оклад (руб.)',
+            values: { director: 1125000, seniorShift: 760000, dutyAdmin: 690000, assistant: 690000, instructor: 125000 }
+        },
+        {
+            title: 'План по продаже, руб.',
+            values: { director: 2700000, seniorShift: 2430000, dutyAdmin: 2430000, assistant: 2430000, instructor: 2700000 }
+        },
+        {
+            title: 'Целевой бонус, руб.',
+            values: { director: 510000, seniorShift: 441000, dutyAdmin: 341000, assistant: 341000, instructor: 273000 }
+        },
+        {
+            title: 'Максимальный бонус, руб.',
+            values: { director: 1465050, seniorShift: 1266780, dutyAdmin: 977100, assistant: 977100, instructor: 998070 }
+        }
+    ];
+
+    function formatCurrency(value) {
+        return value.toLocaleString('ru-RU');
+    }
+
+    function buildHeader() {
+        const titleRow = document.getElementById('titleRow');
+        const percentRow = document.getElementById('percentRow');
+
+        roles.forEach(role => {
+            const titleCell = document.createElement('th');
+            titleCell.classList.add('role');
+            titleCell.textContent = role.label;
+            titleRow.appendChild(titleCell);
+
+            const percentCell = document.createElement('th');
+            if (role.percent !== BASE_PERCENT) {
+                percentCell.textContent = `${role.percent}%`;
+                percentCell.classList.add('percent-tag');
+            }
+            percentRow.appendChild(percentCell);
+        });
+    }
+
+    function buildBody() {
+        const body = document.getElementById('tableBody');
+
+        rows.forEach(row => {
+            const tr = document.createElement('tr');
+
+            const labelCell = document.createElement('td');
+            labelCell.textContent = row.title;
+            labelCell.classList.add('row-title');
+            tr.appendChild(labelCell);
+
+            roles.forEach(role => {
+                const td = document.createElement('td');
+                const value = row.values[role.key];
+                td.textContent = value !== undefined ? formatCurrency(value) : '—';
+                td.classList.add('currency');
+                tr.appendChild(td);
+            });
+
+            body.appendChild(tr);
+        });
+    }
+
+    buildHeader();
+    buildBody();
+</script>
+</body>
+</html>
