@@ -1,31 +1,24 @@
 package ru.alta.thirdproj.services;
 
-import ru.alta.thirdproj.entites.BonusGap;
-import ru.alta.thirdproj.entites.BonusPosition;
-import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
-import ru.alta.thirdproj.entites.BonusSchemeEntry;
-import ru.alta.thirdproj.entites.BonusSchemeLimit;
-import ru.alta.thirdproj.entites.BonusSchemeLimitView;
-import ru.alta.thirdproj.entites.BonusSchemeName;
-import ru.alta.thirdproj.entites.BonusSchemeRangeTable;
+import ru.alta.thirdproj.entites.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BonusSchemeService {
+    Map<String, List<SchemeRow>> getSchemesGroupedByPosition();
 
-    List<BonusGap> getGaps();
+    Map<String, List<SchemeRow>> getSchemesGroupedByScheme();
 
-    List<BonusPosition> getPositions();
+    List<Gap> getGaps();
 
-    List<BonusSchemeLimit> getSchemeLimits();
+    List<Position> getPositions();
 
-    List<BonusSchemeLimitView> getSchemeLimitDetails();
+    List<SchemeName> getSchemeNames();
 
-    BonusSchemeRangeTable getSchemeRangeTable();
+    void addScheme(SchemeEntry entry);
 
-    List<BonusSchemeBdmLimit> getBdmLimits();
+    SchemeEntry createEmptyEntry();
 
-    List<BonusSchemeName> getSchemeNames();
 
-    void addScheme(BonusSchemeEntry entry);
 }

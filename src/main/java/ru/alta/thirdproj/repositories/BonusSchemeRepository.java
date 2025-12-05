@@ -4,38 +4,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
-import ru.alta.thirdproj.entites.BonusGap;
-import ru.alta.thirdproj.entites.BonusPosition;
-import ru.alta.thirdproj.entites.BonusSchemeEntry;
-import ru.alta.thirdproj.entites.BonusSchemeLimit;
-import ru.alta.thirdproj.entites.BonusSchemeLimitView;
-import ru.alta.thirdproj.entites.BonusSchemeRangeTable;
-import ru.alta.thirdproj.entites.BonusSchemeName;
-import ru.alta.thirdproj.entites.BonusSchemeBdmLimit;
+import org.sql2o.data.Row;
+import ru.alta.thirdproj.entites.*;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.sql2o.data.Table;
+import java.util.LinkedHashMap;
+
+
 
 @Component
 public class BonusSchemeRepository {
 
     private final Sql2o sql2o;
-
-    private static final String SELECT_GAPS = "SELECT gap_id, gap_percent, scheme_date FROM gap";
-    private static final String SELECT_POSITIONS = "SELECT id, pos_name FROM position";
-    private static final String SELECT_LIMITS = "SELECT id, scheme_id, limits, position_id, gap_id, date_scheme FROM scheme_limits";
-    private static final String SELECT_SCHEMES_BDN = "SELECT id, limits, position_id, gap_id, division_id, scheme_limits_date  FROM scheme_limits_bdm";
-    private static final String SELECT_SCHEMES_NAME = "SELECT id, scheme_name FROM scheme";
-    private static final String SELECT_LIMIT_DETAILS = "SELECT p.pos_name, s.scheme_name, sl.limits, g.gap_percent, sl.date_scheme " +
-            "FROM scheme_limits sl " +
-            "JOIN gap g ON g.gap_id = sl.gap_id " +
-            "JOIN position p ON p.id = sl.position_id " +
-            "JOIN scheme s ON s.id = sl.scheme_id " +
-            "JOIN (SELECT scheme_id, position_id, MAX(date_scheme) AS max_date FROM scheme_limits GROUP BY scheme_id, position_id) latest " +
-            "  ON latest.scheme_id = sl.scheme_id AND latest.position_id = sl.position_id AND latest.max_date = sl.date_scheme " +
-            "ORDER BY s.scheme_name, p.pos_name, sl.limits";
-
     private static final String EXEC_RANGE_DETAILS = "EXEC dbo.GetRangeDetails";
     private static final String INSERT_SCHEME = "INSERT INTO scheme_limits(scheme_id, limits, position_id, gap_id, date_scheme)\n" +
             "     VALUES (:scheme_id, :limits, :position_id, :gap_id, :date_scheme)";
@@ -45,84 +30,119 @@ public class BonusSchemeRepository {
         this.sql2o = sql2o;
     }
 
-    public List<BonusGap> findAllGaps() {
-        try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_GAPS, false)
-                    .setColumnMappings(BonusGap.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusGap.class);
-        }
-    }
+    public List<SchemeRow> fetchSchemeRowsFromProc() {
 
-    public List<BonusPosition> findAllPositions() {
-        try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_POSITIONS, false)
-                    .setColumnMappings(BonusPosition.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusPosition.class);
-        }
-    }
+        try (Connection con = sql2o.open()) {
 
-    public List<BonusSchemeLimit> findAllLimits() {
-        try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_LIMITS, false)
-                    .setColumnMappings(BonusSchemeLimit.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusSchemeLimit.class);
-        }
-    }
-
-    public List<BonusSchemeLimitView> findAllLimitDetails() {
-        try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_LIMIT_DETAILS, false)
-                    .setColumnMappings(BonusSchemeLimitView.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusSchemeLimitView.class);
-        }
-    }
-
-    public BonusSchemeRangeTable findRangeTable() {
-        try (Connection connection = sql2o.open()) {
-            Table table = connection.createQuery(EXEC_RANGE_DETAILS, false)
+            Table table = con.createQuery(EXEC_RANGE_DETAILS)
                     .executeAndFetchTable();
 
-            List<String> columnNames = table.columns().stream()
-                    .map(column -> column.getName())
+            List<String> columnNames = table.columns()
+                    .stream()
+                    .map(c -> c.getName())
                     .collect(Collectors.toList());
 
-            List<List<Object>> rows = table.rows().stream()
-                    .map(row -> columnNames.stream()
-                            .map(row::getObject)
-                            .collect(Collectors.toList()))
-                    .collect(Collectors.toList());
+            // Первые три колонки всегда одинаковы:
+            // [должность], [позиция + схема], [date_scheme]
+            final int POSITION_INDEX = 0;
+            final int SCHEME_INDEX = 1;
+            final int DATE_INDEX = 2;
 
-            return new BonusSchemeRangeTable(columnNames, rows);
+            List<SchemeRow> result = new ArrayList<>();
+
+            for (Row row : table.rows()) {
+
+                // --- 1. Базовые текстовые поля ---
+                String positionName = row.getString(POSITION_INDEX);
+                String schemeName   = row.getString(SCHEME_INDEX);
+
+                // --- 2. Преобразование даты ---
+                java.util.Date dateSql = row.getDate(DATE_INDEX);
+
+                LocalDate dateScheme =
+                        (dateSql != null
+                                ? dateSql.toInstant()
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                                : null);
+
+                // --- 3. Собираем проценты и диапазоны ---
+                List<BonusCell> cells = new ArrayList<>();
+
+                // Все колонки, начиная с индекса 3 — это динамические [%]
+                for (int i = 3; i < columnNames.size(); i++) {
+
+                    Object value = row.getObject(i);
+
+                    if (value != null) {
+                        String gapLabel = columnNames.get(i);  // например "8%"
+                        String rangeText = value.toString();   // например "300000 - 450000"
+
+                        cells.add(new BonusCell(gapLabel, rangeText));
+                    }
+                }
+
+                // --- 4. Собираем объект ---
+                SchemeRow schemeRow = new SchemeRow(
+                        positionName,
+                        schemeName,
+                        dateScheme,
+                        cells
+                );
+
+                result.add(schemeRow);
+            }
+
+            return result;
         }
     }
 
-    public List<BonusSchemeBdmLimit> findAllBdmSchemes() {
-        try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_SCHEMES_BDN, false)
-                    .setColumnMappings(BonusSchemeBdmLimit.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusSchemeBdmLimit.class);
+
+    // gap
+    public List<Gap> findAllGaps() {
+        String sql = "SELECT gap_id AS gapId, gap_percent AS gapPercent " +
+                "FROM gap ORDER BY gap_percent";
+
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql)
+                    .executeAndFetch(Gap.class);
         }
     }
 
-    public List<BonusSchemeName> findAllSchemeNames() {
-        try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_SCHEMES_NAME, false)
-                    .setColumnMappings(BonusSchemeName.COLUMN_MAPPINGS)
-                    .executeAndFetch(BonusSchemeName.class);
+    // position
+    public List<Position> findAllPositions() {
+        String sql = "SELECT id, pos_name AS posName " +
+                "FROM position ORDER BY pos_name";
+
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql)
+                    .executeAndFetch(Position.class);
         }
     }
 
-    public void saveSchemeEntry(BonusSchemeEntry entry) {
-        try (Connection connection = sql2o.beginTransaction()) {
-            connection.createQuery(INSERT_SCHEME)
+    // scheme
+    public List<SchemeName> findAllSchemeNames() {
+        String sql = "SELECT id, scheme_name AS schemeName " +
+                "FROM scheme ORDER BY scheme_name";
+
+        try (Connection con = sql2o.open()) {
+            return con.createQuery(sql)
+                    .executeAndFetch(SchemeName.class);
+        }
+    }
+
+    // вставка новой записи в scheme_limits
+    public void insertScheme(SchemeEntry entry) {
+        try (Connection con = sql2o.open()) {
+            con.createQuery(INSERT_SCHEME)
                     .addParameter("scheme_id", entry.getSchemeId())
                     .addParameter("limits", entry.getLimits())
                     .addParameter("position_id", entry.getPositionId())
                     .addParameter("gap_id", entry.getGapId())
                     .addParameter("date_scheme", entry.getDateScheme())
                     .executeUpdate();
-
-            connection.commit();
         }
     }
+
+
 }

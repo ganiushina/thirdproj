@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -70,7 +71,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/margin/detailed").hasAnyRole("BDM", "BUHADMIN", "MANAGER")
                 .antMatchers("/margin/charts").hasAnyRole("BDM", "BUHADMIN", "MANAGER")
                 .antMatchers("/margin/interpreters").hasAnyRole("BUHADMIN", "MANAGER")
- //               .antMatchers("/salary/*").hasAnyRole("BDM", "BUHADMIN") -- вернуть, когда доделаю вывод с бонусами ROLE_BDM
+                // только MANAGER может добавлять схемы (POST)
+                .antMatchers(HttpMethod.POST, "/bonus-schemes").hasRole("MANAGER")
+                // просмотр страницы бонусных схем — любому аутентифицированному
+                .antMatchers(HttpMethod.GET, "/bonus-schemes").authenticated()
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -82,34 +86,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout()
                 .logoutSuccessUrl("/**");
-//                .and()
-//                .exceptionHandling()
-//                .accessDeniedHandler(customAccessDeniedHandler);
-                //.accessDeniedPage("/error.html");
-      //          .permitAll();
-//        http
-//                //.csrf()
-//               // .disable()
-//                .authorizeRequests()
-//              //  .antMatchers("/registration").not().fullyAuthenticated()
-//                //Доступ только для пользователей с ролью Администратор
-//                .antMatchers("/admin/**").hasRole("ADMIN")
-////                .anyRequest()
-////                .authenticated()
-//                .and()
-//                //Настройка для входа в систему
-//                .formLogin()
-//                .failureHandler(authenticationFailureHandler())
-// //               .loginPage("/login")
-//                //Перенарпавление на главную страницу после успешного входа
-//                .successHandler(customAuthenticationSuccessHandler)
-//                .defaultSuccessUrl("/user")
-//
-//                .permitAll()
-//                .and()
-//                .logout()
-//                .permitAll()
-//                .logoutSuccessUrl("/bonusShow");
 
     }
 
