@@ -49,9 +49,9 @@ public class UserSalaryRepImplRep  {
             "    ab.date_act,\n" +
             "    LEFT(ab.act_num, 11) AS act_num,\n" +
             "    ab.company_name,\n" +
-            "    COALESCE(pfpp.total_no_nds, ab.total_no_nds) AS total_no_nds,\n" +
+            "    ab.total_no_nds AS total_no_nds,\n" +
             "    ab.project_name,\n" +
-            "    COALESCE(pfpp.candidate, ab.candidate) AS candidate,\n" +
+            "    ab.candidate AS candidate,\n" +
             "    ab.organization,\n" +
             "    COALESCE(pfpp.depatment, d.dep_name) AS dep_name,\n" +
             "    COALESCE(pfpp.responsible_user_name, pb.responsible_user_name) AS responsible_user_name,\n" +
@@ -90,8 +90,6 @@ public class UserSalaryRepImplRep  {
                     "ON target.act_id = source.act_id " +
                     "WHEN MATCHED THEN " +
                     "    UPDATE SET " +
-                    "        total_no_nds = :totalNoNds, " +
-                    "        candidate = :candidate, " +
                     "        depatment = :departmentName, " +
                     "        responsible_user_name = :responsibleUserName, " +
                     "        resecher_name = :resecherName, " +
@@ -100,8 +98,8 @@ public class UserSalaryRepImplRep  {
                     "        summ_responsible_user = :summResponsibleUser, " +
                     "        date_update = GETDATE() " +
                     "WHEN NOT MATCHED THEN " +
-                    "    INSERT (act_id, total_no_nds, candidate, depatment, responsible_user_name, resecher_name, summ_resecher, percent_responsible_user_by_candidate_percent, summ_responsible_user, date_update) " +
-                    "    VALUES (:actId, :totalNoNds, :candidate, :departmentName, :responsibleUserName, :resecherName, :summResecher, :candidatePercent, :summResponsibleUser, GETDATE());";
+                    "    INSERT (act_id, depatment, responsible_user_name, resecher_name, summ_resecher, percent_responsible_user_by_candidate_percent, summ_responsible_user, date_update) " +
+                    "    VALUES (:actId, :departmentName, :responsibleUserName, :resecherName, :summResecher, :candidatePercent, :summResponsibleUser, GETDATE());";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -877,8 +875,6 @@ public class UserSalaryRepImplRep  {
         try (Connection connection = sql2o.beginTransaction()) {
             connection.createQuery(UPSERT_FAILED_PROBATION_ACT)
                     .addParameter("actId", update.getActId())
-                    .addParameter("totalNoNds", update.getTotalNoNds())
-                    .addParameter("candidate", update.getCandidate())
                     .addParameter("departmentName", update.getDepartmentName())
                     .addParameter("responsibleUserName", update.getResponsibleUserName())
                     .addParameter("resecherName", update.getResecherName())
