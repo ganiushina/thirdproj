@@ -192,8 +192,20 @@ public class MarginController {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error", "actId is required"));
         }
 
-        if (update.getCandidatePercent() != null) {
-            update.setCandidatePercent(update.getCandidatePercent() / 100);
+        if (update.getParticipants() != null) {
+            List<FailedProbationParticipant> filtered = update.getParticipants().stream()
+                    .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
+                            || (p.getResecherName() != null && !p.getResecherName().isBlank()))
+                    .peek(p -> {
+                        if (p.getPercentResponsibleUserByCandidatePercent() != null) {
+                            p.setPercentResponsibleUserByCandidatePercent(p.getPercentResponsibleUserByCandidatePercent() / 100);
+                        }
+                        if (p.getPercentResecherByCandidatePercent() != null) {
+                            p.setPercentResecherByCandidatePercent(p.getPercentResecherByCandidatePercent() / 100);
+                        }
+                    })
+                    .collect(Collectors.toList());
+            update.setParticipants(filtered);
         }
 
         marginBonusService.saveFailedProbationAct(update);

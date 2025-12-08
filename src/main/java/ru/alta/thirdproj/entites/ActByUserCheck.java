@@ -17,6 +17,7 @@ public class ActByUserCheck {
     private String responsibleUserName;
     private String resecherName;
     private Double summResecher;
+    private Double resecherPercent;
     private Double candidatePercent;
     private Double summResponsibleUser;
     private String resecherDepartmentName;

@@ -44,62 +44,72 @@ public class UserSalaryRepImplRep  {
             "select ps.user_id, m.man_fio, ps.dateFrom, ps.dateTo, ps.success from paymentPeriodSuccess ps\n" +
             "join man m on m.man_id = ps.user_id " +
                     "where convert(date, ps.dateFrom) = convert(date,:dateFrom) and convert(date,ps.dateTo) = convert(date,:dateTo)";
-    private static final String SELECT_ACT_BY_USER_CHECK = "SELECT \n" +
-            "    ab.id AS act_id,\n" +
-            "    ab.date_act,\n" +
-            "    LEFT(ab.act_num, 11) AS act_num,\n" +
-            "    ab.company_name,\n" +
-            "    ab.total_no_nds AS total_no_nds,\n" +
-            "    ab.project_name,\n" +
-            "    ab.candidate AS candidate,\n" +
-            "    ab.organization,\n" +
-            "    COALESCE(pfpp.depatment, d.dep_name) AS dep_name,\n" +
-            "    COALESCE(pfpp.responsible_user_name, pb.responsible_user_name) AS responsible_user_name,\n" +
-            "    COALESCE(pfpp.resecher_name, pb.resecher_name, '') AS resecher_name,\n" +
-            "\n" +
-            "    CASE \n" +
-            "        WHEN COALESCE(pfpp.resecher_name, pb.resecher_name, '') = '' \n" +
-            "            THEN '' \n" +
-            "        ELSE ISNULL(pfpp.depatment_resecher, ISNULL(d1.dep_name, d.dep_name))\n" +
-            "    END AS resecher_dep_name,\n" +
-            "\n" +
-            "    ISNULL(COALESCE(pfpp.summ_resecher, pb.summ_resecher), 0) AS summ_resecher,\n" +
-            "    COALESCE(pfpp.percent_responsible_user_by_candidate_percent, pb.percent_responsible_user_by_candidate_percent) * 100 AS candidate_percent,\n" +
-            "    COALESCE(pfpp.summ_responsible_user, pb.summ_responsible_user) AS summ_responsible_user\n" +
-            "FROM dbo.act_buh ab\n" +
-            "JOIN project_buh pb \n" +
-            "    ON pb.act_id = ab.id\n" +
-            "LEFT JOIN project_buh_failed_probation_period pfpp\n" +
-            "    ON pfpp.act_id = ab.id\n" +
-            "JOIN depatment d \n" +
-            "    ON d.id = pb.depatment_id\n" +
-            "LEFT JOIN depatment d1 \n" +
-            "    ON d1.id = pb.depatment_resecher_id\n" +
-            "LEFT JOIN dbo.project p \n" +
-            "    ON p.project_id = ab.project_id\n" +
-            "WHERE CONVERT(date, ab.date_act) BETWEEN :date1 AND :date2;";
+    private static final String SELECT_ACT_BY_USER_CHECK =
+            "SELECT\n" +
+                    "    ab.id AS act_id,\n" +
+                    "    ab.date_act,\n" +
+                    "    LEFT(ab.act_num, 11) AS act_num,\n" +
+                    "    ab.company_name,\n" +
+                    "    ab.total_no_nds,\n" +
+                    "    ab.candidate,\n" +
+                    "    ab.organization,\n" +
+                    "    p.project_name,\n" +
+                    "    ISNULL(pfpp.depatment, d.dep_name) AS dep_name,\n" +
+                    "    pfpp.responsible_user_name,\n" +
+                    "    pfpp.resecher_name,\n" +
+                    "    pfpp.summ_resecher,\n" +
+                    "    pfpp.percent_reseacher_by_candidate_percent * 100 AS resecher_percent,\n" +
+                    "    pfpp.percent_responsible_user_by_candidate_percent * 100 AS candidate_percent,\n" +
+                    "    pfpp.summ_responsible_user,\n" +
+                    "    COALESCE(pfpp.depatment_resecher, d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
+                    "FROM project_buh_failed_probation_period pfpp\n" +
+                    "JOIN dbo.act_buh ab ON pfpp.act_id = ab.id\n" +
+                    "OUTER APPLY (SELECT TOP 1 pb.depatment_id, pb.depatment_resecher_id FROM project_buh pb WHERE pb.act_id = ab.id) pb\n" +
+                    "LEFT JOIN depatment d ON d.id = COALESCE(pfpp.depatment_id, pb.depatment_id)\n" +
+                    "LEFT JOIN depatment d1 ON d1.id = COALESCE(pfpp.depatment_resecher_id, pb.depatment_resecher_id)\n" +
+                    "LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
+                    "WHERE CONVERT(date, ab.date_act) BETWEEN :date1 AND :date2\n" +
+                    "UNION ALL\n" +
+                    "SELECT\n" +
+                    "    ab.id AS act_id,\n" +
+                    "    ab.date_act,\n" +
+                    "    LEFT(ab.act_num, 11) AS act_num,\n" +
+                    "    ab.company_name,\n" +
+                    "    ab.total_no_nds,\n" +
+                    "    ab.candidate,\n" +
+                    "    ab.organization,\n" +
+                    "    p.project_name,\n" +
+                    "    d.dep_name,\n" +
+                    "    pb.responsible_user_name,\n" +
+                    "    pb.resecher_name,\n" +
+                    "    pb.summ_resecher,\n" +
+                    "    pb.percent_reseacher_by_candidate_percent * 100 AS resecher_percent,\n" +
+                    "    pb.percent_responsible_user_by_candidate_percent * 100 AS candidate_percent,\n" +
+                    "    pb.summ_responsible_user,\n" +
+                    "    ISNULL(d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
+                    "FROM dbo.act_buh ab\n" +
+                    "JOIN project_buh pb ON pb.act_id = ab.id\n" +
+                    "LEFT JOIN depatment d ON d.id = pb.depatment_id\n" +
+                    "LEFT JOIN depatment d1 ON d1.id = pb.depatment_resecher_id\n" +
+                    "LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
+                    "WHERE CONVERT(date, ab.date_act) BETWEEN :date1 AND :date2\n" +
+                    "  AND NOT EXISTS (SELECT 1 FROM project_buh_failed_probation_period fp WHERE fp.act_id = ab.id);";
     private static final String SELECT_DEPARTMENTS_QUERY =
             "SELECT DISTINCT id, dep_name FROM depatment WHERE dep_name IS NOT NULL " +
                     "and id not in (5,9,7,10) ORDER BY dep_name";
     private static final String DEPARTMENT_ID_COLUMN = "id";
     private static final String DEPARTMENT_NAME_COLUMN = "dep_name";
 
-    private static final String UPSERT_FAILED_PROBATION_ACT =
-            "MERGE project_buh_failed_probation_period AS target " +
-                    "USING (SELECT :actId AS act_id) AS source " +
-                    "ON target.act_id = source.act_id " +
-                    "WHEN MATCHED THEN " +
-                    "    UPDATE SET " +
-                    "        depatment = :departmentName, " +
-                    "        responsible_user_name = :responsibleUserName, " +
-                    "        resecher_name = :resecherName, " +
-                    "        summ_resecher = :summResecher, " +
-                    "        percent_responsible_user_by_candidate_percent = :candidatePercent, " +
-                    "        summ_responsible_user = :summResponsibleUser, " +
-                    "        date_update = GETDATE() " +
-                    "WHEN NOT MATCHED THEN " +
-                    "    INSERT (act_id, depatment, responsible_user_name, resecher_name, summ_resecher, percent_responsible_user_by_candidate_percent, summ_responsible_user, date_update) " +
-                    "    VALUES (:actId, :departmentName, :responsibleUserName, :resecherName, :summResecher, :candidatePercent, :summResponsibleUser, GETDATE());";
+    private static final String DELETE_FAILED_PROBATION_ACT =
+            "DELETE FROM project_buh_failed_probation_period WHERE act_id = :actId";
+
+    private static final String INSERT_FAILED_PROBATION_ACT =
+            "INSERT INTO project_buh_failed_probation_period (" +
+                    "act_id, depatment, responsible_user_name, summ_responsible_user, percent_responsible_user_by_candidate_percent, " +
+                    "resecher_name, summ_resecher, percent_reseacher_by_candidate_percent, depatment_resecher, date_update" +
+                    ") VALUES (" +
+                    ":actId, :departmentName, :responsibleUserName, :summResponsibleUser, :candidatePercent, " +
+                    ":resecherName, :summResecher, :resecherPercent, :resecherDepartment, GETDATE());";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -863,6 +873,8 @@ public class UserSalaryRepImplRep  {
                 item.setSummResecher(summResecher != null ? summResecher : 0.0);
                 Double candidatePercent = (Double) row.get("candidate_percent");
                 item.setCandidatePercent(candidatePercent != null ? candidatePercent : 0.0);
+                Double resecherPercent = (Double) row.get("resecher_percent");
+                item.setResecherPercent(resecherPercent != null ? resecherPercent : 0.0);
                 Double summResponsibleUser = (Double) row.get("summ_responsible_user");
                 item.setSummResponsibleUser(summResponsibleUser != null ? summResponsibleUser : 0.0);
 
@@ -873,15 +885,26 @@ public class UserSalaryRepImplRep  {
 
     public void saveFailedProbationAct(FailedProbationActUpdate update) {
         try (Connection connection = sql2o.beginTransaction()) {
-            connection.createQuery(UPSERT_FAILED_PROBATION_ACT)
+            connection.createQuery(DELETE_FAILED_PROBATION_ACT)
                     .addParameter("actId", update.getActId())
-                    .addParameter("departmentName", update.getDepartmentName())
-                    .addParameter("responsibleUserName", update.getResponsibleUserName())
-                    .addParameter("resecherName", update.getResecherName())
-                    .addParameter("summResecher", update.getSummResecher())
-                    .addParameter("candidatePercent", update.getCandidatePercent())
-                    .addParameter("summResponsibleUser", update.getSummResponsibleUser())
                     .executeUpdate();
+
+            if (update.getParticipants() != null) {
+                for (FailedProbationParticipant participant : update.getParticipants()) {
+                    connection.createQuery(INSERT_FAILED_PROBATION_ACT)
+                            .addParameter("actId", update.getActId())
+                            .addParameter("departmentName", participant.getDepartmentName())
+                            .addParameter("responsibleUserName", participant.getResponsibleUserName())
+                            .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
+                            .addParameter("candidatePercent", participant.getPercentResponsibleUserByCandidatePercent())
+                            .addParameter("resecherName", participant.getResecherName())
+                            .addParameter("summResecher", participant.getSummResecher())
+                            .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
+                            .addParameter("resecherDepartment", participant.getResecherDepartmentName())
+                            .executeUpdate();
+                }
+            }
+
             connection.commit();
         }
     }

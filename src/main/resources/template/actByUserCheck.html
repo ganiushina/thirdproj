@@ -42,11 +42,14 @@
                             th:data-department="${#strings.defaultString(act.departmentName, '')}"
                             th:data-consultant="${#strings.defaultString(act.responsibleUserName, '')}"
                             th:data-researcher="${#strings.defaultString(act.resecherName, '')}"
+                            th:data-resecher-department="${#strings.defaultString(act.resecherDepartmentName, '')}"
                             th:data-project="${#strings.defaultString(act.projectName, '')}"
                             th:data-total="${act.totalNoNds}"
                             th:data-summ-responsible="${act.summResponsibleUser}"
                             th:data-summ-resecher="${act.summResecher}"
-                            th:data-candidate-percent="${act.candidatePercent}">
+                            th:data-candidate-percent="${act.candidatePercent}"
+                            th:data-consultant-percent="${act.responsibleUserName != null ? act.candidatePercent : ''}"
+                            th:data-resecher-percent="${act.resecherPercent}">
                             <!-- Объединяем ячейки только для первой строки группы -->
                             <td class="act-header-cell" data-header-cell="true"
                                 th:text="${entry.key}"
@@ -79,7 +82,14 @@
                             <td th:text="${#numbers.formatDecimal(act.summResponsibleUser, 1, 2)}"></td>
                             <td th:text="${act.resecherDisplay}"></td>
                             <td th:text="${#numbers.formatDecimal(act.summResecher, 1, 2)}"></td>
-                            <td th:text="${#numbers.formatDecimal(act.candidatePercent, 1, 2)} + '%'"></td>
+                            <td>
+                                <span th:if="${act.responsibleUserName != null}"
+                                      th:text="${#numbers.formatDecimal(act.candidatePercent, 1, 2)} + '%'">
+                                </span>
+                                <span th:if="${act.responsibleUserName == null}"
+                                      th:text="${#numbers.formatDecimal(act.resecherPercent, 1, 2)} + '%'">
+                                </span>
+                            </td>
                             <td th:text="${act.projectName}"></td>
                             <td class="text-center"
                                 th:if="${iter.index == 0}"
@@ -135,26 +145,23 @@
                                 <label for="editDepartment" class="form-label">Направление</label>
                                 <input type="text" class="form-control" id="editDepartment" required />
                             </div>
-                            <div class="col-md-6">
-                                <label for="editResponsible" class="form-label">Консультант</label>
-                                <input type="text" class="form-control" id="editResponsible" required />
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Консультанты</h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addConsultantBtn">Добавить консультанта</button>
                             </div>
-                            <div class="col-md-6">
-                                <label for="editSummResponsible" class="form-label">Сумма консультанта</label>
-                                <input type="number" step="0.01" class="form-control" id="editSummResponsible" required />
+                            <div id="consultantsContainer" class="participant-list"></div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Ресечеры</h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addResearcherBtn">Добавить ресечера</button>
                             </div>
-                            <div class="col-md-6">
-                                <label for="editCandidatePercent" class="form-label">Процент консультанта</label>
-                                <input type="number" step="0.01" class="form-control" id="editCandidatePercent" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="editResecher" class="form-label">Ресечер</label>
-                                <input type="text" class="form-control" id="editResecher" />
-                            </div>
-                            <div class="col-md-6">
-                                <label for="editSummResecher" class="form-label">Сумма ресечера</label>
-                                <input type="number" step="0.01" class="form-control" id="editSummResecher" />
-                            </div>
+                            <div id="researchersContainer" class="participant-list"></div>
+                        </div>
                         </div>
                     </form>
                     <div class="alert alert-danger mt-3 d-none" id="editActError"></div>
