@@ -853,6 +853,100 @@
         if (fragment === 'interpreterTab' || fragment === 'summaryTab' || fragment === 'actByUserTab') {
             setTimeout(initTableSorting, 100);
         }
+
+        if (fragment === 'actByUserTab') {
+            initActByUserEditing();
+        }
+    }
+
+    function initActByUserEditing() {
+        const container = document.getElementById('actByUserContent');
+        if (!container || container.dataset.editInitialized === 'true') {
+            return;
+        }
+
+        container.dataset.editInitialized = 'true';
+
+        container.addEventListener('click', (event) => {
+            const btn = event.target.closest('.edit-act-btn');
+            if (!btn || !container.contains(btn)) return;
+
+            const row = btn.closest('tr');
+            const modalElement = container.querySelector('#editActModal');
+            const errorAlert = container.querySelector('#editActError');
+            const successAlert = container.querySelector('#editActSuccess');
+
+            if (!row || !modalElement || !errorAlert || !successAlert) return;
+
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+            const getAttr = (key) => row.getAttribute(key) || '';
+            const setValue = (id, value) => {
+                const input = container.querySelector(id);
+                if (input) input.value = value;
+            };
+
+            setValue('#editActId', getAttr('data-act-id'));
+            setValue('#editActNumber', getAttr('data-act-num'));
+            setValue('#editActDate', getAttr('data-act-date'));
+            setValue('#editTotalNoNds', getAttr('data-total'));
+            setValue('#editCandidate', getAttr('data-candidate'));
+            setValue('#editDepartment', getAttr('data-department'));
+            setValue('#editResponsible', getAttr('data-consultant'));
+            setValue('#editSummResponsible', getAttr('data-summ-responsible'));
+            setValue('#editCandidatePercent', getAttr('data-candidate-percent'));
+            setValue('#editResecher', getAttr('data-researcher'));
+            setValue('#editSummResecher', getAttr('data-summ-resecher'));
+
+            errorAlert.classList.add('d-none');
+            successAlert.classList.add('d-none');
+            modalInstance.show();
+        });
+
+        container.addEventListener('submit', async (event) => {
+            if (event.target?.id !== 'editActForm') return;
+
+            event.preventDefault();
+            const modalElement = container.querySelector('#editActModal');
+            const errorAlert = container.querySelector('#editActError');
+            const successAlert = container.querySelector('#editActSuccess');
+
+            if (!modalElement || !errorAlert || !successAlert) return;
+
+            errorAlert.classList.add('d-none');
+            successAlert.classList.add('d-none');
+
+            const payload = {
+                actId: parseInt(container.querySelector('#editActId')?.value || '0', 10),
+                totalNoNds: parseFloat(container.querySelector('#editTotalNoNds')?.value || '0'),
+                candidate: container.querySelector('#editCandidate')?.value || '',
+                departmentName: container.querySelector('#editDepartment')?.value || '',
+                responsibleUserName: container.querySelector('#editResponsible')?.value || '',
+                summResponsibleUser: parseFloat(container.querySelector('#editSummResponsible')?.value || '0'),
+                candidatePercent: parseFloat(container.querySelector('#editCandidatePercent')?.value || '0'),
+                resecherName: container.querySelector('#editResecher')?.value || '',
+                summResecher: parseFloat(container.querySelector('#editSummResecher')?.value || '0')
+            };
+
+            try {
+                const response = await fetch('/margin/userAct/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Не удалось сохранить изменения');
+                }
+
+                successAlert.classList.remove('d-none');
+                loadTabContent('/margin/userAct', 'actByUserTab');
+                setTimeout(() => bootstrap.Modal.getInstance(modalElement)?.hide(), 700);
+            } catch (err) {
+                errorAlert.textContent = err.message;
+                errorAlert.classList.remove('d-none');
+            }
+        });
     }
 
 <!--    function showErrorInTargetDiv(targetDiv, error) {-->
