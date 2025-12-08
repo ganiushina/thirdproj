@@ -49,26 +49,28 @@ public class UserSalaryRepImplRep  {
             "    ab.date_act,\n" +
             "    LEFT(ab.act_num, 11) AS act_num,\n" +
             "    ab.company_name,\n" +
-            "    ab.total_no_nds,\n" +
+            "    COALESCE(pfpp.total_no_nds, ab.total_no_nds) AS total_no_nds,\n" +
             "    ab.project_name,\n" +
-            "    ab.candidate,\n" +
+            "    COALESCE(pfpp.candidate, ab.candidate) AS candidate,\n" +
             "    ab.organization,\n" +
-            "    d.dep_name AS dep_name,\n" +
-            "    pb.responsible_user_name,\n" +
-            "    ISNULL(pb.resecher_name, '') AS resecher_name,\n" +
+            "    COALESCE(pfpp.depatment, d.dep_name) AS dep_name,\n" +
+            "    COALESCE(pfpp.responsible_user_name, pb.responsible_user_name) AS responsible_user_name,\n" +
+            "    COALESCE(pfpp.resecher_name, pb.resecher_name, '') AS resecher_name,\n" +
             "\n" +
             "    CASE \n" +
-            "        WHEN pb.resecher_name IS NULL OR pb.resecher_name = '' \n" +
+            "        WHEN COALESCE(pfpp.resecher_name, pb.resecher_name, '') = '' \n" +
             "            THEN '' \n" +
-            "        ELSE ISNULL(d1.dep_name, d.dep_name)\n" +
+            "        ELSE ISNULL(pfpp.depatment_resecher, ISNULL(d1.dep_name, d.dep_name))\n" +
             "    END AS resecher_dep_name,\n" +
             "\n" +
-            "    ISNULL(pb.summ_resecher, 0) AS summ_resecher,\n" +
-            "    pb.percent_responsible_user_by_candidate_percent * 100 AS candidate_percent,\n" +
-            "    pb.summ_responsible_user\n" +
+            "    ISNULL(COALESCE(pfpp.summ_resecher, pb.summ_resecher), 0) AS summ_resecher,\n" +
+            "    COALESCE(pfpp.percent_responsible_user_by_candidate_percent, pb.percent_responsible_user_by_candidate_percent) * 100 AS candidate_percent,\n" +
+            "    COALESCE(pfpp.summ_responsible_user, pb.summ_responsible_user) AS summ_responsible_user\n" +
             "FROM dbo.act_buh ab\n" +
             "JOIN project_buh pb \n" +
             "    ON pb.act_id = ab.id\n" +
+            "LEFT JOIN project_buh_failed_probation_period pfpp\n" +
+            "    ON pfpp.act_id = ab.id\n" +
             "JOIN depatment d \n" +
             "    ON d.id = pb.depatment_id\n" +
             "LEFT JOIN depatment d1 \n" +
@@ -81,6 +83,25 @@ public class UserSalaryRepImplRep  {
                     "and id not in (5,9,7,10) ORDER BY dep_name";
     private static final String DEPARTMENT_ID_COLUMN = "id";
     private static final String DEPARTMENT_NAME_COLUMN = "dep_name";
+
+    private static final String UPSERT_FAILED_PROBATION_ACT =
+            "MERGE project_buh_failed_probation_period AS target " +
+                    "USING (SELECT :actId AS act_id) AS source " +
+                    "ON target.act_id = source.act_id " +
+                    "WHEN MATCHED THEN " +
+                    "    UPDATE SET " +
+                    "        total_no_nds = :totalNoNds, " +
+                    "        candidate = :candidate, " +
+                    "        depatment = :departmentName, " +
+                    "        responsible_user_name = :responsibleUserName, " +
+                    "        resecher_name = :resecherName, " +
+                    "        summ_resecher = :summResecher, " +
+                    "        percent_responsible_user_by_candidate_percent = :candidatePercent, " +
+                    "        summ_responsible_user = :summResponsibleUser, " +
+                    "        date_update = GETDATE() " +
+                    "WHEN NOT MATCHED THEN " +
+                    "    INSERT (act_id, total_no_nds, candidate, depatment, responsible_user_name, resecher_name, summ_resecher, percent_responsible_user_by_candidate_percent, summ_responsible_user, date_update) " +
+                    "    VALUES (:actId, :totalNoNds, :candidate, :departmentName, :responsibleUserName, :resecherName, :summResecher, :candidatePercent, :summResponsibleUser, GETDATE());";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -849,6 +870,23 @@ public class UserSalaryRepImplRep  {
 
                 return item;
             }).collect(Collectors.toList());
+        }
+    }
+
+    public void saveFailedProbationAct(FailedProbationActUpdate update) {
+        try (Connection connection = sql2o.beginTransaction()) {
+            connection.createQuery(UPSERT_FAILED_PROBATION_ACT)
+                    .addParameter("actId", update.getActId())
+                    .addParameter("totalNoNds", update.getTotalNoNds())
+                    .addParameter("candidate", update.getCandidate())
+                    .addParameter("departmentName", update.getDepartmentName())
+                    .addParameter("responsibleUserName", update.getResponsibleUserName())
+                    .addParameter("resecherName", update.getResecherName())
+                    .addParameter("summResecher", update.getSummResecher())
+                    .addParameter("candidatePercent", update.getCandidatePercent())
+                    .addParameter("summResponsibleUser", update.getSummResponsibleUser())
+                    .executeUpdate();
+            connection.commit();
         }
     }
 }

@@ -183,6 +183,24 @@ public class MarginController {
         return "actByUserCheck :: actByUserTab";
     }
 
+    @PostMapping("/margin/userAct/update")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> updateFailedProbationAct(
+            @RequestBody FailedProbationActUpdate update) {
+
+        if (update.getActId() == null) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "actId is required"));
+        }
+
+        if (update.getCandidatePercent() != null) {
+            update.setCandidatePercent(update.getCandidatePercent() / 100);
+        }
+
+        marginBonusService.saveFailedProbationAct(update);
+
+        return ResponseEntity.ok(Collections.singletonMap("status", "updated"));
+    }
+
     private void hideDuplicateResearchers(List<ActByUserCheck> acts) {
         // Ключ: ресечер + его департамент + сумма
         Set<String> seenResearchers = new HashSet<>();
