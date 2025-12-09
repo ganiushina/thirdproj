@@ -110,6 +110,11 @@ public class UserSalaryRepImplRep  {
                     ") VALUES (" +
                     ":actId, :departmentName, :responsibleUserName, :summResponsibleUser, :candidatePercent, " +
                     ":resecherName, :summResecher, :resecherPercent, :resecherDepartment, GETDATE());";
+    private static final String UPDATE_ACT_TOTAL_AND_CANDIDATE =
+            "UPDATE act_buh " +
+                    "SET total_no_nds = COALESCE(:totalNoNds, total_no_nds), " +
+                    "    candidate = COALESCE(:candidate, candidate) " +
+                    "WHERE id = :actId";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -885,6 +890,14 @@ public class UserSalaryRepImplRep  {
 
     public void saveFailedProbationAct(FailedProbationActUpdate update) {
         try (Connection connection = sql2o.beginTransaction()) {
+            if (update.getTotalNoNds() != null || update.getCandidate() != null) {
+                connection.createQuery(UPDATE_ACT_TOTAL_AND_CANDIDATE)
+                        .addParameter("totalNoNds", update.getTotalNoNds())
+                        .addParameter("candidate", update.getCandidate())
+                        .addParameter("actId", update.getActId())
+                        .executeUpdate();
+            }
+
             connection.createQuery(DELETE_FAILED_PROBATION_ACT)
                     .addParameter("actId", update.getActId())
                     .executeUpdate();

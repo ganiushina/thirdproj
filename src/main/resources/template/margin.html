@@ -1036,6 +1036,7 @@
             };
 
             const defaultDepartment = container.querySelector('#editDepartment')?.value || '';
+            const defaultResearchDepartment = defaultDepartment;
             container.querySelectorAll('.consultant-row').forEach(row => {
                 const name = row.querySelector('.consultant-name')?.value?.trim() || '';
                 const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
@@ -1055,7 +1056,7 @@
                 const name = row.querySelector('.researcher-name')?.value?.trim() || '';
                 const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
                 const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
-                const department = row.querySelector('.researcher-department')?.value || '';
+                const department = row.querySelector('.researcher-department')?.value || defaultResearchDepartment;
 
                 payload.participants.push({
                     type: 'RESEARCHER',
@@ -1073,8 +1074,10 @@
                     body: JSON.stringify(payload)
                 });
 
+                const result = await response.json().catch(() => ({}));
+
                 if (!response.ok) {
-                    throw new Error('Не удалось сохранить изменения');
+                    throw new Error(result.error || 'Не удалось сохранить изменения');
                 }
 
                 successAlert.classList.remove('d-none');
