@@ -861,11 +861,39 @@
 
     function initActByUserEditing() {
         const container = document.getElementById('actByUserContent');
-        if (!container || container.dataset.editInitialized === 'true') {
+        if (!container) {
+            return;
+        }
+
+        const ensureActionButtons = () => {
+            const rows = container.querySelectorAll('tr.act-row.act-group-start');
+            rows.forEach((row) => {
+                if (row.querySelector('.edit-act-btn')) {
+                    return;
+                }
+
+                const groupRows = container.querySelectorAll(`tr[data-act-id="${row.getAttribute('data-act-id')}"]`);
+                const td = document.createElement('td');
+                td.className = 'text-center';
+                td.rowSpan = groupRows.length || 1;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-outline-primary btn-sm edit-act-btn';
+                btn.textContent = 'Изменить';
+
+                td.appendChild(btn);
+                row.appendChild(td);
+            });
+        };
+
+        if (container.dataset.editInitialized === 'true') {
+            ensureActionButtons();
             return;
         }
 
         container.dataset.editInitialized = 'true';
+        ensureActionButtons();
 
         const createConsultantRow = (data = {}) => {
             const row = document.createElement('div');
