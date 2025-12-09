@@ -1014,10 +1014,7 @@
             modalInstance.show();
         });
 
-        container.addEventListener('submit', async (event) => {
-            if (event.target?.id !== 'editActForm') return;
-
-            event.preventDefault();
+        const submitActUpdate = async () => {
             const modalElement = container.querySelector('#editActModal');
             const errorAlert = container.querySelector('#editActError');
             const successAlert = container.querySelector('#editActSuccess');
@@ -1097,6 +1094,22 @@
                 errorAlert.textContent = err.message || 'Не удалось сохранить изменения';
                 errorAlert.classList.remove('d-none');
             }
+        };
+
+        container.addEventListener('submit', async (event) => {
+            if (event.target?.id !== 'editActForm') return;
+
+            event.preventDefault();
+            console.debug('[UpdateAct] Form submit triggered');
+            await submitActUpdate();
+        });
+
+        container.addEventListener('click', async (event) => {
+            if (event.target?.id !== 'editActSaveBtn') return;
+
+            event.preventDefault();
+            console.debug('[UpdateAct] Save button clicked');
+            await submitActUpdate();
         });
 
         container.addEventListener('click', (event) => {
