@@ -35,7 +35,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(requestToUse, response);
         } finally {
-            if (shouldLogBody && requestToUse instanceof ContentCachingRequestWrapper wrapper) {
+            if (shouldLogBody && requestToUse instanceof ContentCachingRequestWrapper) {
+                ContentCachingRequestWrapper wrapper = (ContentCachingRequestWrapper) requestToUse;
                 byte[] buf = wrapper.getContentAsByteArray();
                 if (buf.length > 0) {
                     String payload = new String(buf, 0, buf.length, StandardCharsets.UTF_8);
