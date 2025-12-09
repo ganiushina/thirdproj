@@ -187,30 +187,42 @@ public class MarginController {
     @ResponseBody
     public ResponseEntity<Map<String, String>> updateFailedProbationAct(
             @RequestBody FailedProbationActUpdate update) {
+        log.info("[UpdateAct] Received update request: actId={}, totalNoNds={}, candidate={}, participants={}"
+                + " department={}",
+                update.getActId(), update.getTotalNoNds(), update.getCandidate(),
+                update.getParticipants() != null ? update.getParticipants().size() : 0,
+                update.getDepartmentName());
 
-        if (update.getActId() == null) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "actId is required"));
+        try {
+            if (update.getActId() == null) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("error", "actId is required"));
+            }
+
+            if (update.getParticipants() != null) {
+                List<FailedProbationParticipant> filtered = update.getParticipants().stream()
+                        .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
+                                || (p.getResecherName() != null && !p.getResecherName().isBlank()))
+                        .peek(p -> {
+                            if (p.getPercentResponsibleUserByCandidatePercent() != null) {
+                                p.setPercentResponsibleUserByCandidatePercent(p.getPercentResponsibleUserByCandidatePercent() / 100);
+                            }
+                            if (p.getPercentResecherByCandidatePercent() != null) {
+                                p.setPercentResecherByCandidatePercent(p.getPercentResecherByCandidatePercent() / 100);
+                            }
+                        })
+                        .collect(Collectors.toList());
+                update.setParticipants(filtered);
+            }
+
+            marginBonusService.saveFailedProbationAct(update);
+            log.info("[UpdateAct] Update finished successfully for actId={}", update.getActId());
+
+            return ResponseEntity.ok(Collections.singletonMap("status", "updated"));
+        } catch (Exception e) {
+            log.error("[UpdateAct] Failed to update act {}", update.getActId(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Ошибка при сохранении: " + e.getMessage()));
         }
-
-        if (update.getParticipants() != null) {
-            List<FailedProbationParticipant> filtered = update.getParticipants().stream()
-                    .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
-                            || (p.getResecherName() != null && !p.getResecherName().isBlank()))
-                    .peek(p -> {
-                        if (p.getPercentResponsibleUserByCandidatePercent() != null) {
-                            p.setPercentResponsibleUserByCandidatePercent(p.getPercentResponsibleUserByCandidatePercent() / 100);
-                        }
-                        if (p.getPercentResecherByCandidatePercent() != null) {
-                            p.setPercentResecherByCandidatePercent(p.getPercentResecherByCandidatePercent() / 100);
-                        }
-                    })
-                    .collect(Collectors.toList());
-            update.setParticipants(filtered);
-        }
-
-        marginBonusService.saveFailedProbationAct(update);
-
-        return ResponseEntity.ok(Collections.singletonMap("status", "updated"));
     }
 
     private void hideDuplicateResearchers(List<ActByUserCheck> acts) {

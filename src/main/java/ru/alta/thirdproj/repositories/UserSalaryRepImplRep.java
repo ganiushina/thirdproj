@@ -889,21 +889,38 @@ public class UserSalaryRepImplRep  {
     }
 
     public void saveFailedProbationAct(FailedProbationActUpdate update) {
+        log.info("[UpdateAct] Persisting actId={}, participants={} (totalNoNds={}, candidate={})",
+                update.getActId(), update.getParticipants() != null ? update.getParticipants().size() : 0,
+                update.getTotalNoNds(), update.getCandidate());
+
         try (Connection connection = sql2o.beginTransaction()) {
             if (update.getTotalNoNds() != null || update.getCandidate() != null) {
-                connection.createQuery(UPDATE_ACT_TOTAL_AND_CANDIDATE)
+                int updatedAct = connection.createQuery(UPDATE_ACT_TOTAL_AND_CANDIDATE)
                         .addParameter("totalNoNds", update.getTotalNoNds())
                         .addParameter("candidate", update.getCandidate())
                         .addParameter("actId", update.getActId())
-                        .executeUpdate();
+                        .executeUpdate()
+                        .getResult();
+                log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
             }
 
-            connection.createQuery(DELETE_FAILED_PROBATION_ACT)
+            int deleted = connection.createQuery(DELETE_FAILED_PROBATION_ACT)
                     .addParameter("actId", update.getActId())
-                    .executeUpdate();
+                    .executeUpdate()
+                    .getResult();
+            log.info("[UpdateAct] Existing override rows removed: {}", deleted);
 
             if (update.getParticipants() != null) {
+                int inserted = 0;
                 for (FailedProbationParticipant participant : update.getParticipants()) {
+                    log.debug("[UpdateAct] Inserting participant: consultant='{}' researcher='{}' sumC={} sumR={}"
+                                    + " pctC={} pctR={} depC={} depR={}",
+                            participant.getResponsibleUserName(), participant.getResecherName(),
+                            participant.getSummResponsibleUser(), participant.getSummResecher(),
+                            participant.getPercentResponsibleUserByCandidatePercent(),
+                            participant.getPercentResecherByCandidatePercent(),
+                            participant.getDepartmentName(), participant.getResecherDepartmentName());
+
                     connection.createQuery(INSERT_FAILED_PROBATION_ACT)
                             .addParameter("actId", update.getActId())
                             .addParameter("departmentName", participant.getDepartmentName())
@@ -915,10 +932,16 @@ public class UserSalaryRepImplRep  {
                             .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
                             .addParameter("resecherDepartment", participant.getResecherDepartmentName())
                             .executeUpdate();
+                    inserted++;
                 }
+                log.info("[UpdateAct] Inserted override participants: {}", inserted);
             }
 
             connection.commit();
+            log.info("[UpdateAct] Transaction committed for actId={}", update.getActId());
+        } catch (Exception e) {
+            log.error("[UpdateAct] Error while saving overrides for actId={}", update.getActId(), e);
+            throw e;
         }
     }
 }
