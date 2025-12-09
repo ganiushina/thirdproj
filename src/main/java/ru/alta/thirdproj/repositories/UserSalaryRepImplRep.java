@@ -910,7 +910,7 @@ public class UserSalaryRepImplRep  {
                     .getResult();
             log.info("[UpdateAct] Existing override rows removed: {}", deleted);
 
-            if (update.getParticipants() != null) {
+            if (update.getParticipants() != null && !update.getParticipants().isEmpty()) {
                 int inserted = 0;
                 for (FailedProbationParticipant participant : update.getParticipants()) {
                     log.debug("[UpdateAct] Inserting participant: consultant='{}' researcher='{}' sumC={} sumR={}"
@@ -935,6 +935,8 @@ public class UserSalaryRepImplRep  {
                     inserted++;
                 }
                 log.info("[UpdateAct] Inserted override participants: {}", inserted);
+            } else {
+                log.warn("[UpdateAct] No participants provided for actId={}, only act update/delete executed", update.getActId());
             }
 
             connection.commit();

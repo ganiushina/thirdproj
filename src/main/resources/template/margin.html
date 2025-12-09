@@ -1075,18 +1075,26 @@
                     body: JSON.stringify(payload)
                 });
 
-                const result = await response.json().catch(() => ({}));
-                console.debug('[UpdateAct] Response status', response.status, result);
+                const rawText = await response.clone().text().catch(() => '');
+                let result = {};
+                try {
+                    result = JSON.parse(rawText);
+                } catch (_) {
+                    // ignore, will fall back to raw text
+                }
+                console.debug('[UpdateAct] Response status', response.status, { result, rawText });
 
                 if (!response.ok) {
-                    throw new Error(result.error || 'Не удалось сохранить изменения');
+                    const errorMessage = result.error || rawText || 'Не удалось сохранить изменения';
+                    throw new Error(errorMessage);
                 }
 
                 successAlert.classList.remove('d-none');
                 loadTabContent('/margin/userAct', 'actByUserTab');
                 setTimeout(() => bootstrap.Modal.getInstance(modalElement)?.hide(), 700);
             } catch (err) {
-                errorAlert.textContent = err.message;
+                console.error('[UpdateAct] Save failed', err);
+                errorAlert.textContent = err.message || 'Не удалось сохранить изменения';
                 errorAlert.classList.remove('d-none');
             }
         });
