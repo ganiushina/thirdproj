@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class FailedProbationAct {
+    private Integer id;
     private Integer actId;
     private String responsibleUserName;
     private Integer responsibleUserId;
