@@ -81,6 +81,33 @@ public class UserSalaryRepImplRep  {
                     "and id not in (5,9,7,10) ORDER BY dep_name";
     private static final String DEPARTMENT_ID_COLUMN = "id";
     private static final String DEPARTMENT_NAME_COLUMN = "dep_name";
+    private static final String UPSERT_FAILED_PROBATION_ACT = "MERGE dbo.failed_probation_act AS target\n" +
+            "USING (SELECT :act_id AS act_id, :responsible_user_id AS responsible_user_id, :resecher_id AS resecher_id) AS source\n" +
+            "    ON target.act_id = source.act_id\n" +
+            "   AND ISNULL(target.responsible_user_id, -1) = ISNULL(source.responsible_user_id, -1)\n" +
+            "   AND ISNULL(target.resecher_id, -1) = ISNULL(source.resecher_id, -1)\n" +
+            "WHEN MATCHED THEN\n" +
+            "    UPDATE SET\n" +
+            "        responsible_user_name = :responsible_user_name,\n" +
+            "        resecher_name = :resecher_name,\n" +
+            "        summ_responsible_user = :summ_responsible_user,\n" +
+            "        summ_resecher = :summ_resecher,\n" +
+            "        depatment = :depatment,\n" +
+            "        depatment_id = :depatment_id,\n" +
+            "        percent_responsible_user_complicity = :percent_responsible_user_complicity,\n" +
+            "        percent_resecher_complicity = :percent_resecher_complicity,\n" +
+            "        teame_leader_name = :teame_leader_name,\n" +
+            "        teame_leader_id = :teame_leader_id,\n" +
+            "        city_responsible_user = :city_responsible_user,\n" +
+            "        city_responsible_user_id = :city_responsible_user_id,\n" +
+            "        percent_responsible_user_by_candidate_percent = :percent_responsible_user_by_candidate_percent,\n" +
+            "        percent_reseacher_by_candidate_percent = :percent_reseacher_by_candidate_percent,\n" +
+            "        depatment_resecher = :depatment_resecher,\n" +
+            "        depatment_resecher_id = :depatment_resecher_id,\n" +
+            "        date_update = GETDATE()\n" +
+            "WHEN NOT MATCHED THEN\n" +
+            "    INSERT (act_id, responsible_user_name, responsible_user_id, resecher_name, resecher_id, summ_responsible_user, summ_resecher, depatment, depatment_id, percent_responsible_user_complicity, percent_resecher_complicity, teame_leader_name, teame_leader_id, city_responsible_user, city_responsible_user_id, percent_responsible_user_by_candidate_percent, percent_reseacher_by_candidate_percent, depatment_resecher, depatment_resecher_id, date_update)\n" +
+            "    VALUES (:act_id, :responsible_user_name, :responsible_user_id, :resecher_name, :resecher_id, :summ_responsible_user, :summ_resecher, :depatment, :depatment_id, :percent_responsible_user_complicity, :percent_resecher_complicity, :teame_leader_name, :teame_leader_id, :city_responsible_user, :city_responsible_user_id, :percent_responsible_user_by_candidate_percent, :percent_reseacher_by_candidate_percent, :depatment_resecher, :depatment_resecher_id, GETDATE());";
 
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
@@ -849,6 +876,43 @@ public class UserSalaryRepImplRep  {
 
                 return item;
             }).collect(Collectors.toList());
+        }
+    }
+
+    public void saveFailedProbationAct(FailedProbationAct act) {
+        saveFailedProbationAct(Collections.singletonList(act));
+    }
+
+    public void saveFailedProbationAct(List<FailedProbationAct> acts) {
+        if (acts == null || acts.isEmpty()) {
+            return;
+        }
+
+        try (Connection connection = sql2o.beginTransaction()) {
+            for (FailedProbationAct act : acts) {
+                connection.createQuery(UPSERT_FAILED_PROBATION_ACT, false)
+                        .addParameter("act_id", act.getActId())
+                        .addParameter("responsible_user_name", act.getResponsibleUserName())
+                        .addParameter("responsible_user_id", act.getResponsibleUserId())
+                        .addParameter("resecher_name", act.getResecherName())
+                        .addParameter("resecher_id", act.getResecherId())
+                        .addParameter("summ_responsible_user", act.getSummResponsibleUser())
+                        .addParameter("summ_resecher", act.getSummResecher())
+                        .addParameter("depatment", act.getDepatment())
+                        .addParameter("depatment_id", act.getDepatmentId())
+                        .addParameter("percent_responsible_user_complicity", act.getPercentResponsibleUserComplicity())
+                        .addParameter("percent_resecher_complicity", act.getPercentResecherComplicity())
+                        .addParameter("teame_leader_name", act.getTeameLeaderName())
+                        .addParameter("teame_leader_id", act.getTeameLeaderId())
+                        .addParameter("city_responsible_user", act.getCityResponsibleUser())
+                        .addParameter("city_responsible_user_id", act.getCityResponsibleUserId())
+                        .addParameter("percent_responsible_user_by_candidate_percent", act.getPercentResponsibleUserByCandidatePercent())
+                        .addParameter("percent_reseacher_by_candidate_percent", act.getPercentReseacherByCandidatePercent())
+                        .addParameter("depatment_resecher", act.getDepatmentResecher())
+                        .addParameter("depatment_resecher_id", act.getDepatmentResecherId())
+                        .executeUpdate();
+            }
+            connection.commit();
         }
     }
 }
