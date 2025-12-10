@@ -183,12 +183,12 @@ public class MarginController {
         return "actByUserCheck :: actByUserTab";
     }
 
-    @PostMapping("/margin/userAct/update")
+    @PostMapping("/userAct/update")
     @ResponseBody
     public ResponseEntity<Map<String, String>> updateFailedProbationAct(
             @RequestBody FailedProbationActUpdate update) {
         log.info("[UpdateAct] Received update request: actId={}, totalNoNds={}, candidate={}, participants={}"
-                + " department={}",
+                        + " department={}",
                 update.getActId(), update.getTotalNoNds(), update.getCandidate(),
                 update.getParticipants() != null ? update.getParticipants().size() : 0,
                 update.getDepartmentName());
@@ -204,10 +204,14 @@ public class MarginController {
                                 || (p.getResecherName() != null && !p.getResecherName().isBlank()))
                         .peek(p -> {
                             if (p.getPercentResponsibleUserByCandidatePercent() != null) {
-                                p.setPercentResponsibleUserByCandidatePercent(p.getPercentResponsibleUserByCandidatePercent() / 100);
+                                p.setPercentResponsibleUserByCandidatePercent(
+                                        p.getPercentResponsibleUserByCandidatePercent() / 100
+                                );
                             }
                             if (p.getPercentResecherByCandidatePercent() != null) {
-                                p.setPercentResecherByCandidatePercent(p.getPercentResecherByCandidatePercent() / 100);
+                                p.setPercentResecherByCandidatePercent(
+                                        p.getPercentResecherByCandidatePercent() / 100
+                                );
                             }
                         })
                         .collect(Collectors.toList());
@@ -224,6 +228,7 @@ public class MarginController {
                     .body(Collections.singletonMap("error", "Ошибка при сохранении: " + e.getMessage()));
         }
     }
+
 
     private void hideDuplicateResearchers(List<ActByUserCheck> acts) {
         // Ключ: ресечер + его департамент + сумма

@@ -756,10 +756,6 @@
         if (dateFrom && dateTo) {
             updateVerificationInfo(dateFrom, dateTo);
         }
-
-        if (e && e.target && e.target.closest('#send-verification-btn')) {
-            sendVerificationEmails();
-        }
     });
 
     async function loadTabContent(url, fragment) {
@@ -862,294 +858,382 @@
     function initActByUserEditing() {
         const container = document.getElementById('actByUserContent');
         if (!container) {
+            console.warn('[UpdateAct] actByUserContent not found');
             return;
         }
 
-        const ensureActionButtons = () => {
-            const rows = container.querySelectorAll('tr.act-row.act-group-start');
-            rows.forEach((row) => {
-                if (row.querySelector('.edit-act-btn')) {
-                    return;
-                }
+    
 
-                const groupRows = container.querySelectorAll(`tr[data-act-id="${row.getAttribute('data-act-id')}"]`);
-                const td = document.createElement('td');
-                td.className = 'text-center';
-                td.rowSpan = groupRows.length || 1;
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ СТРОК УЧАСТНИКОВ ----------
 
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-outline-primary btn-sm edit-act-btn';
-                btn.textContent = 'Изменить';
-
-                td.appendChild(btn);
-                row.appendChild(td);
-            });
-        };
-
-        if (container.dataset.editInitialized === 'true') {
-            ensureActionButtons();
-            return;
-        }
-
-        container.dataset.editInitialized = 'true';
-        ensureActionButtons();
-
-        const createConsultantRow = (data = {}) => {
+        function createConsultantRow(data = {}) {
             const row = document.createElement('div');
             row.className = 'row g-2 align-items-end consultant-row mb-2';
             row.innerHTML = `
                 <div class="col-md-4">
-                    <input type="text" class="form-control consultant-name" placeholder="ФИО консультанта" value="${data.name || ''}">
+                    <input type="text"
+                           class="form-control consultant-name"
+                           placeholder="ФИО консультанта"
+                           value="${data.name || ''}">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" step="0.01" class="form-control consultant-sum" placeholder="Сумма" value="${data.sum ?? ''}">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control consultant-sum"
+                           placeholder="Сумма"
+                           value="${data.sum ?? ''}">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" step="0.01" class="form-control consultant-percent" placeholder="% участия" value="${data.percent ?? ''}">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control consultant-percent"
+                           placeholder="% участия"
+                           value="${data.percent ?? ''}">
                 </div>
                 <div class="col-md-2 d-flex">
-                    <button type="button" class="btn btn-outline-danger w-100 remove-participant">Удалить</button>
+                    <button type="button"
+                            class="btn btn-outline-danger w-100 remove-participant">
+                        Удалить
+                    </button>
                 </div>
-                <input type="hidden" class="consultant-department" value="${data.department || ''}">
+                <input type="hidden"
+                       class="consultant-department"
+                       value="${data.department || ''}">
             `;
             return row;
-        };
+        }
 
-        const createResearcherRow = (data = {}) => {
+        function createResearcherRow(data = {}) {
             const row = document.createElement('div');
             row.className = 'row g-2 align-items-end researcher-row mb-2';
             row.innerHTML = `
                 <div class="col-md-4">
-                    <input type="text" class="form-control researcher-name" placeholder="ФИО ресечера" value="${data.name || ''}">
+                    <input type="text"
+                           class="form-control researcher-name"
+                           placeholder="ФИО ресечера"
+                           value="${data.name || ''}">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" step="0.01" class="form-control researcher-sum" placeholder="Сумма" value="${data.sum ?? ''}">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control researcher-sum"
+                           placeholder="Сумма"
+                           value="${data.sum ?? ''}">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" step="0.01" class="form-control researcher-percent" placeholder="% участия" value="${data.percent ?? ''}">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control researcher-percent"
+                           placeholder="% участия"
+                           value="${data.percent ?? ''}">
                 </div>
                 <div class="col-md-2 d-flex">
-                    <button type="button" class="btn btn-outline-danger w-100 remove-participant">Удалить</button>
+                    <button type="button"
+                            class="btn btn-outline-danger w-100 remove-participant">
+                        Удалить
+                    </button>
                 </div>
-                <input type="hidden" class="researcher-department" value="${data.department || ''}">
+                <input type="hidden"
+                       class="researcher-department"
+                       value="${data.department || ''}">
             `;
             return row;
-        };
+        }
+
+        // ---------- ОТКРЫТИЕ МОДАЛКИ ПО КНОПКЕ "ИЗМЕНИТЬ" ----------
 
         container.addEventListener('click', (event) => {
-            const btn = event.target.closest('.edit-act-btn');
-            if (!btn || !container.contains(btn)) return;
+            try {
+                const editBtn = event.target.closest('.edit-act-btn');
+                if (!editBtn) return;
 
-            const row = btn.closest('tr');
-            const modalElement = container.querySelector('#editActModal');
-            const errorAlert = container.querySelector('#editActError');
-            const successAlert = container.querySelector('#editActSuccess');
+                console.log('[UpdateAct] Edit button clicked');
 
-            if (!row || !modalElement || !errorAlert || !successAlert) return;
+                const row = editBtn.closest('tr');
+                const actId = row?.dataset.actId;
+                if (!actId) {
+                    console.error('[UpdateAct] actId not found on row');
+                    return;
+                }
 
-            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+                const modalElement = document.getElementById('editActModal');
+                const errorAlert = document.getElementById('editActError');
+                const successAlert = document.getElementById('editActSuccess');
+                const consultantsContainer = document.getElementById('consultantsContainer');
+                const researchersContainer = document.getElementById('researchersContainer');
 
-            const getAttr = (key) => row.getAttribute(key) || '';
+                if (!modalElement || !errorAlert || !successAlert || !consultantsContainer || !researchersContainer) {
+                    console.error('[UpdateAct] Modal elements not found');
+                    return;
+                }
+
+            // Заполняем основные поля из data-* атрибутов первой строки группы
             const setValue = (id, value) => {
-                const input = container.querySelector(id);
-                if (input) input.value = value;
+                const el = document.getElementById(id);
+                if (el) el.value = value ?? '';
             };
 
-            const consultantsContainer = container.querySelector('#consultantsContainer');
-            const researchersContainer = container.querySelector('#researchersContainer');
+            setValue('editActId', row.dataset.actId);
+            setValue('editActNumber', row.dataset.actNum);
+            setValue('editActDate', row.dataset.actDate);
+            setValue('editTotalNoNds', row.dataset.total);
+            setValue('editCandidate', row.dataset.candidate);
+            setValue('editDepartment', row.dataset.department);
 
-            setValue('#editActId', getAttr('data-act-id'));
-            setValue('#editActNumber', getAttr('data-act-num'));
-            setValue('#editActDate', getAttr('data-act-date'));
-            setValue('#editTotalNoNds', getAttr('data-total'));
-            setValue('#editCandidate', getAttr('data-candidate'));
-            setValue('#editDepartment', getAttr('data-department'));
+            // Очищаем старых участников
+            consultantsContainer.innerHTML = '';
+            researchersContainer.innerHTML = '';
 
-            if (consultantsContainer) consultantsContainer.innerHTML = '';
-            if (researchersContainer) researchersContainer.innerHTML = '';
+            // Собираем все строки этого акта
+            const allActRows = Array.from(
+                container.querySelectorAll(`tr[data-act-id="${actId}"]`)
+            );
 
-            const actRows = Array.from(container.querySelectorAll(`tr[data-act-id="${getAttr('data-act-id')}"]`));
             const consultants = [];
             const researchers = [];
 
-            actRows.forEach((r) => {
-                const responsible = (r.getAttribute('data-consultant') || '').trim();
-                const resecher = (r.getAttribute('data-researcher') || '').trim();
-                const department = r.getAttribute('data-department') || '';
-                const resecherDepartment = r.getAttribute('data-resecher-department') || '';
+            allActRows.forEach(r => {
+                const consultantName = (r.dataset.consultant || '').trim();
+                const researcherName = (r.dataset.researcher || '').trim();
 
-                if (responsible) {
-                    const percent = parseFloat(r.getAttribute('data-consultant-percent') || '');
-                    const sum = parseFloat(r.getAttribute('data-summ-responsible') || '');
+                const dept = r.dataset.department || '';
+                const resecherDept = r.dataset.resecherDepartment || '';
+
+                if (consultantName) {
+                    const sum = parseFloat(r.dataset.summResponsible || '');
+                    const percent = parseFloat(r.dataset.consultantPercent || '');
                     consultants.push({
-                        name: responsible,
+                        name: consultantName,
                         sum: Number.isFinite(sum) ? sum : '',
                         percent: Number.isFinite(percent) ? percent : '',
-                        department: department
+                        department: dept
                     });
                 }
 
-                if (resecher) {
-                    const percent = parseFloat(r.getAttribute('data-resecher-percent') || '');
-                    const sum = parseFloat(r.getAttribute('data-summ-resecher') || '');
+                if (researcherName) {
+                    const sum = parseFloat(r.dataset.summResecher || '');
+                    const percent = parseFloat(r.dataset.resecherPercent || '');
                     researchers.push({
-                        name: resecher,
+                        name: researcherName,
                         sum: Number.isFinite(sum) ? sum : '',
                         percent: Number.isFinite(percent) ? percent : '',
-                        department: resecherDepartment
+                        department: resecherDept
                     });
                 }
             });
 
-            if (consultantsContainer) {
-                (consultants.length ? consultants : [{}]).forEach(data => consultantsContainer.appendChild(createConsultantRow(data)));
+            // Заполняем консультантов
+            if (consultants.length === 0) {
+                consultantsContainer.appendChild(createConsultantRow());
+            } else {
+                consultants.forEach(c => consultantsContainer.appendChild(createConsultantRow(c)));
             }
-            if (researchersContainer) {
-                (researchers.length ? researchers : [{}]).forEach(data => researchersContainer.appendChild(createResearcherRow(data)));
+
+            // Заполняем ресечеров
+            if (researchers.length === 0) {
+                researchersContainer.appendChild(createResearcherRow());
+            } else {
+                researchers.forEach(r => researchersContainer.appendChild(createResearcherRow(r)));
             }
 
-            errorAlert.classList.add('d-none');
-            successAlert.classList.add('d-none');
-            modalInstance.show();
-        });
-
-        const submitActUpdate = async () => {
-            const modalElement = container.querySelector('#editActModal');
-            const errorAlert = container.querySelector('#editActError');
-            const successAlert = container.querySelector('#editActSuccess');
-
-            if (!modalElement || !errorAlert || !successAlert) return;
-
+            // Сбрасываем алерты
             errorAlert.classList.add('d-none');
             successAlert.classList.add('d-none');
 
-            const payload = {
-                actId: parseInt(container.querySelector('#editActId')?.value || '0', 10),
-                totalNoNds: parseFloat(container.querySelector('#editTotalNoNds')?.value || '0'),
-                candidate: container.querySelector('#editCandidate')?.value || '',
-                departmentName: container.querySelector('#editDepartment')?.value || '',
-                participants: []
-            };
+                // Предварительно снимаем aria-hidden и делаем видимой, чтобы избежать блокировки
+                // Жёстко снимаем скрытие и aria-hidden перед показом
+                modalElement.classList.remove('fade');
+                modalElement.removeAttribute('aria-hidden');
+                modalElement.setAttribute('aria-hidden', 'false');
+                modalElement.setAttribute('aria-modal', 'true');
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
 
-            const defaultDepartment = container.querySelector('#editDepartment')?.value || '';
-            const defaultResearchDepartment = defaultDepartment;
-            container.querySelectorAll('.consultant-row').forEach(row => {
-                const name = row.querySelector('.consultant-name')?.value?.trim() || '';
-                const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
-                const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
-                const department = row.querySelector('.consultant-department')?.value || defaultDepartment;
+            // Открываем Bootstrap
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modalInstance.show();
+    
 
-                payload.participants.push({
-                    type: 'CONSULTANT',
-                    responsibleUserName: name,
-                    summResponsibleUser: Number.isFinite(sumVal) ? sumVal : null,
-                    percentResponsibleUserByCandidatePercent: Number.isFinite(percentVal) ? percentVal : null,
-                    departmentName: department
-                });
-            });
+                // Фолбэк: если aria-hidden снова вернулся, принудительно снимаем
+                setTimeout(() => {
+                    if (modalElement.getAttribute('aria-hidden') === 'true') {
+                        modalElement.removeAttribute('aria-hidden');
+                        modalElement.setAttribute('aria-hidden', 'false');
+                        modalElement.style.display = 'block';
+                        modalElement.classList.add('show');
+                        document.body.classList.add('modal-open');
+                        
+                    }
+                }, 50);
 
-            container.querySelectorAll('.researcher-row').forEach(row => {
-                const name = row.querySelector('.researcher-name')?.value?.trim() || '';
-                const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
-                const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
-                const department = row.querySelector('.researcher-department')?.value || defaultResearchDepartment;
-
-                payload.participants.push({
-                    type: 'RESEARCHER',
-                    resecherName: name,
-                    summResecher: Number.isFinite(sumVal) ? sumVal : null,
-                    percentResecherByCandidatePercent: Number.isFinite(percentVal) ? percentVal : null,
-                    resecherDepartmentName: department
-                });
-            });
-
-            try {
-                console.debug('[UpdateAct] Submitting payload', payload);
-                const response = await fetch('/margin/userAct/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const rawText = await response.clone().text().catch(() => '');
-                let result = {};
-                try {
-                    result = JSON.parse(rawText);
-                } catch (_) {
-                    // ignore, will fall back to raw text
+            // Наблюдаем за атрибутами, чтобы aria-hidden не возвращался
+            const observer = new MutationObserver(() => {
+                if (modalElement.getAttribute('aria-hidden') === 'true') {
+                    modalElement.removeAttribute('aria-hidden');
+                    modalElement.setAttribute('aria-hidden', 'false');
+                    
                 }
-                console.debug('[UpdateAct] Response status', response.status, { result, rawText });
-
-                if (!response.ok) {
-                    const errorMessage = result.error || rawText || 'Не удалось сохранить изменения';
-                    throw new Error(errorMessage);
-                }
-
-                successAlert.classList.remove('d-none');
-                loadTabContent('/margin/userAct', 'actByUserTab');
-                setTimeout(() => bootstrap.Modal.getInstance(modalElement)?.hide(), 700);
-            } catch (err) {
-                console.error('[UpdateAct] Save failed', err);
-                errorAlert.textContent = err.message || 'Не удалось сохранить изменения';
-                errorAlert.classList.remove('d-none');
+            });
+            observer.observe(modalElement, { attributes: true, attributeFilter: ['aria-hidden'] });
+            // Сохраняем observer на элемент, чтобы можно было остановить при закрытии
+            modalElement._ariaObserver = observer;
+            } catch (e) {
+                console.error('[UpdateAct] Error opening modal', e);
             }
-        };
-
-        container.addEventListener('submit', async (event) => {
-            if (event.target?.id !== 'editActForm') return;
-
-            event.preventDefault();
-            console.debug('[UpdateAct] Form submit triggered');
-            await submitActUpdate();
         });
 
-        container.addEventListener('click', async (event) => {
-            if (event.target?.id !== 'editActSaveBtn') return;
+    // ---------- ОБРАБОТКА SUBMIT И КНОПКИ "СОХРАНИТЬ" ----------
 
+    const form = document.getElementById('editActForm');
+    const saveBtn = document.getElementById('editActSaveBtn');
+
+    
+
+    if (form) {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            console.debug('[UpdateAct] Save button clicked');
+            
             await submitActUpdate();
         });
+    }
+
+    // Прямой клик по кнопке — вызываем сохранение (без дополнительных дублей)
+    if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.style.pointerEvents = 'auto';
+        saveBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            
+            await submitActUpdate();
+        }, { capture: true });
+    }
+
+        // ---------- ДОБАВЛЕНИЕ / УДАЛЕНИЕ УЧАСТНИКОВ ----------
 
         container.addEventListener('click', (event) => {
             if (event.target?.id === 'addConsultantBtn') {
                 event.preventDefault();
-                const list = container.querySelector('#consultantsContainer');
+                const list = document.getElementById('consultantsContainer');
                 if (list) list.appendChild(createConsultantRow());
             }
 
             if (event.target?.id === 'addResearcherBtn') {
                 event.preventDefault();
-                const list = container.querySelector('#researchersContainer');
+                const list = document.getElementById('researchersContainer');
                 if (list) list.appendChild(createResearcherRow());
             }
 
             if (event.target?.classList.contains('remove-participant')) {
                 event.preventDefault();
                 const row = event.target.closest('.consultant-row, .researcher-row');
-                if (row) {
-                    row.remove();
-                }
+                if (row) row.remove();
             }
         });
     }
 
-<!--    function showErrorInTargetDiv(targetDiv, error) {-->
-<!--        if (!targetDiv) return;-->
 
-<!--        targetDiv.innerHTML = `-->
-<!--            <div class="alert alert-danger">-->
-<!--                <h5>Ошибка загрузки данных</h5>-->
-<!--                <p>${error.message || 'Неизвестная ошибка'}</p>-->
-<!--                <button class="btn btn-sm btn-outline-secondary"-->
-<!--                        onclick="loadTabContent('${url}', '${fragment}')">-->
-<!--                    Повторить попытку-->
-<!--                </button>-->
-<!--            </div>-->
-<!--        `;-->
-<!--    }-->
-    function showErrorInTargetDiv(targetDiv, error, url, fragment) {
+    async function submitActUpdate() {
+    console.log('[UpdateAct] submitActUpdate invoked');
+    const modalElement = document.getElementById('editActModal');
+    const errorAlert = document.getElementById('editActError');
+    const successAlert = document.getElementById('editActSuccess');
+
+    if (!modalElement || !errorAlert || !successAlert) {
+        console.error('[UpdateAct] modal or alerts not found');
+        return;
+    }
+
+    errorAlert.classList.add('d-none');
+    successAlert.classList.add('d-none');
+
+    const payload = {
+        actId: parseInt(document.getElementById('editActId')?.value || '0', 10),
+        totalNoNds: parseFloat(document.getElementById('editTotalNoNds')?.value || '0'),
+        candidate: document.getElementById('editCandidate')?.value || '',
+        departmentName: document.getElementById('editDepartment')?.value || '',
+        participants: []
+    };
+
+    const defaultDepartment = document.getElementById('editDepartment')?.value || '';
+
+    // Консультанты
+    document.querySelectorAll('.consultant-row').forEach(row => {
+        const name = row.querySelector('.consultant-name')?.value?.trim() || '';
+        const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
+        const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
+        const department = row.querySelector('.consultant-department')?.value || defaultDepartment;
+
+        if (!name && !Number.isFinite(sumVal) && !Number.isFinite(percentVal)) return;
+
+        payload.participants.push({
+            type: 'CONSULTANT',
+            responsibleUserName: name || null,
+            summResponsibleUser: Number.isFinite(sumVal) ? sumVal : null,
+            percentResponsibleUserByCandidatePercent: Number.isFinite(percentVal) ? percentVal : null,
+            departmentName: department
+        });
+    });
+
+    // Ресечеры
+    document.querySelectorAll('.researcher-row').forEach(row => {
+        const name = row.querySelector('.researcher-name')?.value?.trim() || '';
+        const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
+        const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
+        const department = row.querySelector('.researcher-department')?.value || defaultDepartment;
+
+        if (!name && !Number.isFinite(sumVal) && !Number.isFinite(percentVal)) return;
+
+        payload.participants.push({
+            type: 'RESEARCHER',
+            resecherName: name || null,
+            summResecher: Number.isFinite(sumVal) ? sumVal : null,
+            percentResecherByCandidatePercent: Number.isFinite(percentVal) ? percentVal : null,
+            resecherDepartmentName: department
+        });
+    });
+
+    try {
+        console.log('[UpdateAct] Submitting payload', payload);
+
+        // Отправляем данные в контроллер MarginController#updateFailedProbationAct
+        // (маршрут @PostMapping("/userAct/update"))
+        const response = await fetch('/userAct/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const rawText = await response.clone().text().catch(() => '');
+        let result = {};
+        try {
+            result = JSON.parse(rawText);
+        } catch (_) {}
+
+        console.log('[UpdateAct] Response status', response.status, { result, rawText });
+
+        if (!response.ok) {
+            const errorMessage = result.error || rawText || 'Не удалось сохранить изменения';
+            throw new Error(errorMessage);
+        }
+
+        successAlert.classList.remove('d-none');
+        loadTabContent('/margin/userAct', 'actByUserTab');
+        // закрываем через bootstrap
+        setTimeout(() => bootstrap.Modal.getOrCreateInstance(modalElement)?.hide(), 400);
+    } catch (err) {
+        console.error('[UpdateAct] Save failed', err);
+        errorAlert.textContent = err.message || 'Не удалось сохранить изменения';
+        errorAlert.classList.remove('d-none');
+    }
+}
+
+    // Делаем доступным для inline-обработчика (кнопка сохранения)
+    window.submitActUpdate = submitActUpdate;
+
+
+
+function showErrorInTargetDiv(targetDiv, error, url, fragment) {
             if (!targetDiv) return;
 
             targetDiv.innerHTML = `
