@@ -918,6 +918,30 @@ public class UserSalaryRepImplRep  {
                 .filter(p -> p.getResecherName() != null && !p.getResecherName().isBlank())
                 .collect(Collectors.toList());
 
+        if (consultants.size() <= 1 && researchers.size() <= 1) {
+            FailedProbationParticipant single = new FailedProbationParticipant();
+
+            if (!consultants.isEmpty()) {
+                FailedProbationParticipant consultant = consultants.get(0);
+                single.setDepartmentName(consultant.getDepartmentName());
+                single.setResponsibleUserName(consultant.getResponsibleUserName());
+                single.setSummResponsibleUser(consultant.getSummResponsibleUser());
+                single.setPercentResponsibleUserByCandidatePercent(consultant.getPercentResponsibleUserByCandidatePercent());
+            }
+
+            if (!researchers.isEmpty()) {
+                FailedProbationParticipant researcher = researchers.get(0);
+                single.setResecherDepartmentName(researcher.getResecherDepartmentName());
+                single.setResecherName(researcher.getResecherName());
+                single.setSummResecher(researcher.getSummResecher());
+                single.setPercentResecherByCandidatePercent(researcher.getPercentResecherByCandidatePercent());
+            }
+
+            if (single.getResponsibleUserName() != null || single.getResecherName() != null) {
+                return Collections.singletonList(single);
+            }
+        }
+
         int rows = Math.max(consultants.size(), researchers.size());
         List<FailedProbationParticipant> merged = new ArrayList<>();
 
