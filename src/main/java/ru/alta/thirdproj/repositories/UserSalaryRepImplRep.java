@@ -7,6 +7,8 @@ import org.sql2o.Connection;
 import org.sql2o.Query;
 import org.sql2o.Sql2o;
 import org.sql2o.data.Table;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import ru.alta.thirdproj.entites.*;
 
 import java.math.BigDecimal;
@@ -27,9 +29,11 @@ import static org.thymeleaf.util.NumberUtils.formatCurrency;
 public class UserSalaryRepImplRep  {
 
     private final Sql2o sql2o;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public UserSalaryRepImplRep(@Autowired Sql2o sql2o) {
+    public UserSalaryRepImplRep(@Autowired Sql2o sql2o, @Autowired javax.sql.DataSource dataSource) {
         this.sql2o = sql2o;
+        this.jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     }
 
 
@@ -905,98 +909,77 @@ public class UserSalaryRepImplRep  {
         }
     }
 
+    @Transactional
     public void saveFailedProbationAct(Integer actId, Double totalNoNds, String candidate,
                                        List<ActByUserCheck> participants) {
         log.info("[UpdateAct] Persisting actId={}, participants={} (totalNoNds={}, candidate={})",
                 actId, participants != null ? participants.size() : 0,
                 totalNoNds, candidate);
 
-        try (Connection connection = sql2o.beginTransaction()) {
-            if (totalNoNds != null || candidate != null) {
-                int updatedAct = connection.createQuery(UPDATE_ACT_TOTAL_AND_CANDIDATE)
-                        .addParameter("totalNoNds", totalNoNds)
-                        .addParameter("candidate", candidate)
-                        .addParameter("actId", actId)
-                        .executeUpdate()
-                        .getResult();
-                log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
+        if (totalNoNds != null || candidate != null) {
+            Map<String, Object> actParams = new HashMap<>();
+            actParams.put("totalNoNds", totalNoNds);
+            actParams.put("candidate", candidate);
+            actParams.put("actId", actId);
+
+            int updatedAct = jdbcTemplate.update(UPDATE_ACT_TOTAL_AND_CANDIDATE, actParams);
+            log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
+        }
+
+        List<ActByUserCheck> safeParticipants = participants != null ? participants : Collections.emptyList();
+        List<Integer> existingIds = jdbcTemplate.query(SELECT_FAILED_PROBATION_IDS,
+                Map.of("actId", actId),
+                (rs, rowNum) -> rs.getInt("id"));
+
+        if (!safeParticipants.isEmpty()) {
+            int updated = 0;
+            int inserted = 0;
+
+            for (int i = 0; i < safeParticipants.size(); i++) {
+                ActByUserCheck participant = safeParticipants.get(i);
+
+                log.debug("[UpdateAct] Saving participant #{}: consultant='{}' researcher='{}' sumC={} sumR={}"
+                                + " pctC={} pctR={} depC={} depR={}",
+                        i + 1,
+                        participant.getResponsibleUserName(), participant.getResecherName(),
+                        participant.getSummResponsibleUser(), participant.getSummResecher(),
+                        participant.getCandidatePercent(),
+                        participant.getResecherPercent(),
+                        participant.getDepartmentName(), participant.getResecherDepartmentName());
+
+                Map<String, Object> params = new HashMap<>();
+                params.put("actId", actId);
+                params.put("departmentName", participant.getDepartmentName());
+                params.put("responsibleUserName", participant.getResponsibleUserName());
+                params.put("summResponsibleUser", participant.getSummResponsibleUser());
+                params.put("candidatePercent", participant.getCandidatePercent());
+                params.put("resecherName", participant.getResecherName());
+                params.put("summResecher", participant.getSummResecher());
+                params.put("resecherPercent", participant.getResecherPercent());
+                params.put("resecherDepartment", participant.getResecherDepartmentName());
+
+                if (i < existingIds.size()) {
+                    params.put("id", existingIds.get(i));
+                    jdbcTemplate.update(UPDATE_FAILED_PROBATION_ACT, params);
+                    updated++;
+                } else {
+                    jdbcTemplate.update(INSERT_FAILED_PROBATION_ACT, params);
+                    inserted++;
+                }
             }
 
-            participants = participants != null ? participants : Collections.emptyList();
-
-            List<Integer> existingIds = connection.createQuery(SELECT_FAILED_PROBATION_IDS)
-                    .addParameter("actId", actId)
-                    .executeAndFetch(Integer.class);
-
-            if (!participants.isEmpty()) {
-                int updated = 0;
-                int inserted = 0;
-
-                for (int i = 0; i < participants.size(); i++) {
-                    ActByUserCheck participant = participants.get(i);
-
-                    log.debug("[UpdateAct] Saving participant #{}: consultant='{}' researcher='{}' sumC={} sumR={}"
-                                    + " pctC={} pctR={} depC={} depR={}",
-                            i + 1,
-                            participant.getResponsibleUserName(), participant.getResecherName(),
-                            participant.getSummResponsibleUser(), participant.getSummResecher(),
-                            participant.getCandidatePercent(),
-                            participant.getResecherPercent(),
-                            participant.getDepartmentName(), participant.getResecherDepartmentName());
-
-                    if (i < existingIds.size()) {
-                        connection.createQuery(UPDATE_FAILED_PROBATION_ACT)
-                                .addParameter("id", existingIds.get(i))
-                                .addParameter("departmentName", participant.getDepartmentName())
-                                .addParameter("responsibleUserName", participant.getResponsibleUserName())
-                                .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
-                                .addParameter("candidatePercent", participant.getCandidatePercent())
-                                .addParameter("resecherName", participant.getResecherName())
-                                .addParameter("summResecher", participant.getSummResecher())
-                                .addParameter("resecherPercent", participant.getResecherPercent())
-                                .addParameter("resecherDepartment", participant.getResecherDepartmentName())
-                                .executeUpdate();
-                        updated++;
-                    } else {
-                        connection.createQuery(INSERT_FAILED_PROBATION_ACT)
-                                .addParameter("actId", actId)
-                                .addParameter("departmentName", participant.getDepartmentName())
-                                .addParameter("responsibleUserName", participant.getResponsibleUserName())
-                                .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
-                                .addParameter("candidatePercent", participant.getCandidatePercent())
-                                .addParameter("resecherName", participant.getResecherName())
-                                .addParameter("summResecher", participant.getSummResecher())
-                                .addParameter("resecherPercent", participant.getResecherPercent())
-                                .addParameter("resecherDepartment", participant.getResecherDepartmentName())
-                                .executeUpdate();
-                        inserted++;
-                    }
+            if (existingIds.size() > safeParticipants.size()) {
+                for (int i = safeParticipants.size(); i < existingIds.size(); i++) {
+                    jdbcTemplate.update(DELETE_FAILED_PROBATION_ACT_BY_ID, Map.of("id", existingIds.get(i)));
                 }
-
-                if (existingIds.size() > participants.size()) {
-                    for (int i = participants.size(); i < existingIds.size(); i++) {
-                        connection.createQuery(DELETE_FAILED_PROBATION_ACT_BY_ID)
-                                .addParameter("id", existingIds.get(i))
-                                .executeUpdate();
-                    }
-                }
-
-                log.info("[UpdateAct] Updated rows: {}, inserted rows: {}, deleted rows: {}", updated, inserted,
-                        Math.max(existingIds.size() - participants.size(), 0));
-            } else {
-                int deleted = connection.createQuery(DELETE_FAILED_PROBATION_ACT)
-                        .addParameter("actId", actId)
-                        .executeUpdate()
-                        .getResult();
-                log.warn("[UpdateAct] No participants provided for actId={}, removed existing rows: {}", actId,
-                        deleted);
             }
 
-            connection.commit();
-            log.info("[UpdateAct] Transaction committed for actId={}", actId);
-        } catch (Exception e) {
-            log.error("[UpdateAct] Error while saving overrides for actId={}", actId, e);
-            throw e;
+            log.info("[UpdateAct] Updated rows: {}, inserted rows: {}, deleted rows: {}", updated, inserted,
+                    Math.max(existingIds.size() - safeParticipants.size(), 0));
+        } else {
+            int deleted = jdbcTemplate.update(DELETE_FAILED_PROBATION_ACT, Map.of("actId", actId));
+            log.warn("[UpdateAct] No participants provided for actId={}, removed existing rows: {}", actId,
+                    deleted);
         }
     }
 }
