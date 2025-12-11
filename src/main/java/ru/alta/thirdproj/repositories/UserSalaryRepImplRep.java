@@ -911,63 +911,66 @@ public class UserSalaryRepImplRep  {
         }
 
         List<FailedProbationParticipant> consultants = participants.stream()
-                .filter(p -> p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
+                .filter(this::hasConsultantData)
                 .collect(Collectors.toList());
 
         List<FailedProbationParticipant> researchers = participants.stream()
-                .filter(p -> p.getResecherName() != null && !p.getResecherName().isBlank())
+                .filter(this::hasResearcherData)
                 .collect(Collectors.toList());
 
         if (consultants.size() <= 1 && researchers.size() <= 1) {
-            FailedProbationParticipant single = new FailedProbationParticipant();
+            FailedProbationParticipant mergedSingle = new FailedProbationParticipant();
 
-            if (!consultants.isEmpty()) {
-                FailedProbationParticipant consultant = consultants.get(0);
-                single.setDepartmentName(consultant.getDepartmentName());
-                single.setResponsibleUserName(consultant.getResponsibleUserName());
-                single.setSummResponsibleUser(consultant.getSummResponsibleUser());
-                single.setPercentResponsibleUserByCandidatePercent(consultant.getPercentResponsibleUserByCandidatePercent());
-            }
+            consultants.stream().findFirst().ifPresent(c -> copyConsultantFields(c, mergedSingle));
+            researchers.stream().findFirst().ifPresent(r -> copyResearcherFields(r, mergedSingle));
 
-            if (!researchers.isEmpty()) {
-                FailedProbationParticipant researcher = researchers.get(0);
-                single.setResecherDepartmentName(researcher.getResecherDepartmentName());
-                single.setResecherName(researcher.getResecherName());
-                single.setSummResecher(researcher.getSummResecher());
-                single.setPercentResecherByCandidatePercent(researcher.getPercentResecherByCandidatePercent());
-            }
-
-            if (single.getResponsibleUserName() != null || single.getResecherName() != null) {
-                return Collections.singletonList(single);
+            if (hasConsultantData(mergedSingle) || hasResearcherData(mergedSingle)) {
+                return Collections.singletonList(mergedSingle);
             }
         }
 
         int rows = Math.max(consultants.size(), researchers.size());
-        List<FailedProbationParticipant> merged = new ArrayList<>();
+        List<FailedProbationParticipant> mergedRows = new ArrayList<>(rows);
 
         for (int i = 0; i < rows; i++) {
-            FailedProbationParticipant result = new FailedProbationParticipant();
+            FailedProbationParticipant combined = new FailedProbationParticipant();
 
             if (i < consultants.size()) {
-                FailedProbationParticipant consultant = consultants.get(i);
-                result.setDepartmentName(consultant.getDepartmentName());
-                result.setResponsibleUserName(consultant.getResponsibleUserName());
-                result.setSummResponsibleUser(consultant.getSummResponsibleUser());
-                result.setPercentResponsibleUserByCandidatePercent(consultant.getPercentResponsibleUserByCandidatePercent());
+                copyConsultantFields(consultants.get(i), combined);
             }
 
             if (i < researchers.size()) {
-                FailedProbationParticipant researcher = researchers.get(i);
-                result.setResecherDepartmentName(researcher.getResecherDepartmentName());
-                result.setResecherName(researcher.getResecherName());
-                result.setSummResecher(researcher.getSummResecher());
-                result.setPercentResecherByCandidatePercent(researcher.getPercentResecherByCandidatePercent());
+                copyResearcherFields(researchers.get(i), combined);
             }
 
-            merged.add(result);
+            if (hasConsultantData(combined) || hasResearcherData(combined)) {
+                mergedRows.add(combined);
+            }
         }
 
-        return merged;
+        return mergedRows;
+    }
+
+    private boolean hasConsultantData(FailedProbationParticipant participant) {
+        return participant.getResponsibleUserName() != null && !participant.getResponsibleUserName().isBlank();
+    }
+
+    private boolean hasResearcherData(FailedProbationParticipant participant) {
+        return participant.getResecherName() != null && !participant.getResecherName().isBlank();
+    }
+
+    private void copyConsultantFields(FailedProbationParticipant source, FailedProbationParticipant target) {
+        target.setDepartmentName(source.getDepartmentName());
+        target.setResponsibleUserName(source.getResponsibleUserName());
+        target.setSummResponsibleUser(source.getSummResponsibleUser());
+        target.setPercentResponsibleUserByCandidatePercent(source.getPercentResponsibleUserByCandidatePercent());
+    }
+
+    private void copyResearcherFields(FailedProbationParticipant source, FailedProbationParticipant target) {
+        target.setResecherDepartmentName(source.getResecherDepartmentName());
+        target.setResecherName(source.getResecherName());
+        target.setSummResecher(source.getSummResecher());
+        target.setPercentResecherByCandidatePercent(source.getPercentResecherByCandidatePercent());
     }
 
     public void saveFailedProbationAct(FailedProbationActUpdate update) {
