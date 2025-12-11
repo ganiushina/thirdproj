@@ -25,6 +25,7 @@
     <properties>
         <java.version>11</java.version>
         <aspectj.version>1.7.4</aspectj.version>
+        <open.module.args>--add-opens java.base/java.lang=ALL-UNNAMED</open.module.args>
     </properties>
     <dependencies>
 
@@ -251,12 +252,20 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <jvmArguments>${open.module.args}</jvmArguments>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} ${open.module.args}</argLine>
                 </configuration>
             </plugin>
         </plugins>
