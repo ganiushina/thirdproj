@@ -253,6 +253,10 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <jvmArguments>${open.module.args}</jvmArguments>
+                    <executable>true</executable>
+                    <embeddedLaunchScriptProperties>
+                        <jvmOptions>${open.module.args}</jvmOptions>
+                    </embeddedLaunchScriptProperties>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
