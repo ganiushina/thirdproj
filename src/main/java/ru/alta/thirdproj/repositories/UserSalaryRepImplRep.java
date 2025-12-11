@@ -905,74 +905,6 @@ public class UserSalaryRepImplRep  {
         }
     }
 
-    private List<FailedProbationParticipant> mergeParticipants(List<FailedProbationParticipant> participants) {
-        if (participants == null || participants.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<FailedProbationParticipant> consultants = participants.stream()
-                .filter(this::hasConsultantData)
-                .collect(Collectors.toList());
-
-        List<FailedProbationParticipant> researchers = participants.stream()
-                .filter(this::hasResearcherData)
-                .collect(Collectors.toList());
-
-        if (consultants.size() <= 1 && researchers.size() <= 1) {
-            FailedProbationParticipant mergedSingle = new FailedProbationParticipant();
-
-            consultants.stream().findFirst().ifPresent(c -> copyConsultantFields(c, mergedSingle));
-            researchers.stream().findFirst().ifPresent(r -> copyResearcherFields(r, mergedSingle));
-
-            if (hasConsultantData(mergedSingle) || hasResearcherData(mergedSingle)) {
-                return Collections.singletonList(mergedSingle);
-            }
-        }
-
-        int rows = Math.max(consultants.size(), researchers.size());
-        List<FailedProbationParticipant> mergedRows = new ArrayList<>(rows);
-
-        for (int i = 0; i < rows; i++) {
-            FailedProbationParticipant combined = new FailedProbationParticipant();
-
-            if (i < consultants.size()) {
-                copyConsultantFields(consultants.get(i), combined);
-            }
-
-            if (i < researchers.size()) {
-                copyResearcherFields(researchers.get(i), combined);
-            }
-
-            if (hasConsultantData(combined) || hasResearcherData(combined)) {
-                mergedRows.add(combined);
-            }
-        }
-
-        return mergedRows;
-    }
-
-    private boolean hasConsultantData(FailedProbationParticipant participant) {
-        return participant.getResponsibleUserName() != null && !participant.getResponsibleUserName().isBlank();
-    }
-
-    private boolean hasResearcherData(FailedProbationParticipant participant) {
-        return participant.getResecherName() != null && !participant.getResecherName().isBlank();
-    }
-
-    private void copyConsultantFields(FailedProbationParticipant source, FailedProbationParticipant target) {
-        target.setDepartmentName(source.getDepartmentName());
-        target.setResponsibleUserName(source.getResponsibleUserName());
-        target.setSummResponsibleUser(source.getSummResponsibleUser());
-        target.setPercentResponsibleUserByCandidatePercent(source.getPercentResponsibleUserByCandidatePercent());
-    }
-
-    private void copyResearcherFields(FailedProbationParticipant source, FailedProbationParticipant target) {
-        target.setResecherDepartmentName(source.getResecherDepartmentName());
-        target.setResecherName(source.getResecherName());
-        target.setSummResecher(source.getSummResecher());
-        target.setPercentResecherByCandidatePercent(source.getPercentResecherByCandidatePercent());
-    }
-
     public void saveFailedProbationAct(FailedProbationActUpdate update) {
         log.info("[UpdateAct] Persisting actId={}, participants={} (totalNoNds={}, candidate={})",
                 update.getActId(), update.getParticipants() != null ? update.getParticipants().size() : 0,
@@ -989,26 +921,28 @@ public class UserSalaryRepImplRep  {
                 log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
             }
 
-            List<FailedProbationParticipant> mergedParticipants = mergeParticipants(update.getParticipants());
+            List<ActByUserCheck> participants = update.getParticipants() != null
+                    ? update.getParticipants()
+                    : Collections.emptyList();
 
             List<Integer> existingIds = connection.createQuery(SELECT_FAILED_PROBATION_IDS)
                     .addParameter("actId", update.getActId())
                     .executeAndFetch(Integer.class);
 
-            if (!mergedParticipants.isEmpty()) {
+            if (!participants.isEmpty()) {
                 int updated = 0;
                 int inserted = 0;
 
-                for (int i = 0; i < mergedParticipants.size(); i++) {
-                    FailedProbationParticipant participant = mergedParticipants.get(i);
+                for (int i = 0; i < participants.size(); i++) {
+                    ActByUserCheck participant = participants.get(i);
 
                     log.debug("[UpdateAct] Saving participant #{}: consultant='{}' researcher='{}' sumC={} sumR={}"
                                     + " pctC={} pctR={} depC={} depR={}",
                             i + 1,
                             participant.getResponsibleUserName(), participant.getResecherName(),
                             participant.getSummResponsibleUser(), participant.getSummResecher(),
-                            participant.getPercentResponsibleUserByCandidatePercent(),
-                            participant.getPercentResecherByCandidatePercent(),
+                            participant.getCandidatePercent(),
+                            participant.getResecherPercent(),
                             participant.getDepartmentName(), participant.getResecherDepartmentName());
 
                     if (i < existingIds.size()) {
@@ -1017,10 +951,10 @@ public class UserSalaryRepImplRep  {
                                 .addParameter("departmentName", participant.getDepartmentName())
                                 .addParameter("responsibleUserName", participant.getResponsibleUserName())
                                 .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
-                                .addParameter("candidatePercent", participant.getPercentResponsibleUserByCandidatePercent())
+                                .addParameter("candidatePercent", participant.getCandidatePercent())
                                 .addParameter("resecherName", participant.getResecherName())
                                 .addParameter("summResecher", participant.getSummResecher())
-                                .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
+                                .addParameter("resecherPercent", participant.getResecherPercent())
                                 .addParameter("resecherDepartment", participant.getResecherDepartmentName())
                                 .executeUpdate();
                         updated++;
@@ -1030,18 +964,18 @@ public class UserSalaryRepImplRep  {
                                 .addParameter("departmentName", participant.getDepartmentName())
                                 .addParameter("responsibleUserName", participant.getResponsibleUserName())
                                 .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
-                                .addParameter("candidatePercent", participant.getPercentResponsibleUserByCandidatePercent())
+                                .addParameter("candidatePercent", participant.getCandidatePercent())
                                 .addParameter("resecherName", participant.getResecherName())
                                 .addParameter("summResecher", participant.getSummResecher())
-                                .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
+                                .addParameter("resecherPercent", participant.getResecherPercent())
                                 .addParameter("resecherDepartment", participant.getResecherDepartmentName())
                                 .executeUpdate();
                         inserted++;
                     }
                 }
 
-                if (existingIds.size() > mergedParticipants.size()) {
-                    for (int i = mergedParticipants.size(); i < existingIds.size(); i++) {
+                if (existingIds.size() > participants.size()) {
+                    for (int i = participants.size(); i < existingIds.size(); i++) {
                         connection.createQuery(DELETE_FAILED_PROBATION_ACT_BY_ID)
                                 .addParameter("id", existingIds.get(i))
                                 .executeUpdate();
@@ -1049,7 +983,7 @@ public class UserSalaryRepImplRep  {
                 }
 
                 log.info("[UpdateAct] Updated rows: {}, inserted rows: {}, deleted rows: {}", updated, inserted,
-                        Math.max(existingIds.size() - mergedParticipants.size(), 0));
+                        Math.max(existingIds.size() - participants.size(), 0));
             } else {
                 int deleted = connection.createQuery(DELETE_FAILED_PROBATION_ACT)
                         .addParameter("actId", update.getActId())

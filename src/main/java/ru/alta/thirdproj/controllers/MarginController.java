@@ -199,19 +199,15 @@ public class MarginController {
             }
 
             if (update.getParticipants() != null) {
-                List<FailedProbationParticipant> filtered = update.getParticipants().stream()
+                List<ActByUserCheck> filtered = update.getParticipants().stream()
                         .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
                                 || (p.getResecherName() != null && !p.getResecherName().isBlank()))
                         .peek(p -> {
-                            if (p.getPercentResponsibleUserByCandidatePercent() != null) {
-                                p.setPercentResponsibleUserByCandidatePercent(
-                                        p.getPercentResponsibleUserByCandidatePercent() / 100
-                                );
+                            if (p.getCandidatePercent() != null) {
+                                p.setCandidatePercent(p.getCandidatePercent() / 100);
                             }
-                            if (p.getPercentResecherByCandidatePercent() != null) {
-                                p.setPercentResecherByCandidatePercent(
-                                        p.getPercentResecherByCandidatePercent() / 100
-                                );
+                            if (p.getResecherPercent() != null) {
+                                p.setResecherPercent(p.getResecherPercent() / 100);
                             }
                         })
                         .collect(Collectors.toList());

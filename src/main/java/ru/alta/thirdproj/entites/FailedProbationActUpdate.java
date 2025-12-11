@@ -1,6 +1,7 @@
 package ru.alta.thirdproj.entites;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class FailedProbationActUpdate {
@@ -8,5 +9,5 @@ public class FailedProbationActUpdate {
     private Double totalNoNds;
     private String candidate;
     private String departmentName;
-    private java.util.List<FailedProbationParticipant> participants;
+    private List<ActByUserCheck> participants;
 }
