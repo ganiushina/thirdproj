@@ -1,5 +1,8 @@
 package ru.alta.thirdproj.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ import java.util.stream.Stream;
 @Controller
 public class MarginController {
     private Logger log = LoggerFactory.getLogger(this.getClass());
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private UserSalaryServiceImpl userSalaryService;
     private MarginBonusServiceImpl marginBonusService;
     private UserSalesServiceImpl userSalesService;
@@ -186,7 +190,8 @@ public class MarginController {
     @PostMapping("/userAct/update")
     @ResponseBody
     public ResponseEntity<Map<String, String>> updateFailedProbationAct(
-            @RequestBody List<ActByUserCheck> participants) {
+            @RequestBody JsonNode payload) {
+        List<ActByUserCheck> participants = parseParticipants(payload);
         ActByUserCheck base = participants != null && !participants.isEmpty() ? participants.get(0) : null;
         Integer actId = base != null ? base.getActId() : null;
 
@@ -201,7 +206,7 @@ public class MarginController {
                 return ResponseEntity.badRequest().body(Collections.singletonMap("error", "participants are required"));
             }
 
-            if (base == null || base.getActId() == null) {
+            if (base == null || base.getActId() == 0) {
                 return ResponseEntity.badRequest().body(Collections.singletonMap("error", "actId is required"));
             }
 
@@ -225,8 +230,71 @@ public class MarginController {
             return ResponseEntity.ok(Collections.singletonMap("status", "updated"));
         } catch (Exception e) {
             log.error("[UpdateAct] Failed to update act {}", actId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonMap("error", "Ошибка при сохранении: " + e.getMessage()));
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Collections.singletonMap("error", "Ошибка при сохранении: " + e.getMessage()));
+        }
+    }
+
+    private List<ActByUserCheck> parseParticipants(JsonNode payload) {
+        if (payload == null || payload.isNull()) {
+            return Collections.emptyList();
+        }
+
+        if (payload.isArray()) {
+            return convertArray((ArrayNode) payload, null);
+        }
+
+        ActByUserCheck base = OBJECT_MAPPER.convertValue(payload, ActByUserCheck.class);
+        JsonNode participantsNode = payload.get("participants");
+        if (participantsNode != null && participantsNode.isArray()) {
+            List<ActByUserCheck> participants = convertArray((ArrayNode) participantsNode, base);
+            if (!participants.isEmpty()) {
+                return participants;
+            }
+        }
+
+        return Collections.singletonList(base);
+    }
+
+    private List<ActByUserCheck> convertArray(ArrayNode node, ActByUserCheck base) {
+        List<ActByUserCheck> result = new ArrayList<>();
+        for (JsonNode item : node) {
+            ActByUserCheck participant = OBJECT_MAPPER.convertValue(item, ActByUserCheck.class);
+            if (base != null) {
+                mergeActFields(participant, base);
+            }
+            result.add(participant);
+        }
+        return result;
+    }
+
+    private void mergeActFields(ActByUserCheck target, ActByUserCheck base) {
+        if (target.getActId() == 0 && base.getActId() != 0) {
+            target.setActId(base.getActId());
+        }
+        if (target.getTotalNoNds() == null) {
+            target.setTotalNoNds(base.getTotalNoNds());
+        }
+        if (target.getCandidate() == null) {
+            target.setCandidate(base.getCandidate());
+        }
+        if (target.getDepartmentName() == null) {
+            target.setDepartmentName(base.getDepartmentName());
+        }
+        if (target.getCandidatePercent() == null) {
+            target.setCandidatePercent(base.getCandidatePercent());
+        }
+        if (target.getResecherPercent() == null) {
+            target.setResecherPercent(base.getResecherPercent());
+        }
+        if (target.getSummResponsibleUser() == null) {
+            target.setSummResponsibleUser(base.getSummResponsibleUser());
+        }
+        if (target.getSummResecher() == null) {
+            target.setSummResecher(base.getSummResecher());
+        }
+        if (target.getResecherDepartmentName() == null) {
+            target.setResecherDepartmentName(base.getResecherDepartmentName());
         }
     }
 
