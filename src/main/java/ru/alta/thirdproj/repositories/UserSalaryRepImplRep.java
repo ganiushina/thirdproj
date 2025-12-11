@@ -16,10 +16,8 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.thymeleaf.util.NumberUtils.formatCurrency;
