@@ -114,6 +114,25 @@ public class UserSalaryRepImplRep  {
                     "    candidate = COALESCE(:candidate, candidate) " +
                     "WHERE id = :actId";
 
+    private static final String SELECT_FAILED_PROBATION_IDS =
+            "SELECT id FROM project_buh_failed_probation_period WHERE act_id = :actId ORDER BY id";
+
+    private static final String UPDATE_FAILED_PROBATION_ACT =
+            "UPDATE project_buh_failed_probation_period SET " +
+                    "depatment = :departmentName, " +
+                    "responsible_user_name = :responsibleUserName, " +
+                    "summ_responsible_user = :summResponsibleUser, " +
+                    "percent_responsible_user_by_candidate_percent = :candidatePercent, " +
+                    "resecher_name = :resecherName, " +
+                    "summ_resecher = :summResecher, " +
+                    "percent_reseacher_by_candidate_percent = :resecherPercent, " +
+                    "depatment_resecher = :resecherDepartment, " +
+                    "date_update = GETDATE() " +
+                    "WHERE id = :id";
+
+    private static final String DELETE_FAILED_PROBATION_ACT_BY_ID =
+            "DELETE FROM project_buh_failed_probation_period WHERE id = :id";
+
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
         try (Connection connection = sql2o.open()) {
@@ -886,6 +905,47 @@ public class UserSalaryRepImplRep  {
         }
     }
 
+    private List<FailedProbationParticipant> mergeParticipants(List<FailedProbationParticipant> participants) {
+        if (participants == null || participants.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<FailedProbationParticipant> consultants = participants.stream()
+                .filter(p -> p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
+                .collect(Collectors.toList());
+
+        List<FailedProbationParticipant> researchers = participants.stream()
+                .filter(p -> p.getResecherName() != null && !p.getResecherName().isBlank())
+                .collect(Collectors.toList());
+
+        int rows = Math.max(consultants.size(), researchers.size());
+        List<FailedProbationParticipant> merged = new ArrayList<>();
+
+        for (int i = 0; i < rows; i++) {
+            FailedProbationParticipant result = new FailedProbationParticipant();
+
+            if (i < consultants.size()) {
+                FailedProbationParticipant consultant = consultants.get(i);
+                result.setDepartmentName(consultant.getDepartmentName());
+                result.setResponsibleUserName(consultant.getResponsibleUserName());
+                result.setSummResponsibleUser(consultant.getSummResponsibleUser());
+                result.setPercentResponsibleUserByCandidatePercent(consultant.getPercentResponsibleUserByCandidatePercent());
+            }
+
+            if (i < researchers.size()) {
+                FailedProbationParticipant researcher = researchers.get(i);
+                result.setResecherDepartmentName(researcher.getResecherDepartmentName());
+                result.setResecherName(researcher.getResecherName());
+                result.setSummResecher(researcher.getSummResecher());
+                result.setPercentResecherByCandidatePercent(researcher.getPercentResecherByCandidatePercent());
+            }
+
+            merged.add(result);
+        }
+
+        return merged;
+    }
+
     public void saveFailedProbationAct(FailedProbationActUpdate update) {
         log.info("[UpdateAct] Persisting actId={}, participants={} (totalNoNds={}, candidate={})",
                 update.getActId(), update.getParticipants() != null ? update.getParticipants().size() : 0,
@@ -902,39 +962,74 @@ public class UserSalaryRepImplRep  {
                 log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
             }
 
-            int deleted = connection.createQuery(DELETE_FAILED_PROBATION_ACT)
-                    .addParameter("actId", update.getActId())
-                    .executeUpdate()
-                    .getResult();
-            log.info("[UpdateAct] Existing override rows removed: {}", deleted);
+            List<FailedProbationParticipant> mergedParticipants = mergeParticipants(update.getParticipants());
 
-            if (update.getParticipants() != null && !update.getParticipants().isEmpty()) {
+            List<Integer> existingIds = connection.createQuery(SELECT_FAILED_PROBATION_IDS)
+                    .addParameter("actId", update.getActId())
+                    .executeAndFetch(Integer.class);
+
+            if (!mergedParticipants.isEmpty()) {
+                int updated = 0;
                 int inserted = 0;
-                for (FailedProbationParticipant participant : update.getParticipants()) {
-                    log.debug("[UpdateAct] Inserting participant: consultant='{}' researcher='{}' sumC={} sumR={}"
+
+                for (int i = 0; i < mergedParticipants.size(); i++) {
+                    FailedProbationParticipant participant = mergedParticipants.get(i);
+
+                    log.debug("[UpdateAct] Saving participant #{}: consultant='{}' researcher='{}' sumC={} sumR={}"
                                     + " pctC={} pctR={} depC={} depR={}",
+                            i + 1,
                             participant.getResponsibleUserName(), participant.getResecherName(),
                             participant.getSummResponsibleUser(), participant.getSummResecher(),
                             participant.getPercentResponsibleUserByCandidatePercent(),
                             participant.getPercentResecherByCandidatePercent(),
                             participant.getDepartmentName(), participant.getResecherDepartmentName());
 
-                    connection.createQuery(INSERT_FAILED_PROBATION_ACT)
-                            .addParameter("actId", update.getActId())
-                            .addParameter("departmentName", participant.getDepartmentName())
-                            .addParameter("responsibleUserName", participant.getResponsibleUserName())
-                            .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
-                            .addParameter("candidatePercent", participant.getPercentResponsibleUserByCandidatePercent())
-                            .addParameter("resecherName", participant.getResecherName())
-                            .addParameter("summResecher", participant.getSummResecher())
-                            .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
-                            .addParameter("resecherDepartment", participant.getResecherDepartmentName())
-                            .executeUpdate();
-                    inserted++;
+                    if (i < existingIds.size()) {
+                        connection.createQuery(UPDATE_FAILED_PROBATION_ACT)
+                                .addParameter("id", existingIds.get(i))
+                                .addParameter("departmentName", participant.getDepartmentName())
+                                .addParameter("responsibleUserName", participant.getResponsibleUserName())
+                                .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
+                                .addParameter("candidatePercent", participant.getPercentResponsibleUserByCandidatePercent())
+                                .addParameter("resecherName", participant.getResecherName())
+                                .addParameter("summResecher", participant.getSummResecher())
+                                .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
+                                .addParameter("resecherDepartment", participant.getResecherDepartmentName())
+                                .executeUpdate();
+                        updated++;
+                    } else {
+                        connection.createQuery(INSERT_FAILED_PROBATION_ACT)
+                                .addParameter("actId", update.getActId())
+                                .addParameter("departmentName", participant.getDepartmentName())
+                                .addParameter("responsibleUserName", participant.getResponsibleUserName())
+                                .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
+                                .addParameter("candidatePercent", participant.getPercentResponsibleUserByCandidatePercent())
+                                .addParameter("resecherName", participant.getResecherName())
+                                .addParameter("summResecher", participant.getSummResecher())
+                                .addParameter("resecherPercent", participant.getPercentResecherByCandidatePercent())
+                                .addParameter("resecherDepartment", participant.getResecherDepartmentName())
+                                .executeUpdate();
+                        inserted++;
+                    }
                 }
-                log.info("[UpdateAct] Inserted override participants: {}", inserted);
+
+                if (existingIds.size() > mergedParticipants.size()) {
+                    for (int i = mergedParticipants.size(); i < existingIds.size(); i++) {
+                        connection.createQuery(DELETE_FAILED_PROBATION_ACT_BY_ID)
+                                .addParameter("id", existingIds.get(i))
+                                .executeUpdate();
+                    }
+                }
+
+                log.info("[UpdateAct] Updated rows: {}, inserted rows: {}, deleted rows: {}", updated, inserted,
+                        Math.max(existingIds.size() - mergedParticipants.size(), 0));
             } else {
-                log.warn("[UpdateAct] No participants provided for actId={}, only act update/delete executed", update.getActId());
+                int deleted = connection.createQuery(DELETE_FAILED_PROBATION_ACT)
+                        .addParameter("actId", update.getActId())
+                        .executeUpdate()
+                        .getResult();
+                log.warn("[UpdateAct] No participants provided for actId={}, removed existing rows: {}", update.getActId(),
+                        deleted);
             }
 
             connection.commit();
