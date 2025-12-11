@@ -3,7 +3,6 @@ package ru.alta.thirdproj.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.alta.thirdproj.entites.ActByUserCheck;
-import ru.alta.thirdproj.entites.FailedProbationActUpdate;
 import ru.alta.thirdproj.entites.MarginBonusBDM;
 import ru.alta.thirdproj.entites.UserSalary;
 import ru.alta.thirdproj.entites.UserSalaryDetail;
@@ -43,8 +42,9 @@ public class MarginBonusServiceImpl implements iMarginBonusService {
     }
 
     @Override
-    public void saveFailedProbationAct(FailedProbationActUpdate update) {
-        userSalaryRepImplRep.saveFailedProbationAct(update);
+    public void saveFailedProbationAct(Integer actId, Double totalNoNds, String candidate,
+                                       List<ActByUserCheck> participants) {
+        userSalaryRepImplRep.saveFailedProbationAct(actId, totalNoNds, candidate, participants);
     }
 
 

@@ -12,6 +12,7 @@ public interface iMarginBonusService {
 
     List<ActByUserCheck> getActByUserCheck(LocalDate date1, LocalDate date2);
 
-    void saveFailedProbationAct(FailedProbationActUpdate update);
+    void saveFailedProbationAct(Integer actId, Double totalNoNds, String candidate,
+                                List<ActByUserCheck> participants);
 
 }

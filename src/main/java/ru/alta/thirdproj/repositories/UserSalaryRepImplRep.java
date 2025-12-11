@@ -905,28 +905,27 @@ public class UserSalaryRepImplRep  {
         }
     }
 
-    public void saveFailedProbationAct(FailedProbationActUpdate update) {
+    public void saveFailedProbationAct(Integer actId, Double totalNoNds, String candidate,
+                                       List<ActByUserCheck> participants) {
         log.info("[UpdateAct] Persisting actId={}, participants={} (totalNoNds={}, candidate={})",
-                update.getActId(), update.getParticipants() != null ? update.getParticipants().size() : 0,
-                update.getTotalNoNds(), update.getCandidate());
+                actId, participants != null ? participants.size() : 0,
+                totalNoNds, candidate);
 
         try (Connection connection = sql2o.beginTransaction()) {
-            if (update.getTotalNoNds() != null || update.getCandidate() != null) {
+            if (totalNoNds != null || candidate != null) {
                 int updatedAct = connection.createQuery(UPDATE_ACT_TOTAL_AND_CANDIDATE)
-                        .addParameter("totalNoNds", update.getTotalNoNds())
-                        .addParameter("candidate", update.getCandidate())
-                        .addParameter("actId", update.getActId())
+                        .addParameter("totalNoNds", totalNoNds)
+                        .addParameter("candidate", candidate)
+                        .addParameter("actId", actId)
                         .executeUpdate()
                         .getResult();
                 log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
             }
 
-            List<ActByUserCheck> participants = update.getParticipants() != null
-                    ? update.getParticipants()
-                    : Collections.emptyList();
+            participants = participants != null ? participants : Collections.emptyList();
 
             List<Integer> existingIds = connection.createQuery(SELECT_FAILED_PROBATION_IDS)
-                    .addParameter("actId", update.getActId())
+                    .addParameter("actId", actId)
                     .executeAndFetch(Integer.class);
 
             if (!participants.isEmpty()) {
@@ -960,7 +959,7 @@ public class UserSalaryRepImplRep  {
                         updated++;
                     } else {
                         connection.createQuery(INSERT_FAILED_PROBATION_ACT)
-                                .addParameter("actId", update.getActId())
+                                .addParameter("actId", actId)
                                 .addParameter("departmentName", participant.getDepartmentName())
                                 .addParameter("responsibleUserName", participant.getResponsibleUserName())
                                 .addParameter("summResponsibleUser", participant.getSummResponsibleUser())
@@ -986,17 +985,17 @@ public class UserSalaryRepImplRep  {
                         Math.max(existingIds.size() - participants.size(), 0));
             } else {
                 int deleted = connection.createQuery(DELETE_FAILED_PROBATION_ACT)
-                        .addParameter("actId", update.getActId())
+                        .addParameter("actId", actId)
                         .executeUpdate()
                         .getResult();
-                log.warn("[UpdateAct] No participants provided for actId={}, removed existing rows: {}", update.getActId(),
+                log.warn("[UpdateAct] No participants provided for actId={}, removed existing rows: {}", actId,
                         deleted);
             }
 
             connection.commit();
-            log.info("[UpdateAct] Transaction committed for actId={}", update.getActId());
+            log.info("[UpdateAct] Transaction committed for actId={}", actId);
         } catch (Exception e) {
-            log.error("[UpdateAct] Error while saving overrides for actId={}", update.getActId(), e);
+            log.error("[UpdateAct] Error while saving overrides for actId={}", actId, e);
             throw e;
         }
     }

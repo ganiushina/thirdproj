@@ -186,40 +186,45 @@ public class MarginController {
     @PostMapping("/userAct/update")
     @ResponseBody
     public ResponseEntity<Map<String, String>> updateFailedProbationAct(
-            @RequestBody FailedProbationActUpdate update) {
-        log.info("[UpdateAct] Received update request: actId={}, totalNoNds={}, candidate={}, participants={}"
-                        + " department={}",
-                update.getActId(), update.getTotalNoNds(), update.getCandidate(),
-                update.getParticipants() != null ? update.getParticipants().size() : 0,
-                update.getDepartmentName());
+            @RequestBody List<ActByUserCheck> participants) {
+        ActByUserCheck base = participants != null && !participants.isEmpty() ? participants.get(0) : null;
+        Integer actId = base != null ? base.getActId() : null;
+
+        log.info("[UpdateAct] Received update request: actId={}, totalNoNds={}, candidate={}, participants={}",
+                actId,
+                base != null ? base.getTotalNoNds() : null,
+                base != null ? base.getCandidate() : null,
+                participants != null ? participants.size() : 0);
 
         try {
-            if (update.getActId() == null) {
+            if (participants == null || participants.isEmpty()) {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("error", "participants are required"));
+            }
+
+            if (base == null || base.getActId() == null) {
                 return ResponseEntity.badRequest().body(Collections.singletonMap("error", "actId is required"));
             }
 
-            if (update.getParticipants() != null) {
-                List<ActByUserCheck> filtered = update.getParticipants().stream()
-                        .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
-                                || (p.getResecherName() != null && !p.getResecherName().isBlank()))
-                        .peek(p -> {
-                            if (p.getCandidatePercent() != null) {
-                                p.setCandidatePercent(p.getCandidatePercent() / 100);
-                            }
-                            if (p.getResecherPercent() != null) {
-                                p.setResecherPercent(p.getResecherPercent() / 100);
-                            }
-                        })
-                        .collect(Collectors.toList());
-                update.setParticipants(filtered);
-            }
+            List<ActByUserCheck> filtered = participants.stream()
+                    .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
+                            || (p.getResecherName() != null && !p.getResecherName().isBlank()))
+                    .peek(p -> {
+                        if (p.getCandidatePercent() != null) {
+                            p.setCandidatePercent(p.getCandidatePercent() / 100);
+                        }
+                        if (p.getResecherPercent() != null) {
+                            p.setResecherPercent(p.getResecherPercent() / 100);
+                        }
+                    })
+                    .collect(Collectors.toList());
 
-            marginBonusService.saveFailedProbationAct(update);
-            log.info("[UpdateAct] Update finished successfully for actId={}", update.getActId());
+            marginBonusService.saveFailedProbationAct(actId, base.getTotalNoNds(),
+                    base.getCandidate(), filtered);
+            log.info("[UpdateAct] Update finished successfully for actId={}", actId);
 
             return ResponseEntity.ok(Collections.singletonMap("status", "updated"));
         } catch (Exception e) {
-            log.error("[UpdateAct] Failed to update act {}", update.getActId(), e);
+            log.error("[UpdateAct] Failed to update act {}", actId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Collections.singletonMap("error", "Ошибка при сохранении: " + e.getMessage()));
         }
