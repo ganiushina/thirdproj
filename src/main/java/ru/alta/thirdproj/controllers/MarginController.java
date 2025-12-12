@@ -33,6 +33,8 @@ public class MarginController {
     private MarginBonusServiceImpl marginBonusService;
     private UserSalesServiceImpl userSalesService;
     private UserService userService;
+    private DepartmentService departmentService;
+    private EmployeesService employeesService;
 
     private EmailUserSendConfiguration emailUserSendConfiguration;
     private EmailPaymentSuccessService emailPaymentSuccessService;
@@ -41,13 +43,17 @@ public class MarginController {
     public void setUserSalaryService(UserSalaryServiceImpl userSalaryService, MarginBonusServiceImpl marginBonusService,
                                      UserSalesServiceImpl userSalesService, UserService userService,
                                      EmailUserSendConfiguration emailUserSendConfiguration,
-                                     EmailPaymentSuccessService emailPaymentSuccessService){
+                                     EmailPaymentSuccessService emailPaymentSuccessService,
+                                     DepartmentService departmentService,
+                                     EmployeesService employeesService){
         this.userSalaryService = userSalaryService;
         this.marginBonusService = marginBonusService;
         this.userSalesService = userSalesService;
         this.userService = userService;
         this.emailUserSendConfiguration = emailUserSendConfiguration;
         this.emailPaymentSuccessService = emailPaymentSuccessService;
+        this.departmentService = departmentService;
+        this.employeesService = employeesService;
     }
 
 
@@ -187,6 +193,18 @@ public class MarginController {
         model.addAttribute("actByUserList", actByUserList != null ? actByUserList : Collections.emptyList());
 
         return "actByUserCheck :: actByUserTab";
+    }
+
+    @GetMapping("/userAct/departments")
+    @ResponseBody
+    public List<Department> getDepartments() {
+        return departmentService.getDepartments();
+    }
+
+    @GetMapping("/userAct/employees")
+    @ResponseBody
+    public List<Employees> getEmployees() {
+        return employeesService.getActiveEmployeesForPlanMonth();
     }
 
     @PostMapping("/userAct/update")

@@ -116,6 +116,13 @@ public class UserSalaryRepImplRep  {
                     "LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
                     "WHERE CONVERT(date, ab.date_act) BETWEEN :date1 AND :date2\n" +
                     "  AND NOT EXISTS (SELECT 1 FROM project_buh_failed_probation_period fp WHERE fp.act_id = ab.id);";
+    private static final String SELECT_EMPLOYEES_FOR_PLAN_MONTH =
+            "select m.man_fio, m.man_id from login l " +
+                    "join man m on m.man_id = l.login_user_id " +
+                    "join userplanByMonth ubm on ubm.user_id = m.man_id " +
+                    "where l.login_active=1 " +
+                    "and ubm.userplan_year = datepart(yy, getdate()) and ubm.userplan_month =  datepart(mm, getdate()) " +
+                    "order by m.man_fio";
     private static final String SELECT_DEPARTMENTS_QUERY =
             "SELECT DISTINCT id, dep_name FROM depatment WHERE dep_name IS NOT NULL " +
                     "and id not in (5,9,7,10) ORDER BY dep_name";
@@ -499,6 +506,27 @@ public class UserSalaryRepImplRep  {
         }
     }
 
+    public List<Employees> getEmployeesForCurrentPlanMonth() {
+        try (Connection connection = sql2o.open()) {
+            Table table = connection.createQuery(SELECT_EMPLOYEES_FOR_PLAN_MONTH, false)
+                    .executeAndFetchTable();
+
+            if (table == null) {
+                return Collections.emptyList();
+            }
+
+            Map<Integer, Employees> employees = new LinkedHashMap<>();
+            for (Map<String, Object> row : table.asList()) {
+                Employees employee = mapRowToEmployee(row);
+                if (employee != null) {
+                    employees.putIfAbsent(employee.getManId(), employee);
+                }
+            }
+
+            return new ArrayList<>(employees.values());
+        }
+    }
+
     private Department mapRowToDepartment(Map<String, Object> row) {
         if (row == null || row.isEmpty()) {
             return null;
@@ -520,6 +548,24 @@ public class UserSalaryRepImplRep  {
         }
 
         return department;
+    }
+
+    private Employees mapRowToEmployee(Map<String, Object> row) {
+        if (row == null || row.isEmpty()) {
+            return null;
+        }
+
+        Integer manId = extractInteger(row.get("man_id"));
+        Object fioValue = row.get("man_fio");
+
+        if (manId == null || fioValue == null) {
+            return null;
+        }
+
+        Employees employee = new Employees();
+        employee.setManId(manId);
+        employee.setManFIO(fioValue.toString());
+        return employee;
     }
 
     private Integer extractInteger(Object value) {
