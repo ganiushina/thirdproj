@@ -1238,29 +1238,32 @@
 
     // ---------- ОБРАБОТКА SUBMIT И КНОПКИ "СОХРАНИТЬ" ----------
 
-    const form = document.getElementById('editActForm');
-    const saveBtn = document.getElementById('editActSaveBtn');
+    container.addEventListener('submit', async (event) => {
+        const form = event.target;
+        if (form?.id !== 'editActForm') {
+            return;
+        }
 
-    
+        event.preventDefault();
+        await submitActUpdate();
+    });
 
-    if (form) {
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            
+    container.addEventListener('click', async (event) => {
+        const saveBtn = event.target?.closest('#editActSaveBtn');
+        if (!saveBtn) {
+            return;
+        }
+
+        event.preventDefault();
+        saveBtn.disabled = true;
+        saveBtn.style.pointerEvents = 'none';
+        try {
             await submitActUpdate();
-        });
-    }
-
-    // Прямой клик по кнопке — вызываем сохранение (без дополнительных дублей)
-    if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.style.pointerEvents = 'auto';
-        saveBtn.addEventListener('click', async (event) => {
-            event.preventDefault();
-
-            await submitActUpdate();
-        }, { capture: true });
-    }
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.style.pointerEvents = 'auto';
+        }
+    }, { capture: true });
 
         // ---------- ДОБАВЛЕНИЕ / УДАЛЕНИЕ УЧАСТНИКОВ ----------
 
