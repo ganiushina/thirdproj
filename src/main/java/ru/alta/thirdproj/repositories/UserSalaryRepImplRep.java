@@ -60,8 +60,8 @@ public class UserSalaryRepImplRep  {
                     "    pfpp.responsible_user_name,\n" +
                     "    pfpp.resecher_name,\n" +
                     "    pfpp.summ_resecher,\n" +
-                    "    pfpp.percent_reseacher_by_candidate_percent * 100 AS resecher_percent,\n" +
-                    "    pfpp.percent_responsible_user_by_candidate_percent * 100 AS candidate_percent,\n" +
+                    "    pfpp.percent_reseacher_by_candidate_percent AS resecher_percent,\n" +
+                    "    pfpp.percent_responsible_user_by_candidate_percent AS candidate_percent,\n" +
                     "    pfpp.summ_responsible_user,\n" +
                     "    COALESCE(pfpp.depatment_resecher, d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
                     "FROM project_buh_failed_probation_period pfpp\n" +
@@ -85,8 +85,8 @@ public class UserSalaryRepImplRep  {
                     "    pb.responsible_user_name,\n" +
                     "    pb.resecher_name,\n" +
                     "    pb.summ_resecher,\n" +
-                    "    pb.percent_reseacher_by_candidate_percent * 100 AS resecher_percent,\n" +
-                    "    pb.percent_responsible_user_by_candidate_percent * 100 AS candidate_percent,\n" +
+                    "    pb.percent_reseacher_by_candidate_percent AS resecher_percent,\n" +
+                    "    pb.percent_responsible_user_by_candidate_percent AS candidate_percent,\n" +
                     "    pb.summ_responsible_user,\n" +
                     "    ISNULL(d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
                     "FROM dbo.act_buh ab\n" +

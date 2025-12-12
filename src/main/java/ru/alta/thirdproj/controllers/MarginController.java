@@ -215,14 +215,6 @@ public class MarginController {
             List<ActByUserCheck> filtered = participants.stream()
                     .filter(p -> (p.getResponsibleUserName() != null && !p.getResponsibleUserName().isBlank())
                             || (p.getResecherName() != null && !p.getResecherName().isBlank()))
-                    .peek(p -> {
-                        if (p.getCandidatePercent() != null) {
-                            p.setCandidatePercent(p.getCandidatePercent() / 100);
-                        }
-                        if (p.getResecherPercent() != null) {
-                            p.setResecherPercent(p.getResecherPercent() / 100);
-                        }
-                    })
                     .collect(Collectors.toList());
 
             marginBonusService.saveFailedProbationAct(actId, base.getTotalNoNds(),
