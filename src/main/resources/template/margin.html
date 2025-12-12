@@ -862,6 +862,12 @@
             return;
         }
 
+        // Предотвращаем повторную инициализацию, чтобы события не срабатывали дважды
+        if (container.dataset.actEditInitialized === 'true') {
+            return;
+        }
+        container.dataset.actEditInitialized = 'true';
+
 
 
         // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ СТРОК УЧАСТНИКОВ ----------
@@ -1251,7 +1257,7 @@
         saveBtn.style.pointerEvents = 'auto';
         saveBtn.addEventListener('click', async (event) => {
             event.preventDefault();
-            
+
             await submitActUpdate();
         }, { capture: true });
     }
