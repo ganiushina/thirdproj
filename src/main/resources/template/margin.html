@@ -899,6 +899,27 @@
                 <input type="hidden"
                        class="consultant-department"
                        value="${data.department || ''}">
+                <input type="hidden"
+                       class="consultant-id"
+                       value="${data.id ?? ''}">
+                <input type="hidden"
+                       class="consultant-department-id"
+                       value="${data.departmentId ?? ''}">
+                <input type="hidden"
+                       class="consultant-complicity"
+                       value="${data.complicity ?? ''}">
+                <input type="hidden"
+                       class="consultant-leader"
+                       value="${data.leader || ''}">
+                <input type="hidden"
+                       class="consultant-leader-id"
+                       value="${data.leaderId ?? ''}">
+                <input type="hidden"
+                       class="consultant-city"
+                       value="${data.city || ''}">
+                <input type="hidden"
+                       class="consultant-city-id"
+                       value="${data.cityId ?? ''}">
             `;
             return row;
         }
@@ -936,6 +957,27 @@
                 <input type="hidden"
                        class="researcher-department"
                        value="${data.department || ''}">
+                <input type="hidden"
+                       class="researcher-department-id"
+                       value="${data.departmentId ?? ''}">
+                <input type="hidden"
+                       class="researcher-id"
+                       value="${data.id ?? ''}">
+                <input type="hidden"
+                       class="researcher-complicity"
+                       value="${data.complicity ?? ''}">
+                <input type="hidden"
+                       class="researcher-leader"
+                       value="${data.leader || ''}">
+                <input type="hidden"
+                       class="researcher-leader-id"
+                       value="${data.leaderId ?? ''}">
+                <input type="hidden"
+                       class="researcher-city"
+                       value="${data.city || ''}">
+                <input type="hidden"
+                       class="researcher-city-id"
+                       value="${data.cityId ?? ''}">
             `;
             return row;
         }
@@ -998,6 +1040,16 @@
 
                 const dept = r.dataset.department || '';
                 const resecherDept = r.dataset.resecherDepartment || '';
+                const departmentId = parseInt(r.dataset.departmentId || '', 10);
+                const resecherDepartmentId = parseInt(r.dataset.resecherDepartmentId || '', 10);
+                const consultantId = parseInt(r.dataset.responsibleUserId || '', 10);
+                const researcherId = parseInt(r.dataset.resecherId || '', 10);
+                const consultantComplicity = parseFloat(r.dataset.percentResponsibleComplicity || '');
+                const researcherComplicity = parseFloat(r.dataset.percentResecherComplicity || '');
+                const resecherLeader = r.dataset.resecherLeader || '';
+                const resecherLeaderId = parseInt(r.dataset.resecherLeaderId || '', 10);
+                const cityResponsible = r.dataset.responsibleCity || '';
+                const cityResponsibleId = parseInt(r.dataset.responsibleCityId || '', 10);
 
                 if (consultantName) {
                     const sum = parseFloat(r.dataset.summResponsible || '');
@@ -1006,7 +1058,14 @@
                         name: consultantName,
                         sum: Number.isFinite(sum) ? sum : '',
                         percent: Number.isFinite(percent) ? percent : '',
-                        department: dept
+                        department: dept,
+                        departmentId: Number.isFinite(departmentId) ? departmentId : '',
+                        id: Number.isFinite(consultantId) ? consultantId : '',
+                        complicity: Number.isFinite(consultantComplicity) ? consultantComplicity : '',
+                        leader: resecherLeader,
+                        leaderId: Number.isFinite(resecherLeaderId) ? resecherLeaderId : '',
+                        city: cityResponsible,
+                        cityId: Number.isFinite(cityResponsibleId) ? cityResponsibleId : ''
                     });
                 }
 
@@ -1017,7 +1076,14 @@
                         name: researcherName,
                         sum: Number.isFinite(sum) ? sum : '',
                         percent: Number.isFinite(percent) ? percent : '',
-                        department: resecherDept
+                        department: resecherDept,
+                        departmentId: Number.isFinite(resecherDepartmentId) ? resecherDepartmentId : '',
+                        id: Number.isFinite(researcherId) ? researcherId : '',
+                        complicity: Number.isFinite(researcherComplicity) ? researcherComplicity : '',
+                        leader: resecherLeader,
+                        leaderId: Number.isFinite(resecherLeaderId) ? resecherLeaderId : '',
+                        city: cityResponsible,
+                        cityId: Number.isFinite(cityResponsibleId) ? cityResponsibleId : ''
                     });
                 }
             });
@@ -1163,8 +1229,15 @@
             const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
             const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
             const department = row.querySelector('.consultant-department')?.value || defaultDepartment;
+            const departmentId = parseInt(row.querySelector('.consultant-department-id')?.value || '', 10);
+            const responsibleUserId = parseInt(row.querySelector('.consultant-id')?.value || '', 10);
+            const complicity = parseFloat(row.querySelector('.consultant-complicity')?.value || '');
+            const leader = row.querySelector('.consultant-leader')?.value || '';
+            const leaderId = parseInt(row.querySelector('.consultant-leader-id')?.value || '', 10);
+            const city = row.querySelector('.consultant-city')?.value || '';
+            const cityId = parseInt(row.querySelector('.consultant-city-id')?.value || '', 10);
 
-            return { name, sumVal, percentVal, department };
+            return { name, sumVal, percentVal, department, departmentId, responsibleUserId, complicity, leader, leaderId, city, cityId };
         })
         .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
 
@@ -1174,8 +1247,15 @@
             const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
             const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
             const department = row.querySelector('.researcher-department')?.value || defaultDepartment;
+            const departmentId = parseInt(row.querySelector('.researcher-department-id')?.value || '', 10);
+            const researcherId = parseInt(row.querySelector('.researcher-id')?.value || '', 10);
+            const complicity = parseFloat(row.querySelector('.researcher-complicity')?.value || '');
+            const leader = row.querySelector('.researcher-leader')?.value || '';
+            const leaderId = parseInt(row.querySelector('.researcher-leader-id')?.value || '', 10);
+            const city = row.querySelector('.researcher-city')?.value || '';
+            const cityId = parseInt(row.querySelector('.researcher-city-id')?.value || '', 10);
 
-            return { name, sumVal, percentVal, department };
+            return { name, sumVal, percentVal, department, departmentId, researcherId, complicity, leader, leaderId, city, cityId };
         })
         .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
 
@@ -1193,13 +1273,23 @@
 
         payload.participants.push({
             responsibleUserName: consultant.name || null,
+            responsibleUserId: Number.isFinite(consultant.responsibleUserId) ? consultant.responsibleUserId : null,
             summResponsibleUser: Number.isFinite(consultant.sumVal) ? consultant.sumVal : null,
             candidatePercent: Number.isFinite(consultant.percentVal) ? consultant.percentVal : null,
             departmentName: consultant.department || defaultDepartment,
+            departmentId: Number.isFinite(consultant.departmentId) ? consultant.departmentId : null,
+            percentResponsibleUserComplicity: Number.isFinite(consultant.complicity) ? consultant.complicity : null,
+            teameLeaderName: consultant.leader || null,
+            teameLeaderId: Number.isFinite(consultant.leaderId) ? consultant.leaderId : null,
+            cityResponsibleUser: consultant.city || null,
+            cityResponsibleUserId: Number.isFinite(consultant.cityId) ? consultant.cityId : null,
             resecherName: researcher.name || null,
+            resecherId: Number.isFinite(researcher.researcherId) ? researcher.researcherId : null,
             summResecher: Number.isFinite(researcher.sumVal) ? researcher.sumVal : null,
             resecherPercent: Number.isFinite(researcher.percentVal) ? researcher.percentVal : null,
-            resecherDepartmentName: researcher.department || defaultDepartment
+            resecherDepartmentName: researcher.department || defaultDepartment,
+            depatmentResecherId: Number.isFinite(researcher.departmentId) ? researcher.departmentId : null,
+            percentResecherComplicity: Number.isFinite(researcher.complicity) ? researcher.complicity : null
         });
     }
 

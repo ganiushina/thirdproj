@@ -58,10 +58,20 @@ public class UserSalaryRepImplRep  {
                     "    p.project_name,\n" +
                     "    ISNULL(pfpp.depatment, d.dep_name) AS dep_name,\n" +
                     "    pfpp.responsible_user_name,\n" +
+                    "    pfpp.responsible_user_id,\n" +
                     "    pfpp.resecher_name,\n" +
+                    "    pfpp.resecher_id,\n" +
                     "    pfpp.summ_resecher,\n" +
                     "    pfpp.percent_reseacher_by_candidate_percent AS resecher_percent,\n" +
                     "    pfpp.percent_responsible_user_by_candidate_percent AS candidate_percent,\n" +
+                    "    pfpp.percent_responsible_user_complicity,\n" +
+                    "    pfpp.percent_resecher_complicity,\n" +
+                    "    pfpp.teame_leader_name,\n" +
+                    "    pfpp.teame_leader_id,\n" +
+                    "    pfpp.city_responsible_user,\n" +
+                    "    pfpp.city_responsible_user_id,\n" +
+                    "    pfpp.depatment_id,\n" +
+                    "    pfpp.depatment_resecher_id,\n" +
                     "    pfpp.summ_responsible_user,\n" +
                     "    COALESCE(pfpp.depatment_resecher, d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
                     "FROM project_buh_failed_probation_period pfpp\n" +
@@ -83,10 +93,20 @@ public class UserSalaryRepImplRep  {
                     "    p.project_name,\n" +
                     "    d.dep_name,\n" +
                     "    pb.responsible_user_name,\n" +
+                    "    pb.responsible_user_id,\n" +
                     "    pb.resecher_name,\n" +
+                    "    pb.resecher_id,\n" +
                     "    pb.summ_resecher,\n" +
                     "    pb.percent_reseacher_by_candidate_percent AS resecher_percent,\n" +
                     "    pb.percent_responsible_user_by_candidate_percent AS candidate_percent,\n" +
+                    "    pb.percent_responsible_user_complicity,\n" +
+                    "    pb.percent_resecher_complicity,\n" +
+                    "    pb.teame_leader_name,\n" +
+                    "    pb.teame_leader_id,\n" +
+                    "    pb.city_responsible_user,\n" +
+                    "    pb.city_responsible_user_id,\n" +
+                    "    pb.depatment_id,\n" +
+                    "    pb.depatment_resecher_id,\n" +
                     "    pb.summ_responsible_user,\n" +
                     "    ISNULL(d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
                     "FROM dbo.act_buh ab\n" +
@@ -107,11 +127,14 @@ public class UserSalaryRepImplRep  {
 
     private static final String INSERT_FAILED_PROBATION_ACT =
             "INSERT INTO project_buh_failed_probation_period (" +
-                    "act_id, depatment, responsible_user_name, summ_responsible_user, percent_responsible_user_by_candidate_percent, " +
-                    "resecher_name, summ_resecher, percent_reseacher_by_candidate_percent, depatment_resecher, date_update" +
+                    "act_id, depatment, depatment_id, responsible_user_name, responsible_user_id, summ_responsible_user, " +
+                    "percent_responsible_user_by_candidate_percent, percent_responsible_user_complicity, resecher_name, resecher_id, summ_resecher, " +
+                    "percent_reseacher_by_candidate_percent, percent_resecher_complicity, depatment_resecher, depatment_resecher_id, " +
+                    "teame_leader_name, teame_leader_id, city_responsible_user, city_responsible_user_id, date_update" +
                     ") VALUES (" +
-                    ":actId, :departmentName, :responsibleUserName, :summResponsibleUser, :candidatePercent, " +
-                    ":resecherName, :summResecher, :resecherPercent, :resecherDepartment, GETDATE());";
+                    ":actId, :departmentName, :departmentId, :responsibleUserName, :responsibleUserId, :summResponsibleUser, " +
+                    ":candidatePercent, :percentResponsibleUserComplicity, :resecherName, :resecherId, :summResecher, :resecherPercent, " +
+                    ":percentResecherComplicity, :resecherDepartment, :resecherDepartmentId, :teameLeaderName, :teameLeaderId, :cityResponsibleUser, :cityResponsibleUserId, GETDATE());";
     private static final String UPDATE_ACT_TOTAL_AND_CANDIDATE =
             "UPDATE act_buh " +
                     "SET total_no_nds = COALESCE(:totalNoNds, total_no_nds), " +
@@ -124,13 +147,23 @@ public class UserSalaryRepImplRep  {
     private static final String UPDATE_FAILED_PROBATION_ACT =
             "UPDATE project_buh_failed_probation_period SET " +
                     "depatment = :departmentName, " +
+                    "depatment_id = :departmentId, " +
                     "responsible_user_name = :responsibleUserName, " +
+                    "responsible_user_id = :responsibleUserId, " +
                     "summ_responsible_user = :summResponsibleUser, " +
                     "percent_responsible_user_by_candidate_percent = :candidatePercent, " +
+                    "percent_responsible_user_complicity = :percentResponsibleUserComplicity, " +
                     "resecher_name = :resecherName, " +
+                    "resecher_id = :resecherId, " +
                     "summ_resecher = :summResecher, " +
                     "percent_reseacher_by_candidate_percent = :resecherPercent, " +
+                    "percent_resecher_complicity = :percentResecherComplicity, " +
                     "depatment_resecher = :resecherDepartment, " +
+                    "depatment_resecher_id = :resecherDepartmentId, " +
+                    "teame_leader_name = :teameLeaderName, " +
+                    "teame_leader_id = :teameLeaderId, " +
+                    "city_responsible_user = :cityResponsibleUser, " +
+                    "city_responsible_user_id = :cityResponsibleUserId, " +
                     "date_update = GETDATE() " +
                     "WHERE id = :id";
 
@@ -903,6 +936,16 @@ public class UserSalaryRepImplRep  {
                 item.setResecherPercent(resecherPercent != null ? resecherPercent : 0.0);
                 Double summResponsibleUser = (Double) row.get("summ_responsible_user");
                 item.setSummResponsibleUser(summResponsibleUser != null ? summResponsibleUser : 0.0);
+                item.setResponsibleUserId((Integer) row.get("responsible_user_id"));
+                item.setResecherId((Integer) row.get("resecher_id"));
+                item.setDepartmentId((Integer) row.get("depatment_id"));
+                item.setDepatmentResecherId((Integer) row.get("depatment_resecher_id"));
+                item.setPercentResponsibleUserComplicity((Double) row.get("percent_responsible_user_complicity"));
+                item.setPercentResecherComplicity((Double) row.get("percent_resecher_complicity"));
+                item.setTeameLeaderName((String) row.get("teame_leader_name"));
+                item.setTeameLeaderId((Integer) row.get("teame_leader_id"));
+                item.setCityResponsibleUser((String) row.get("city_responsible_user"));
+                item.setCityResponsibleUserId((Integer) row.get("city_responsible_user_id"));
 
                 return item;
             }).collect(Collectors.toList());
@@ -950,13 +993,23 @@ public class UserSalaryRepImplRep  {
                 Map<String, Object> params = new HashMap<>();
                 params.put("actId", actId);
                 params.put("departmentName", participant.getDepartmentName());
+                params.put("departmentId", participant.getDepartmentId());
                 params.put("responsibleUserName", participant.getResponsibleUserName());
+                params.put("responsibleUserId", participant.getResponsibleUserId());
                 params.put("summResponsibleUser", participant.getSummResponsibleUser());
                 params.put("candidatePercent", participant.getCandidatePercent());
+                params.put("percentResponsibleUserComplicity", participant.getPercentResponsibleUserComplicity());
                 params.put("resecherName", participant.getResecherName());
+                params.put("resecherId", participant.getResecherId());
                 params.put("summResecher", participant.getSummResecher());
                 params.put("resecherPercent", participant.getResecherPercent());
+                params.put("percentResecherComplicity", participant.getPercentResecherComplicity());
                 params.put("resecherDepartment", participant.getResecherDepartmentName());
+                params.put("resecherDepartmentId", participant.getDepatmentResecherId());
+                params.put("teameLeaderName", participant.getTeameLeaderName());
+                params.put("teameLeaderId", participant.getTeameLeaderId());
+                params.put("cityResponsibleUser", participant.getCityResponsibleUser());
+                params.put("cityResponsibleUserId", participant.getCityResponsibleUserId());
 
                 if (i < existingIds.size()) {
                     params.put("id", existingIds.get(i));

@@ -21,6 +21,16 @@ public class ActByUserCheck {
     private Double candidatePercent;
     private Double summResponsibleUser;
     private String resecherDepartmentName;
+    private Integer responsibleUserId;
+    private Integer resecherId;
+    private Integer departmentId;
+    private Integer depatmentResecherId;
+    private Double percentResponsibleUserComplicity;
+    private Double percentResecherComplicity;
+    private String teameLeaderName;
+    private Integer teameLeaderId;
+    private String cityResponsibleUser;
+    private Integer cityResponsibleUserId;
 
     public String getResecherDisplay() {
         String name = resecherName != null ? resecherName.trim() : "";
