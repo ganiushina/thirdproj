@@ -1157,41 +1157,51 @@
 
     const defaultDepartment = document.getElementById('editDepartment')?.value || '';
 
-    // Консультанты
-    document.querySelectorAll('.consultant-row').forEach(row => {
-        const name = row.querySelector('.consultant-name')?.value?.trim() || '';
-        const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
-        const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
-        const department = row.querySelector('.consultant-department')?.value || defaultDepartment;
+    const consultants = Array.from(document.querySelectorAll('.consultant-row'))
+        .map(row => {
+            const name = row.querySelector('.consultant-name')?.value?.trim() || '';
+            const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
+            const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
+            const department = row.querySelector('.consultant-department')?.value || defaultDepartment;
 
-        if (!name && !Number.isFinite(sumVal) && !Number.isFinite(percentVal)) return;
+            return { name, sumVal, percentVal, department };
+        })
+        .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
+
+    const researchers = Array.from(document.querySelectorAll('.researcher-row'))
+        .map(row => {
+            const name = row.querySelector('.researcher-name')?.value?.trim() || '';
+            const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
+            const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
+            const department = row.querySelector('.researcher-department')?.value || defaultDepartment;
+
+            return { name, sumVal, percentVal, department };
+        })
+        .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
+
+    const maxParticipants = Math.max(consultants.length, researchers.length);
+
+    for (let i = 0; i < maxParticipants; i++) {
+        const consultant = consultants[i] || {};
+        const researcher = researchers[i] || {};
+
+        if (!consultant.name && !researcher.name &&
+            !Number.isFinite(consultant.sumVal) && !Number.isFinite(researcher.sumVal) &&
+            !Number.isFinite(consultant.percentVal) && !Number.isFinite(researcher.percentVal)) {
+            continue;
+        }
 
         payload.participants.push({
-            type: 'CONSULTANT',
-            responsibleUserName: name || null,
-            summResponsibleUser: Number.isFinite(sumVal) ? sumVal : null,
-            percentResponsibleUserByCandidatePercent: Number.isFinite(percentVal) ? percentVal : null,
-            departmentName: department
+            responsibleUserName: consultant.name || null,
+            summResponsibleUser: Number.isFinite(consultant.sumVal) ? consultant.sumVal : null,
+            candidatePercent: Number.isFinite(consultant.percentVal) ? consultant.percentVal : null,
+            departmentName: consultant.department || defaultDepartment,
+            resecherName: researcher.name || null,
+            summResecher: Number.isFinite(researcher.sumVal) ? researcher.sumVal : null,
+            resecherPercent: Number.isFinite(researcher.percentVal) ? researcher.percentVal : null,
+            resecherDepartmentName: researcher.department || defaultDepartment
         });
-    });
-
-    // Ресечеры
-    document.querySelectorAll('.researcher-row').forEach(row => {
-        const name = row.querySelector('.researcher-name')?.value?.trim() || '';
-        const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
-        const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
-        const department = row.querySelector('.researcher-department')?.value || defaultDepartment;
-
-        if (!name && !Number.isFinite(sumVal) && !Number.isFinite(percentVal)) return;
-
-        payload.participants.push({
-            type: 'RESEARCHER',
-            resecherName: name || null,
-            summResecher: Number.isFinite(sumVal) ? sumVal : null,
-            percentResecherByCandidatePercent: Number.isFinite(percentVal) ? percentVal : null,
-            resecherDepartmentName: department
-        });
-    });
+    }
 
     try {
         console.log('[UpdateAct] Submitting payload', payload);
