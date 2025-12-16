@@ -94,10 +94,10 @@
                             <td th:text="${#numbers.formatDecimal(act.summResecher, 1, 2)}"></td>
                             <td>
                                 <span th:if="${act.responsibleUserName != null}"
-                                      th:text="${#numbers.formatDecimal(act.candidatePercent, 1, 2)} + '%'">
+                                      th:text="${#numbers.formatDecimal(act.percentResponsibleUserComplicity, 1, 2)} + '%'">
                                 </span>
                                 <span th:if="${act.responsibleUserName == null}"
-                                      th:text="${#numbers.formatDecimal(act.resecherPercent, 1, 2)} + '%'">
+                                      th:text="${#numbers.formatDecimal(act.percentResecherComplicity, 1, 2)} + '%'">
                                 </span>
                             </td>
                             <td th:text="${act.projectName}"></td>
