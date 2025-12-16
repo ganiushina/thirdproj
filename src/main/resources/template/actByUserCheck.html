@@ -94,10 +94,10 @@
                             <td th:text="${#numbers.formatDecimal(act.summResecher, 1, 2)}"></td>
                             <td>
                                 <span th:if="${act.responsibleUserName != null}"
-                                      th:text="${#numbers.formatDecimal(act.candidatePercent, 1, 2)} + '%'">
+                                      th:text="${#numbers.formatDecimal(act.percentResponsibleUserComplicity, 1, 2)} + '%'">
                                 </span>
                                 <span th:if="${act.responsibleUserName == null}"
-                                      th:text="${#numbers.formatDecimal(act.resecherPercent, 1, 2)} + '%'">
+                                      th:text="${#numbers.formatDecimal(act.percentResecherComplicity, 1, 2)} + '%'">
                                 </span>
                             </td>
                             <td th:text="${act.projectName}"></td>
@@ -131,8 +131,8 @@
                     <h5 class="modal-title" id="editActModalLabel">Изменить данные акта</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body bg-white">
-                    <form id="editActForm">
+                <form id="editActForm">
+                    <div class="modal-body bg-white">
                         <input type="hidden" id="editActId" />
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -151,10 +151,6 @@
                                 <label for="editCandidate" class="form-label">Кандидат</label>
                                 <input type="text" class="form-control" id="editCandidate" required />
                             </div>
-                            <div class="col-md-6">
-                                <label for="editDepartment" class="form-label">Направление</label>
-                                <input type="text" class="form-control" id="editDepartment" required />
-                            </div>
                         </div>
 
                         <div class="mt-4">
@@ -162,6 +158,7 @@
                                 <h6 class="mb-0">Консультанты</h6>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="addConsultantBtn">Добавить консультанта</button>
                             </div>
+                            <p class="text-muted small mb-2">Выберите ФИО и направление для каждого консультанта.</p>
                             <div id="consultantsContainer" class="participant-list"></div>
                         </div>
 
@@ -170,24 +167,24 @@
                                 <h6 class="mb-0">Ресечеры</h6>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="addResearcherBtn">Добавить ресечера</button>
                             </div>
+                            <p class="text-muted small mb-2">Выберите ФИО и направление для каждого ресечера.</p>
                             <div id="researchersContainer" class="participant-list"></div>
                         </div>
-                        </div>
-                    </form>
-                    <div class="alert alert-danger mt-3 d-none" id="editActError"></div>
-                    <div class="alert alert-success mt-3 d-none" id="editActSuccess">Данные сохранены</div>
-                </div>
-                <div class="modal-footer bg-white">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <div class="alert alert-danger mt-3 d-none" id="editActError"></div>
+                        <div class="alert alert-success mt-3 d-none" id="editActSuccess">Данные сохранены</div>
+                    </div>
+                    <div class="modal-footer bg-white">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
 
-                    <!-- Тип submit, чтобы гарантированно срабатывал слушатель form.submit -->
-                    <button type="submit"
-                            class="btn btn-primary"
-                            id="editActSaveBtn">
-                        Сохранить
-                    </button>
-                </div>
-
+                        <!-- Тип submit, чтобы гарантированно срабатывал слушатель form.submit -->
+                        <button type="submit"
+                                class="btn btn-primary"
+                                id="editActSaveBtn">
+                            Сохранить
+                        </button>
+                    </div>
+                </form>
+                
         </div>
         </div>
     </div>

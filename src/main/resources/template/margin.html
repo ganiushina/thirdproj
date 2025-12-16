@@ -862,28 +862,109 @@
             return;
         }
 
-    
+        // Предотвращаем повторную инициализацию, чтобы события не срабатывали дважды
+        if (container.dataset.actEditInitialized === 'true') {
+            return;
+        }
+        container.dataset.actEditInitialized = 'true';
+
+
 
         // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ СТРОК УЧАСТНИКОВ ----------
+        let cachedEmployees = [];
+        let cachedDepartments = [];
+        let referenceDataPromise = null;
+
+        async function loadReferenceData() {
+            if (!referenceDataPromise) {
+                referenceDataPromise = Promise.all([
+                    fetch('/userAct/employees').then(r => r.ok ? r.json() : []),
+                    fetch('/userAct/departments').then(r => r.ok ? r.json() : [])
+                ]).then(([employees, departments]) => {
+                    cachedEmployees = Array.isArray(employees) ? employees : [];
+                    cachedDepartments = Array.isArray(departments) ? departments : [];
+                    return { employees: cachedEmployees, departments: cachedDepartments };
+                }).catch(err => {
+                    console.error('[UpdateAct] Failed to load reference data', err);
+                    cachedEmployees = [];
+                    cachedDepartments = [];
+                    return { employees: [], departments: [] };
+                });
+            }
+
+            return referenceDataPromise;
+        }
+
+        function buildOptions(list, valueKey, labelKey, selectedValue, placeholderLabel, fallbackLabel) {
+            const options = [
+                `<option value="">${placeholderLabel}</option>`
+            ];
+
+            let hasSelected = false;
+
+            list.forEach(item => {
+                const value = item?.[valueKey];
+                const label = item?.[labelKey];
+
+                if (value === undefined || label === undefined) {
+                    return;
+                }
+
+                const isSelected = selectedValue !== undefined && selectedValue !== null && String(selectedValue) === String(value);
+                if (isSelected) {
+                    hasSelected = true;
+                }
+                options.push(`<option value="${value}" ${isSelected ? 'selected' : ''}>${label}</option>`);
+            });
+
+            if (!hasSelected && fallbackLabel) {
+                options.push(`<option value="${selectedValue ?? ''}" selected>${fallbackLabel}</option>`);
+            }
+
+            return options.join('');
+        }
 
         function createConsultantRow(data = {}) {
             const row = document.createElement('div');
             row.className = 'row g-2 align-items-end consultant-row mb-2';
+
+            const employeeOptions = buildOptions(
+                cachedEmployees,
+                'manId',
+                'manFIO',
+                data.id,
+                'ФИО консультанта',
+                data.name
+            );
+
+            const departmentOptions = buildOptions(
+                cachedDepartments,
+                'id',
+                'name',
+                data.departmentId,
+                'Направление',
+                data.department
+            );
+
             row.innerHTML = `
-                <div class="col-md-4">
-                    <input type="text"
-                           class="form-control consultant-name"
-                           placeholder="ФИО консультанта"
-                           value="${data.name || ''}">
+                <div class="col-md-3">
+                    <select class="form-select consultant-name" aria-label="ФИО консультанта">
+                        ${employeeOptions}
+                    </select>
                 </div>
                 <div class="col-md-3">
+                    <select class="form-select consultant-department" aria-label="Направление консультанта">
+                        ${departmentOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <input type="number"
                            step="0.01"
                            class="form-control consultant-sum"
                            placeholder="Сумма"
                            value="${data.sum ?? ''}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="number"
                            step="0.01"
                            class="form-control consultant-percent"
@@ -896,15 +977,6 @@
                         Удалить
                     </button>
                 </div>
-                <input type="hidden"
-                       class="consultant-department"
-                       value="${data.department || ''}">
-                <input type="hidden"
-                       class="consultant-id"
-                       value="${data.id ?? ''}">
-                <input type="hidden"
-                       class="consultant-department-id"
-                       value="${data.departmentId ?? ''}">
                 <input type="hidden"
                        class="consultant-complicity"
                        value="${data.complicity ?? ''}">
@@ -927,21 +999,44 @@
         function createResearcherRow(data = {}) {
             const row = document.createElement('div');
             row.className = 'row g-2 align-items-end researcher-row mb-2';
+
+            const employeeOptions = buildOptions(
+                cachedEmployees,
+                'manId',
+                'manFIO',
+                data.id,
+                'ФИО ресечера',
+                data.name
+            );
+
+            const departmentOptions = buildOptions(
+                cachedDepartments,
+                'id',
+                'name',
+                data.departmentId,
+                'Направление',
+                data.department
+            );
+
             row.innerHTML = `
-                <div class="col-md-4">
-                    <input type="text"
-                           class="form-control researcher-name"
-                           placeholder="ФИО ресечера"
-                           value="${data.name || ''}">
+                <div class="col-md-3">
+                    <select class="form-select researcher-name" aria-label="ФИО ресечера">
+                        ${employeeOptions}
+                    </select>
                 </div>
                 <div class="col-md-3">
+                    <select class="form-select researcher-department" aria-label="Направление ресечера">
+                        ${departmentOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <input type="number"
                            step="0.01"
                            class="form-control researcher-sum"
                            placeholder="Сумма"
                            value="${data.sum ?? ''}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="number"
                            step="0.01"
                            class="form-control researcher-percent"
@@ -954,15 +1049,6 @@
                         Удалить
                     </button>
                 </div>
-                <input type="hidden"
-                       class="researcher-department"
-                       value="${data.department || ''}">
-                <input type="hidden"
-                       class="researcher-department-id"
-                       value="${data.departmentId ?? ''}">
-                <input type="hidden"
-                       class="researcher-id"
-                       value="${data.id ?? ''}">
                 <input type="hidden"
                        class="researcher-complicity"
                        value="${data.complicity ?? ''}">
@@ -984,7 +1070,7 @@
 
         // ---------- ОТКРЫТИЕ МОДАЛКИ ПО КНОПКЕ "ИЗМЕНИТЬ" ----------
 
-        container.addEventListener('click', (event) => {
+        container.addEventListener('click', async (event) => {
             try {
                 const editBtn = event.target.closest('.edit-act-btn');
                 if (!editBtn) return;
@@ -1009,6 +1095,8 @@
                     return;
                 }
 
+            await loadReferenceData();
+
             // Заполняем основные поля из data-* атрибутов первой строки группы
             const setValue = (id, value) => {
                 const el = document.getElementById(id);
@@ -1020,7 +1108,6 @@
             setValue('editActDate', row.dataset.actDate);
             setValue('editTotalNoNds', row.dataset.total);
             setValue('editCandidate', row.dataset.candidate);
-            setValue('editDepartment', row.dataset.department);
 
             // Очищаем старых участников
             consultantsContainer.innerHTML = '';
@@ -1151,41 +1238,51 @@
 
     // ---------- ОБРАБОТКА SUBMIT И КНОПКИ "СОХРАНИТЬ" ----------
 
-    const form = document.getElementById('editActForm');
-    const saveBtn = document.getElementById('editActSaveBtn');
+    const modalElement = document.getElementById('editActModal');
+    if (modalElement && !modalElement.dataset.handlersAttached) {
+        modalElement.dataset.handlersAttached = 'true';
 
-    
+        document.addEventListener('submit', async (event) => {
+            const form = event.target;
+            if (form?.id !== 'editActForm') {
+                return;
+            }
 
-    if (form) {
-        form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            
             await submitActUpdate();
         });
-    }
 
-    // Прямой клик по кнопке — вызываем сохранение (без дополнительных дублей)
-    if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.style.pointerEvents = 'auto';
-        saveBtn.addEventListener('click', async (event) => {
+        document.addEventListener('click', async (event) => {
+            const saveBtn = event.target?.closest('#editActSaveBtn');
+            if (!saveBtn) {
+                return;
+            }
+
             event.preventDefault();
-            
-            await submitActUpdate();
+            saveBtn.disabled = true;
+            saveBtn.style.pointerEvents = 'none';
+            try {
+                await submitActUpdate();
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.style.pointerEvents = 'auto';
+            }
         }, { capture: true });
     }
 
         // ---------- ДОБАВЛЕНИЕ / УДАЛЕНИЕ УЧАСТНИКОВ ----------
 
-        container.addEventListener('click', (event) => {
+        container.addEventListener('click', async (event) => {
             if (event.target?.id === 'addConsultantBtn') {
                 event.preventDefault();
+                await loadReferenceData();
                 const list = document.getElementById('consultantsContainer');
                 if (list) list.appendChild(createConsultantRow());
             }
 
             if (event.target?.id === 'addResearcherBtn') {
                 event.preventDefault();
+                await loadReferenceData();
                 const list = document.getElementById('researchersContainer');
                 if (list) list.appendChild(createResearcherRow());
             }
@@ -1213,24 +1310,29 @@
     errorAlert.classList.add('d-none');
     successAlert.classList.add('d-none');
 
+
     const payload = {
         actId: parseInt(document.getElementById('editActId')?.value || '0', 10),
         totalNoNds: parseFloat(document.getElementById('editTotalNoNds')?.value || '0'),
         candidate: document.getElementById('editCandidate')?.value || '',
-        departmentName: document.getElementById('editDepartment')?.value || '',
         participants: []
     };
 
-    const defaultDepartment = document.getElementById('editDepartment')?.value || '';
-
     const consultants = Array.from(document.querySelectorAll('.consultant-row'))
         .map(row => {
-            const name = row.querySelector('.consultant-name')?.value?.trim() || '';
+            const consultantSelect = row.querySelector('.consultant-name');
+            const consultantDeptSelect = row.querySelector('.consultant-department');
+
+            const name = consultantSelect?.value
+                ? consultantSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
             const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
             const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
-            const department = row.querySelector('.consultant-department')?.value || defaultDepartment;
-            const departmentId = parseInt(row.querySelector('.consultant-department-id')?.value || '', 10);
-            const responsibleUserId = parseInt(row.querySelector('.consultant-id')?.value || '', 10);
+            const department = consultantDeptSelect?.value
+                ? consultantDeptSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
+            const departmentId = parseInt(consultantDeptSelect?.value || '', 10);
+            const responsibleUserId = parseInt(consultantSelect?.value || '', 10);
             const complicity = parseFloat(row.querySelector('.consultant-complicity')?.value || '');
             const leader = row.querySelector('.consultant-leader')?.value || '';
             const leaderId = parseInt(row.querySelector('.consultant-leader-id')?.value || '', 10);
@@ -1243,12 +1345,19 @@
 
     const researchers = Array.from(document.querySelectorAll('.researcher-row'))
         .map(row => {
-            const name = row.querySelector('.researcher-name')?.value?.trim() || '';
+            const researcherSelect = row.querySelector('.researcher-name');
+            const researcherDeptSelect = row.querySelector('.researcher-department');
+
+            const name = researcherSelect?.value
+                ? researcherSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
             const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
             const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
-            const department = row.querySelector('.researcher-department')?.value || defaultDepartment;
-            const departmentId = parseInt(row.querySelector('.researcher-department-id')?.value || '', 10);
-            const researcherId = parseInt(row.querySelector('.researcher-id')?.value || '', 10);
+            const department = researcherDeptSelect?.value
+                ? researcherDeptSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
+            const departmentId = parseInt(researcherDeptSelect?.value || '', 10);
+            const researcherId = parseInt(researcherSelect?.value || '', 10);
             const complicity = parseFloat(row.querySelector('.researcher-complicity')?.value || '');
             const leader = row.querySelector('.researcher-leader')?.value || '';
             const leaderId = parseInt(row.querySelector('.researcher-leader-id')?.value || '', 10);
@@ -1259,6 +1368,16 @@
         })
         .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
 
+    payload.departmentName = consultants[0]?.department || researchers[0]?.department || '';
+    payload.departmentId = Number.isFinite(consultants[0]?.departmentId)
+        ? consultants[0].departmentId
+        : (Number.isFinite(researchers[0]?.departmentId) ? researchers[0].departmentId : null);
+    payload.resecherDepartmentName = researchers[0]?.department || '';
+    payload.depatmentResecherId = Number.isFinite(researchers[0]?.departmentId) ? researchers[0].departmentId : null;
+    const fallbackConsultantDepartment = payload.departmentName || '';
+    const fallbackConsultantDepartmentId = payload.departmentId ?? null;
+    const fallbackResearcherDepartment = payload.resecherDepartmentName || payload.departmentName || '';
+    const fallbackResearcherDepartmentId = payload.depatmentResecherId ?? payload.departmentId ?? null;
     const maxParticipants = Math.max(consultants.length, researchers.length);
 
     for (let i = 0; i < maxParticipants; i++) {
@@ -1276,8 +1395,8 @@
             responsibleUserId: Number.isFinite(consultant.responsibleUserId) ? consultant.responsibleUserId : null,
             summResponsibleUser: Number.isFinite(consultant.sumVal) ? consultant.sumVal : null,
             candidatePercent: Number.isFinite(consultant.percentVal) ? consultant.percentVal : null,
-            departmentName: consultant.department || defaultDepartment,
-            departmentId: Number.isFinite(consultant.departmentId) ? consultant.departmentId : null,
+            departmentName: consultant.department || fallbackConsultantDepartment,
+            departmentId: Number.isFinite(consultant.departmentId) ? consultant.departmentId : fallbackConsultantDepartmentId,
             percentResponsibleUserComplicity: Number.isFinite(consultant.complicity) ? consultant.complicity : null,
             teameLeaderName: consultant.leader || null,
             teameLeaderId: Number.isFinite(consultant.leaderId) ? consultant.leaderId : null,
@@ -1287,8 +1406,8 @@
             resecherId: Number.isFinite(researcher.researcherId) ? researcher.researcherId : null,
             summResecher: Number.isFinite(researcher.sumVal) ? researcher.sumVal : null,
             resecherPercent: Number.isFinite(researcher.percentVal) ? researcher.percentVal : null,
-            resecherDepartmentName: researcher.department || defaultDepartment,
-            depatmentResecherId: Number.isFinite(researcher.departmentId) ? researcher.departmentId : null,
+            resecherDepartmentName: researcher.department || fallbackResearcherDepartment,
+            depatmentResecherId: Number.isFinite(researcher.departmentId) ? researcher.departmentId : fallbackResearcherDepartmentId,
             percentResecherComplicity: Number.isFinite(researcher.complicity) ? researcher.complicity : null
         });
     }
