@@ -142,11 +142,6 @@ public class UserSalaryRepImplRep  {
                     ":actId, :departmentName, :departmentId, :responsibleUserName, :responsibleUserId, :summResponsibleUser, " +
                     ":candidatePercent, :percentResponsibleUserComplicity, :resecherName, :resecherId, :summResecher, :resecherPercent, " +
                     ":percentResecherComplicity, :resecherDepartment, :resecherDepartmentId, :teameLeaderName, :teameLeaderId, :cityResponsibleUser, :cityResponsibleUserId, GETDATE());";
-    private static final String UPDATE_ACT_TOTAL_AND_CANDIDATE =
-            "UPDATE act_buh " +
-                    "SET total_no_nds = COALESCE(:totalNoNds, total_no_nds), " +
-                    "    candidate = COALESCE(:candidate, candidate) " +
-                    "WHERE id = :actId";
 
     private static final String SELECT_FAILED_PROBATION_IDS =
             "SELECT id FROM project_buh_failed_probation_period WHERE act_id = :actId ORDER BY id";
@@ -1005,16 +1000,6 @@ public class UserSalaryRepImplRep  {
                 actId, participants != null ? participants.size() : 0,
                 totalNoNds, candidate);
 
-        if (totalNoNds != null || candidate != null) {
-            Map<String, Object> actParams = new HashMap<>();
-            actParams.put("totalNoNds", totalNoNds);
-            actParams.put("candidate", candidate);
-            actParams.put("actId", actId);
-
-            int updatedAct = jdbcTemplate.update(UPDATE_ACT_TOTAL_AND_CANDIDATE, actParams);
-            log.info("[UpdateAct] Base act rows updated: {}", updatedAct);
-        }
-
         List<ActByUserCheck> safeParticipants = participants != null ? participants : Collections.emptyList();
         List<Integer> existingIds = jdbcTemplate.query(SELECT_FAILED_PROBATION_IDS,
                 Map.of("actId", actId),
@@ -1032,8 +1017,8 @@ public class UserSalaryRepImplRep  {
                         i + 1,
                         participant.getResponsibleUserName(), participant.getResecherName(),
                         participant.getSummResponsibleUser(), participant.getSummResecher(),
-                        participant.getCandidatePercent(),
-                        participant.getResecherPercent(),
+                        participant.getPercentResponsibleUserComplicity(),
+                        participant.getPercentResecherComplicity(),
                         participant.getDepartmentName(), participant.getResecherDepartmentName());
 
                 Map<String, Object> params = new HashMap<>();

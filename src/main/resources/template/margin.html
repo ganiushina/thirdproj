@@ -1140,7 +1140,7 @@
 
                 if (consultantName) {
                     const sum = parseFloat(r.dataset.summResponsible || '');
-                    const percent = parseFloat(r.dataset.consultantPercent || '');
+                    const percent = parseFloat(r.dataset.percentResponsibleComplicity || '');
                     consultants.push({
                         name: consultantName,
                         sum: Number.isFinite(sum) ? sum : '',
@@ -1158,7 +1158,7 @@
 
                 if (researcherName) {
                     const sum = parseFloat(r.dataset.summResecher || '');
-                    const percent = parseFloat(r.dataset.resecherPercent || '');
+                    const percent = parseFloat(r.dataset.percentResecherComplicity || '');
                     researchers.push({
                         name: researcherName,
                         sum: Number.isFinite(sum) ? sum : '',
