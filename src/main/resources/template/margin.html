@@ -1284,6 +1284,19 @@
                 event.preventDefault();
                 await loadReferenceData();
                 const list = document.getElementById('researchersContainer');
+                const consultantsCount = document.querySelectorAll('.consultant-row').length;
+                const researchersCount = document.querySelectorAll('.researcher-row').length;
+                const errorAlert = document.getElementById('editActError');
+
+                if (researchersCount >= consultantsCount) {
+                    if (errorAlert) {
+                        errorAlert.textContent = 'Ресечеров не может быть больше консультантов';
+                        errorAlert.classList.remove('d-none');
+                    }
+                    return;
+                }
+
+                if (errorAlert) errorAlert.classList.add('d-none');
                 if (list) list.appendChild(createResearcherRow());
             }
 
@@ -1369,6 +1382,12 @@
             return { name, sumVal, percentVal, department, departmentId, researcherId, complicity, leader, leaderId, city, cityId };
         })
         .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
+
+    if (researchers.length > consultants.length) {
+        errorAlert.textContent = 'Ресечеров не может быть больше консультантов';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
 
     payload.departmentName = consultants[0]?.department || researchers[0]?.department || '';
     payload.departmentId = Number.isFinite(consultants[0]?.departmentId)
