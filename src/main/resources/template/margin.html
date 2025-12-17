@@ -1383,6 +1383,25 @@
         })
         .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
 
+    const totalConsultantComplicity = consultants.reduce((sum, item) => {
+        return sum + (Number.isFinite(item.complicity) ? item.complicity : 0);
+    }, 0);
+    const totalResearcherComplicity = researchers.reduce((sum, item) => {
+        return sum + (Number.isFinite(item.complicity) ? item.complicity : 0);
+    }, 0);
+
+    if (consultants.length > 0 && Math.abs(totalConsultantComplicity - 100) > 0.0001) {
+        errorAlert.textContent = 'Сумма процентов участия консультантов должна быть равна 100';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
+    if (totalResearcherComplicity > 100.0001) {
+        errorAlert.textContent = 'Сумма процентов участия ресечеров не может превышать 100';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
     if (researchers.length > consultants.length) {
         errorAlert.textContent = 'Ресечеров не может быть больше консультантов';
         errorAlert.classList.remove('d-none');
