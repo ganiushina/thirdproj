@@ -1012,6 +1012,11 @@ public class UserSalaryRepImplRep  {
             for (int i = 0; i < safeParticipants.size(); i++) {
                 ActByUserCheck participant = safeParticipants.get(i);
 
+                if (participant.getResecherName() == null) {
+                    participant.setResecherDepartmentName(null);
+                    participant.setDepatmentResecherId(null);
+                }
+
                 log.debug("[UpdateAct] Saving participant #{}: consultant='{}' researcher='{}' sumC={} sumR={}"
                                 + " pctC={} pctR={} depC={} depR={}",
                         i + 1,
