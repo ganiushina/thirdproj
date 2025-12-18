@@ -56,7 +56,7 @@ public class UserSalaryRepImplRep  {
                     "    ab.candidate,\n" +
                     "    ab.organization,\n" +
                     "    p.project_name,\n" +
-                    "    ISNULL(pfpp.depatment, d.dep_name) AS dep_name,\n" +
+                    "    pfpp.depatment AS dep_name,\n" +
                     "    pfpp.responsible_user_name,\n" +
                     "    pfpp.responsible_user_id,\n" +
                     "    pfpp.resecher_name,\n" +
@@ -73,14 +73,14 @@ public class UserSalaryRepImplRep  {
                     "    pfpp.depatment_id,\n" +
                     "    pfpp.depatment_resecher_id,\n" +
                     "    pfpp.summ_responsible_user,\n" +
-                    "    COALESCE(pfpp.depatment_resecher, d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
+                    "    d1.dep_name AS resecher_dep_name\n" +
                     "FROM project_buh_failed_probation_period pfpp\n" +
                     "JOIN dbo.act_buh ab ON pfpp.act_id = ab.id\n" +
                     "OUTER APPLY (SELECT TOP 1 pb.depatment_id, pb.depatment_resecher_id FROM project_buh pb WHERE pb.act_id = ab.id) pb\n" +
-                    "LEFT JOIN depatment d ON d.id = COALESCE(pfpp.depatment_id, pb.depatment_id)\n" +
-                    "LEFT JOIN depatment d1 ON d1.id = COALESCE(pfpp.depatment_resecher_id, pb.depatment_resecher_id)\n" +
+                    "LEFT JOIN depatment d ON d.id = pfpp.depatment_id\n" +
+                    "LEFT JOIN depatment d1 ON d1.id = pfpp.depatment_resecher_id\n" +
                     "LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
-                    "WHERE CONVERT(date, ab.date_act) BETWEEN :date1 AND :date2\n" +
+                    "WHERE CONVERT(date, ab.date_act)  BETWEEN :date1 AND :date2\n" +
                     "UNION ALL\n" +
                     "SELECT\n" +
                     "    ab.id AS act_id,\n" +
@@ -108,7 +108,7 @@ public class UserSalaryRepImplRep  {
                     "    pb.depatment_id,\n" +
                     "    pb.depatment_resecher_id,\n" +
                     "    pb.summ_responsible_user,\n" +
-                    "    ISNULL(d1.dep_name, d.dep_name) AS resecher_dep_name\n" +
+                    "    d1.dep_name AS resecher_dep_name\n" +
                     "FROM dbo.act_buh ab\n" +
                     "JOIN project_buh pb ON pb.act_id = ab.id\n" +
                     "LEFT JOIN depatment d ON d.id = pb.depatment_id\n" +
