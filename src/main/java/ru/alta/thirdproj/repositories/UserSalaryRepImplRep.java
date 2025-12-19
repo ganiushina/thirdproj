@@ -281,6 +281,34 @@ public class UserSalaryRepImplRep  {
 
         }
 
+    /**
+     * Возвращает первое ненулевое числовое значение из указанного набора ключей.
+     * Помогает работать с функциями, которые могут возвращать сумму бонуса в разных колонках.
+     */
+    private BigDecimal firstNonZeroDecimal(Map<String, Object> row, String... keys) {
+        for (String key : keys) {
+            Object value = row.get(key);
+            if (value == null) continue;
+
+            BigDecimal decimalValue = null;
+            if (value instanceof BigDecimal) {
+                decimalValue = (BigDecimal) value;
+            } else if (value instanceof Number) {
+                decimalValue = BigDecimal.valueOf(((Number) value).doubleValue());
+            } else if (value instanceof String) {
+                try {
+                    decimalValue = new BigDecimal((String) value);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            if (decimalValue != null && decimalValue.doubleValue() != 0.0) {
+                return decimalValue;
+            }
+        }
+        return null;
+    }
+
 
     public List<MarginBonusBDM> getMarginBonus(LocalDate date1, LocalDate date2) {
         try (Connection connection = sql2o.open()) {
@@ -869,9 +897,11 @@ public class UserSalaryRepImplRep  {
                     salary.setUserBonusBDMKPI(currencyInstance.format(bonusBDMKPI.doubleValue()));
                 }
 
-                BigDecimal bonusProjectBDM = n.containsKey("man_bonus_project_bdm")
-                        ? (BigDecimal) n.get("man_bonus_project_bdm")
-                        : (BigDecimal) n.get("bonus_project_bdm");
+                BigDecimal bonusProjectBDM = firstNonZeroDecimal(n,
+                        "man_bonus_project_bdm",
+                        "bonus_project_bdm",
+                        "bonus_project_bdm_ndfl",
+                        "man_bonus_project_bdm_ndfl");
                 if (bonusProjectBDM != null && bonusProjectBDM.doubleValue() != 0.0) {
                     salary.setUserBonusProjectBDM(currencyInstance.format(bonusProjectBDM.doubleValue()));
                 }
