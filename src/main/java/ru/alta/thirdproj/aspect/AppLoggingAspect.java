@@ -3,6 +3,7 @@ package ru.alta.thirdproj.aspect;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -84,7 +85,7 @@ public class AppLoggingAspect {
         String args = Arrays.stream(jp.getArgs())
                 .map(a -> a.toString())
                 .collect(Collectors.joining(","));
-        System.out.println("AuthenticationSuccess "  + ", args=[" + args + "]");
+        logger.info("AuthenticationSuccess, args=[{}]", args);
     }
 
 
@@ -99,9 +100,19 @@ public class AppLoggingAspect {
 
     @After("callAtMyServiceMethod1(userName)")
     public void beforeCallAtMethod1(String userName) {
-        System.out.println("попытка залогиниться:  " + userName );
+        logger.info("попытка залогиниться: {}", userName);
     }
 
+    @AfterReturning(
+            pointcut = "execution(* ru.alta.thirdproj.services.UserLoginServiceImpl.loadUserByUsername(..))",
+            returning = "result")
+    public void afterLoginSucceeded(Object result) {
+        if (result instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+            logger.info("Залогинился user: {}", userDetails.getUsername());
+            return;
+        }
+        logger.info("Залогинился user (неопределенный тип результата): {}", result);
+    }
 
 
 
