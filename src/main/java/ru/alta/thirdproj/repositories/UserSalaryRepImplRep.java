@@ -869,6 +869,13 @@ public class UserSalaryRepImplRep  {
                     salary.setUserBonusBDMKPI(currencyInstance.format(bonusBDMKPI.doubleValue()));
                 }
 
+                BigDecimal bonusProjectBDM = n.containsKey("man_bonus_project_bdm")
+                        ? (BigDecimal) n.get("man_bonus_project_bdm")
+                        : (BigDecimal) n.get("bonus_project_bdm");
+                if (bonusProjectBDM != null && bonusProjectBDM.doubleValue() != 0.0) {
+                    salary.setUserBonusProjectBDM(currencyInstance.format(bonusProjectBDM.doubleValue()));
+                }
+
                 BigDecimal bonusBdm = (BigDecimal) n.get("man_bonus_bdm");
                 if (bonusBdm != null && bonusBdm.doubleValue() != 0.0) {
                     salary.setUserBonusBDMRUB(formatCurrency(bonusBdm, ru));

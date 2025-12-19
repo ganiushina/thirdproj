@@ -13,6 +13,7 @@ public class Salary {
     private Double userBonusBDM;
     private String userBonusBDMRUB;
     private String userBonusBDMKPI;
+    private String userBonusProjectBDM;
     private Double userSalaryNDFL;
     private String userSalaryNDFLRUB;
     private Double userSalarySingle;
