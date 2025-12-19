@@ -54,9 +54,9 @@ public class GlobalModelAttributes {
         }
 
         // Добавляем спец-сообщение
-        if (isDasha) {
-            greeting.append(" <span class='dasha-message'>Хорощего дня и улыбайся солнышку :)</span>");
-        }
+//        if (isDasha) {
+//            greeting.append(" <span class='dasha-message'>Хорощего дня и улыбайся солнышку :)</span>");
+//        }
 
         return String.format(greetingTemplate, greeting.toString());
     }

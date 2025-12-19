@@ -11,6 +11,7 @@ public class UserSalary {
     private String userBonusKPI;
     private String userBonus;
     private String userBonusBDMKPI;
+    private String userBonusProjectBDM;
     private String userSalary;
     private String userSalaryAll;
     private String userSalaryAllWithOutCoef;

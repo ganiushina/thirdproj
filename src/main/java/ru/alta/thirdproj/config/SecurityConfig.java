@@ -71,6 +71,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/margin/detailed").hasAnyRole("BDM", "BUHADMIN", "MANAGER")
                 .antMatchers("/margin/charts").hasAnyRole("BDM", "BUHADMIN", "MANAGER")
                 .antMatchers("/margin/interpreters").hasAnyRole("BUHADMIN", "MANAGER")
+                .antMatchers("/userAct/update").hasAnyRole("BDM","BUHADMIN", "MANAGER")
                 // только MANAGER может добавлять схемы (POST)
                 .antMatchers(HttpMethod.POST, "/bonus-schemes").hasRole("MANAGER")
                 // просмотр страницы бонусных схем — любому аутентифицированному

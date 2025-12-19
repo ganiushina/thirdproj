@@ -231,6 +231,12 @@ public class UserSalaryRepImplRep  {
 
                     }
 
+                    if (entry.getKey().equals("bonus_project_bdm")) {
+                        BigDecimal bd = (BigDecimal) entry.getValue();
+                        double d = bd.doubleValue();
+                        userSalary.setUserBonusProjectBDM(currencyInstance.format(d));
+                    }
+
                     if (entry.getKey().equals("manzp")) {
                         BigDecimal bd = (BigDecimal) entry.getValue();
                         double d = bd.doubleValue();
