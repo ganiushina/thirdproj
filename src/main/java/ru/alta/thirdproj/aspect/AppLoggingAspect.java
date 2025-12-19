@@ -11,6 +11,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -107,7 +108,8 @@ public class AppLoggingAspect {
             pointcut = "execution(* ru.alta.thirdproj.services.UserLoginServiceImpl.loadUserByUsername(..))",
             returning = "result")
     public void afterLoginSucceeded(Object result) {
-        if (result instanceof org.springframework.security.core.userdetails.UserDetails userDetails) {
+        if (result instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) result;
             logger.info("Залогинился user: {}", userDetails.getUsername());
             return;
         }
