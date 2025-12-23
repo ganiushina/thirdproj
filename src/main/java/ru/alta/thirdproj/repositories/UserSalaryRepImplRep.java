@@ -80,7 +80,7 @@ public class UserSalaryRepImplRep  {
                     "LEFT JOIN depatment d ON d.id = pfpp.depatment_id\n" +
                     "LEFT JOIN depatment d1 ON d1.id = pfpp.depatment_resecher_id\n" +
                     "LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
-                    "WHERE CONVERT(date, ab.date_act)  BETWEEN :date1 AND :date2\n" +
+                    "WHERE CONVERT(date, ab.date_act)  BETWEEN :date1 AND :date2 or CONVERT(date, pfpp.date_update)  BETWEEN :date1 AND :date2\n" +
                     "UNION ALL\n" +
                     "SELECT\n" +
                     "    ab.id AS act_id,\n" +
@@ -897,11 +897,7 @@ public class UserSalaryRepImplRep  {
                     salary.setUserBonusBDMKPI(currencyInstance.format(bonusBDMKPI.doubleValue()));
                 }
 
-                BigDecimal bonusProjectBDM = firstNonZeroDecimal(n,
-                        "man_bonus_project_bdm",
-                        "bonus_project_bdm",
-                        "bonus_project_bdm_ndfl",
-                        "man_bonus_project_bdm_ndfl");
+                BigDecimal bonusProjectBDM = (BigDecimal) n.get("man_project_bonus");
                 if (bonusProjectBDM != null && bonusProjectBDM.doubleValue() != 0.0) {
                     salary.setUserBonusProjectBDM(currencyInstance.format(bonusProjectBDM.doubleValue()));
                 }
