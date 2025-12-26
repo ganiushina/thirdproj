@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 @Tag(name="ActPutController", description="Управление актами")
 public class ActPutController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ActPutController.class);
+
     private ActPutServiceImpl actBonusPercentService;
     private ExpectedMoneyByFinalistService moneyByFinalistService;
 
@@ -62,6 +64,23 @@ public class ActPutController {
                 .filter(act -> seenActIds.add(act.getId()))
                 .mapToDouble(Act::getBonus)
                 .sum();
+
+        Map<Integer, Long> actIdOccurrences = actList.stream()
+                .collect(Collectors.groupingBy(Act::getId, Collectors.counting()));
+        List<Integer> duplicateActIds = actIdOccurrences.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (!duplicateActIds.isEmpty()) {
+            log.info("Найдены дубликаты act_id за период {} - {}: {}", date1, date2, duplicateActIds);
+        } else {
+            log.info("Дубликаты act_id за период {} - {} не обнаружены", date1, date2);
+        }
+        log.info("Акты за период {} - {}: всего {}, уникальных act_id {}, сумма по уникальным bonus={}, сумма по всем bonus={}",
+                date1, date2, actList.size(), actIdOccurrences.size(),
+                allActForClientMoneyPeriod, actList.stream().mapToDouble(Act::getBonus).sum());
 
         double allActMoneyPeriodPaid = actList.stream()
                 .filter(e -> e.getPaymentDate() != null)
