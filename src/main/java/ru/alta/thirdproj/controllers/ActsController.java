@@ -69,10 +69,16 @@ public class ActsController {
         List<MoneyByFinalist> moneyByFinalists = moneyByFinalistService.getMoneyByFinalistList();
 
         // Расчеты сумм
-        double allActMoney = actNoPayList.stream().mapToDouble(Act::getBonus).sum();
+        Set<Integer> uniqueUnpaidActIds = new HashSet<>();
+        double allActMoney = actNoPayList.stream()
+                .filter(act -> uniqueUnpaidActIds.add(act.getId()))
+                .mapToDouble(Act::getBonus)
+                .sum();
 
+        Set<Integer> uniqueUnpaidPeriodActIds = new HashSet<>();
         double allActMoneyPeriod = actList.stream()
                 .filter(e -> e.getPaid() == 0) // только неоплаченные
+                .filter(e -> uniqueUnpaidPeriodActIds.add(e.getId()))
                 .mapToDouble(Act::getBonus)
                 .sum();
 
@@ -107,8 +113,10 @@ public class ActsController {
                 date1, date2, actList.size(), actIdOccurrences.size(),
                 allActForClientMoneyPeriod, actList.stream().mapToDouble(Act::getBonus).sum());
 
+        Set<Integer> uniquePaidPeriodActIds = new HashSet<>();
         double allActMoneyPeriodPaid = actList.stream()
                 .filter(e -> e.getPaymentDate() != null)
+                .filter(e -> uniquePaidPeriodActIds.add(e.getId()))
                 .mapToDouble(Act::getBonus)
                 .sum();
 
@@ -119,6 +127,7 @@ public class ActsController {
 
         Map<String, Double> allActForClientMoneyPeriodByCompany = actList.stream()
                 .filter(act -> !act.getDateAct().isBefore(date1) && !act.getDateAct().isAfter(date2))
+                .filter(distinctByKey(Act::getId))
                 .collect(Collectors.groupingBy(Act::getOrganization,
                         Collectors.summingDouble(Act::getBonus)));
 
