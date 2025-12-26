@@ -57,12 +57,9 @@ public class ActPutController {
                 .mapToDouble(Act::getBonus)
                 .sum();
 
-//        double allActMoneyPeriod = actList.stream()
-//                .filter(e -> !e.isPaid())
-//                .mapToDouble(Act::getBonus)
-//                .sum();
-
+        Set<Integer> seenActIds = new HashSet<>();
         double allActForClientMoneyPeriod = actList.stream()
+                .filter(act -> seenActIds.add(act.getId()))
                 .mapToDouble(Act::getBonus)
                 .sum();
 
