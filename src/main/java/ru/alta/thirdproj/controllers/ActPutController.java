@@ -2,6 +2,8 @@ package ru.alta.thirdproj.controllers;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/actPut")
 @Tag(name="ActPutController", description="Управление актами")
 public class ActPutController {
+
+    private static final Logger log = LoggerFactory.getLogger(ActPutController.class);
 
     private ActPutServiceImpl actBonusPercentService;
     private ExpectedMoneyByFinalistService moneyByFinalistService;
@@ -57,14 +61,36 @@ public class ActPutController {
                 .mapToDouble(Act::getBonus)
                 .sum();
 
-//        double allActMoneyPeriod = actList.stream()
-//                .filter(e -> !e.isPaid())
-//                .mapToDouble(Act::getBonus)
-//                .sum();
-
+        Set<Integer> seenActIds = new HashSet<>();
         double allActForClientMoneyPeriod = actList.stream()
+                .filter(act -> seenActIds.add(act.getId()))
                 .mapToDouble(Act::getBonus)
                 .sum();
+
+        Map<Integer, Long> actIdOccurrences = actList.stream()
+                .collect(Collectors.groupingBy(Act::getId, Collectors.counting()));
+        List<Integer> duplicateActIds = actIdOccurrences.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (!duplicateActIds.isEmpty()) {
+            log.warn("Найдены дубликаты act_id за период {} - {}: {}", date1, date2, duplicateActIds);
+            Map<Integer, List<String>> duplicateDetails = actList.stream()
+                    .filter(act -> duplicateActIds.contains(act.getId()))
+                    .collect(Collectors.groupingBy(Act::getId,
+                            Collectors.mapping(act -> String.format("paymentDate=%s, dateAct=%s, bonus=%.2f, paid=%s",
+                                    act.getPaymentDate(), act.getDateAct(), act.getBonus(), act.getPaid()),
+                                    Collectors.toList())));
+            duplicateDetails.forEach((actId, details) ->
+                    log.warn("act_id {} встречается {} раз(а): {}", actId, details.size(), String.join("; ", details)));
+        } else {
+            log.info("Дубликаты act_id за период {} - {} не обнаружены", date1, date2);
+        }
+        log.info("Акты за период {} - {}: всего {}, уникальных act_id {}, сумма по уникальным bonus={}, сумма по всем bonus={}",
+                date1, date2, actList.size(), actIdOccurrences.size(),
+                allActForClientMoneyPeriod, actList.stream().mapToDouble(Act::getBonus).sum());
 
         double allActMoneyPeriodPaid = actList.stream()
                 .filter(e -> e.getPaymentDate() != null)

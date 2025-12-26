@@ -58,6 +58,8 @@ public class ActsController {
         Locale ru = new Locale("ru", "RU");
         NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
+        logger.info("Формирование отчета по актам за период {} - {}", date1, date2);
+
         List<Act> actList = actBonusPercentService.getAllPutAct(date1, date2)
                 .stream()
                 .sorted(Comparator.comparingInt(Act::getId))
@@ -74,11 +76,36 @@ public class ActsController {
                 .mapToDouble(Act::getBonus)
                 .sum();
 
-
+        Set<Integer> seenActIds = new HashSet<>();
         double allActForClientMoneyPeriod = actList.stream()
                 .filter(act -> !act.getDateAct().isBefore(date1) && !act.getDateAct().isAfter(date2))
+                .filter(act -> seenActIds.add(act.getId()))
                 .mapToDouble(Act::getBonus)
                 .sum();
+
+        Map<Integer, Long> actIdOccurrences = actList.stream()
+                .collect(Collectors.groupingBy(Act::getId, Collectors.counting()));
+        List<Integer> duplicateActIds = actIdOccurrences.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .sorted()
+                .collect(Collectors.toList());
+        if (!duplicateActIds.isEmpty()) {
+            logger.warn("Найдены дубликаты act_id за период {} - {}: {}", date1, date2, duplicateActIds);
+            Map<Integer, List<String>> duplicateDetails = actList.stream()
+                    .filter(act -> duplicateActIds.contains(act.getId()))
+                    .collect(Collectors.groupingBy(Act::getId,
+                            Collectors.mapping(act -> String.format("paymentDate=%s, dateAct=%s, bonus=%.2f, paid=%s",
+                                    act.getPaymentDate(), act.getDateAct(), act.getBonus(), act.getPaid()),
+                                    Collectors.toList())));
+            duplicateDetails.forEach((actId, details) ->
+                    logger.warn("act_id {} встречается {} раз(а): {}", actId, details.size(), String.join("; ", details)));
+        } else {
+            logger.info("Дубликаты act_id за период {} - {} не обнаружены", date1, date2);
+        }
+        logger.info("Акты за период {} - {}: всего записей {}, уникальных act_id {}, сумма по уникальным bonus={}, сумма по всем bonus={}",
+                date1, date2, actList.size(), actIdOccurrences.size(),
+                allActForClientMoneyPeriod, actList.stream().mapToDouble(Act::getBonus).sum());
 
         double allActMoneyPeriodPaid = actList.stream()
                 .filter(e -> e.getPaymentDate() != null)
