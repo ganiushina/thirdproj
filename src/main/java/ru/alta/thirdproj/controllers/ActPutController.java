@@ -2,6 +2,8 @@ package ru.alta.thirdproj.controllers;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 @Tag(name="ActPutController", description="Управление актами")
 public class ActPutController {
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ActPutController.class);
+    private static final Logger log = LoggerFactory.getLogger(ActPutController.class);
 
     private ActPutServiceImpl actBonusPercentService;
     private ExpectedMoneyByFinalistService moneyByFinalistService;
@@ -74,7 +76,15 @@ public class ActPutController {
                 .collect(Collectors.toList());
 
         if (!duplicateActIds.isEmpty()) {
-            log.info("Найдены дубликаты act_id за период {} - {}: {}", date1, date2, duplicateActIds);
+            log.warn("Найдены дубликаты act_id за период {} - {}: {}", date1, date2, duplicateActIds);
+            Map<Integer, List<String>> duplicateDetails = actList.stream()
+                    .filter(act -> duplicateActIds.contains(act.getId()))
+                    .collect(Collectors.groupingBy(Act::getId,
+                            Collectors.mapping(act -> String.format("paymentDate=%s, dateAct=%s, bonus=%.2f, paid=%s",
+                                    act.getPaymentDate(), act.getDateAct(), act.getBonus(), act.getPaid()),
+                                    Collectors.toList())));
+            duplicateDetails.forEach((actId, details) ->
+                    log.warn("act_id {} встречается {} раз(а): {}", actId, details.size(), String.join("; ", details)));
         } else {
             log.info("Дубликаты act_id за период {} - {} не обнаружены", date1, date2);
         }
