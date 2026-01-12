@@ -8,10 +8,10 @@ import java.util.List;
 public interface IBonusPaymentSuccess {
 
     void save(PaymentSuccess paymentSuccess);
-    PaymentSuccess findOneByAct(int userId, int actId, String candidate, Double summ);
-    void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate);
-    void deletePayment(int employerId, Double paymentRealSum, int actId, String candidate);
-    void deletePaymentKPI(int employerId, Double paymentSum, String candidate);
+    PaymentSuccess findOneByAct(int userId, int actId, String candidate, Double summ, int paymentBuhId);
+    void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate, int paymentBuhId);
+    void deletePayment(int employerId, Double paymentRealSum, int actId, String candidate, int paymentBuhId);
+    void deletePaymentKPI(int employerId, Double paymentSum, String candidate, int paymentBuhId);
     void deletePaymentAll();
 
 }

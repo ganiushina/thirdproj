@@ -14,6 +14,7 @@ public class PaymentUpdateRequest {
     private Double bonus;
     private boolean paid;
     private String datePayment;
+    private Integer paymentBuhId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate paymentRealDate; // Используем LocalDate для SQL Server
@@ -26,8 +27,8 @@ public class PaymentUpdateRequest {
     @Override
     public String toString() {
         return String.format(
-                "PaymentUpdateRequest[actId=%d, employerId=%d, candidate=%s, bonus=%.2f, paid=%b, datePayment=%s, paymentRealDate=%s]",
-                actId, employerId, candidate, bonus, paid, datePayment, paymentRealDate
+                "PaymentUpdateRequest[actId=%d, employerId=%d, candidate=%s, bonus=%.2f, paid=%b, datePayment=%s, paymentRealDate=%s, paymentBuhId=%d]",
+                actId, employerId, candidate, bonus, paid, datePayment, paymentRealDate, paymentBuhId
         );
     }
 }
