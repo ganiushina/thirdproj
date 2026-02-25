@@ -24,7 +24,7 @@ public class BonusPaymentSuccessServiceImpl {
 
 
     public boolean addPayment(int userId, int employerId, Double paymentSum, int actId, String candidate,
-                              int projectId, int monthKPI, int type){
+                              int projectId, int monthKPI, int type, Integer paymentBuhId){
 
         PaymentSuccess paymentSuccess = new PaymentSuccess();
 //        if (!findByActId(userId, actId, candidate, paymentSum).isEmpty()) {
@@ -41,6 +41,7 @@ public class BonusPaymentSuccessServiceImpl {
         paymentSuccess.setProjectId(projectId);
         paymentSuccess.setMonthKPI(monthKPI);
         paymentSuccess.setType(type);
+        paymentSuccess.setPaymentBuhId(paymentBuhId);
         bonusPaymentSuccess.save(paymentSuccess);
 
         return true;

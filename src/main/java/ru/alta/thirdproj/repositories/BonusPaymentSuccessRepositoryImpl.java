@@ -16,7 +16,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
 
     private static final String SELECT_BONUS_PAYMENT_QUERY
-            = "insert INTO paymentSuccess values (:user_id ,\n" +
+            = "insert INTO paymentSuccess (user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, month_kpi, payment_type, payment_buh_id) values (:user_id ,\n" +
             ":employer_id ,\n" +
             ":payment_date ,\n" +
             ":payment_summ, " +
@@ -25,9 +25,10 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             ":project_id,\n" +
             ":payment_real_summ," +
             ":month_kpi," +
-            ":payment_type)";
+            ":payment_type," +
+            ":payment_buh_id)";
     private static final String SELECT_ID_BONUS_PAYMENT
-            = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ " +
+            = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, payment_buh_id " +
             "FROM paymentSuccess ps WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate and ps.payment_summ = :payment_summ";
 
 
@@ -67,6 +68,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
                     .addParameter("month_kpi", paymentSuccess.getMonthKPI())
                     .addParameter("payment_type", paymentSuccess.getType())
+                    .addParameter("payment_buh_id", paymentSuccess.getPaymentBuhId())
                     .executeUpdate();
             connection.commit();
 

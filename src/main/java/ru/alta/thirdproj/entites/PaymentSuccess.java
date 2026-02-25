@@ -21,6 +21,7 @@ public class PaymentSuccess {
     private int projectId;
     private int monthKPI;
     private int type;
+    private Integer paymentBuhId;
     public String getPaymentDateOnly() {
         if (paymentDate == null) return null;
         return new SimpleDateFormat("dd-MM-yyyy").format(paymentDate);
@@ -39,6 +40,7 @@ public class PaymentSuccess {
         COLUMN_MAPPINGS.put("payment_real_summ", "paymentRealSum");
         COLUMN_MAPPINGS.put("monthKPI", "month_kpi");
         COLUMN_MAPPINGS.put("type", "payment_type");
+        COLUMN_MAPPINGS.put("payment_buh_id", "paymentBuhId");
 
     }
 

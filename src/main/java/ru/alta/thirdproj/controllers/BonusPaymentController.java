@@ -239,7 +239,8 @@ public class BonusPaymentController {
                     request.getCandidate(),
                     0,
                     month,
-                    type
+                    type,
+                    request.getPaymentBuhId()
             );
         } else {
             // Отмена оплаты

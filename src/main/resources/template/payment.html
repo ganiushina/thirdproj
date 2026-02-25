@@ -360,6 +360,7 @@
                                    th:data-bonus="${act.bonus}"
                                    th:data-paid="${act.paid}"
                                    th:data-date-payment="${act.datePayment}"
+                                   th:data-payment-buh-id="${act.paymentBuhId}"
                                    onchange="updatePaymentStatus(this)">
                             <span th:text="${#numbers.formatDecimal(act.bonus, 1, 2, 'COMMA')}"
                                   th:attr="data-value=${act.bonus}"></span>
@@ -445,6 +446,8 @@
         const employerId = parseInt(checkbox.getAttribute('data-employer-id') || 0);
         const candidate = checkbox.getAttribute('data-candidate') || '';
         const datePaymentValue = checkbox.getAttribute('data-date-payment') || '';
+        const paymentBuhIdValue = checkbox.getAttribute('data-payment-buh-id');
+        const paymentBuhId = paymentBuhIdValue ? parseInt(paymentBuhIdValue, 10) : null;
 
         // Валидация данных
         if (!employerId || !candidate || !bonus || bonus <= 0) {
@@ -466,7 +469,8 @@
             bonus: bonus,
             paid: isChecked,
             datePayment: datePaymentValue,
-            paymentRealDate: isChecked ? currentDate : null
+            paymentRealDate: isChecked ? currentDate : null,
+            paymentBuhId: Number.isNaN(paymentBuhId) ? null : paymentBuhId
         };
 
         console.log("Sending payment data:", JSON.stringify(data, null, 2));
