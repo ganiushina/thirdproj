@@ -27,5 +27,5 @@ public class Act {
     private String dateClientPay;
     private String bonusRUB;
     private String organization;
-
+    private Integer paymentBuhId;
 }

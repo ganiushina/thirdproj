@@ -25,7 +25,7 @@ public class BonusPaymentRepositoryImpl {
 
     private static final String SELECT_BONUS_PAYMENT_QUERY = "SELECT * FROM fn_User_Bonus_Payment (:date1, :date2, :userId, :department_id)";
 
-    private static final String SELECT_BONUS_PAYMENT_QUERY_NEW = "SELECT * FROM fn_User_Bonus_Payment (:date1, :date2, :userId, :department_id)";
+    private static final String SELECT_BONUS_PAYMENT_QUERY_NEW = "SELECT * FROM [fn_User_Bonus_Payment_NEW] (:date1, :date2, :userId, :department_id)";
 
 
 
@@ -131,9 +131,23 @@ public class BonusPaymentRepositoryImpl {
             } else if (percentValue instanceof Long) {
                 percentInt = ((Long) percentValue).intValue();
             }
-
             if (percentInt != null) {
                 act.setPercent(percentInt.doubleValue());
+            }
+        }
+
+        Object payBuId = row.get("payment_buh_id");
+        if (percentValue != null) {
+            Integer payBuIdInt = null;
+            if (payBuId instanceof Integer) {
+                payBuIdInt = (Integer) payBuId;
+            } else if (percentValue instanceof BigDecimal) {
+                payBuIdInt = ((BigDecimal) payBuId).intValue();
+            } else if (payBuId instanceof Long) {
+                payBuIdInt = ((Long) payBuId).intValue();
+            }
+            if (payBuIdInt != null) {
+                act.setPaymentBuhId(payBuIdInt);
             }
         }
 
@@ -159,29 +173,11 @@ public class BonusPaymentRepositoryImpl {
         } else {
             act.setPaid(0); // значение по умолчанию
         }
-//        Object paidValue = row.get("paid");
-//        if (paidValue != null) {
-//            if (paidValue instanceof Integer) {
-//                act.setPaid((Integer) paidValue == 1);
-//            } else if (paidValue instanceof BigDecimal) {
-//                act.setPaid(((BigDecimal) paidValue).intValue() == 1);
-//            } else if (paidValue instanceof Boolean) {
-//                act.setPaid((Boolean) paidValue);
-//            }
-//        }
 
         setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
         setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
         setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
         setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
-
-
-
-
-//        setDateIfNotNull(act::setDateForPay, (Date) row.get("date_for_pay"), dateFormatter);
-//        setDateIfNotNull(act::setDatePayment, (Date) row.get("payment_date"), dateFormatter);
-//        setDateIfNotNull(act::setPaymentRealDate, (Date) row.get("payment_real_date"), dateFormatter);
-//        setDateIfNotNull(act::setDate, (Date) row.get("date_act"), dateFormatter);
 
         return act;
     }
