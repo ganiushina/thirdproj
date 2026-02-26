@@ -251,7 +251,8 @@ public class BonusPaymentController {
                     request.getBonus(),
                     request.getActId(),
                     request.getCandidate(),
-                    request.getBonus()
+                    request.getBonus(),
+                    request.getPaymentBuhId()
             );
         }
     }

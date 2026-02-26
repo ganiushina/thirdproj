@@ -100,10 +100,10 @@ public class BonusPaymentSuccessServiceImpl {
         }
     }
 
-    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId, String candidate, Double summ){
+    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId, String candidate, Double summ, Integer paymentBuhId){
 
         if (findByActId(userId, actId, candidate, summ) != null) {
-            bonusPaymentSuccess.deletePayment(employerId, paymentRealSum, actId, candidate);
+            bonusPaymentSuccess.deletePayment(employerId, paymentRealSum, actId, candidate, paymentBuhId);
         }
     }
 

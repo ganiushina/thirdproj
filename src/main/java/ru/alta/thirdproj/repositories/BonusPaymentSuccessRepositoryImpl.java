@@ -37,7 +37,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             "  WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate";
 
     private static final String DELETE_BONUS_PAYMENT =
-            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ";
+            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ and ((payment_buh_id = :payment_buh_id) or (:payment_buh_id is null and payment_buh_id is null))";
 
 
     private static final String DELETE_BONUS_PAYMENT_KPI = "DELETE paymentSuccess WHERE employer_id = :user_id and candidate = :candidate \n" +
@@ -93,13 +93,14 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
     @Transactional
     @Override
-    public void deletePayment(int employerId, Double paymentSum, int actId, String candidate) {
+    public void deletePayment(int employerId, Double paymentSum, int actId, String candidate, Integer paymentBuhId) {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(DELETE_BONUS_PAYMENT, false)
                     .addParameter("user_id", employerId)
                     .addParameter("payment_summ", paymentSum)
                     .addParameter("act_id", actId)
                     .addParameter("candidate", candidate)
+                    .addParameter("payment_buh_id", paymentBuhId)
                     .executeUpdate();
             connection.commit();
 
