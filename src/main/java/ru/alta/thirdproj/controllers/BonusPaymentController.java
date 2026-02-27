@@ -175,6 +175,7 @@ public class BonusPaymentController {
         System.out.println("paid: " + request.isPaid());
         System.out.println("datePayment: " + request.getDatePayment());
         System.out.println("paymentRealDate: " + request.getPaymentRealDate());
+        System.out.println("paymentBuhId: " + request.getPaymentBuhId());
         System.out.println("========================================");
     }
 
@@ -197,6 +198,10 @@ public class BonusPaymentController {
             errors.add("candidate обязателен");
         }
 
+        if (request.getPaymentBuhId() == null) {
+            errors.add("paymentBuhId обязателен");
+        }
+
         return errors;
     }
 
@@ -212,6 +217,7 @@ public class BonusPaymentController {
     private void processPayment(PaymentUpdateRequest request, User user) throws Exception {
         LocalDate paymentDate = request.getPaymentRealDate() != null ?
                 request.getPaymentRealDate() : LocalDate.now();
+        int paymentBuhId = request.getPaymentBuhId() != null ? request.getPaymentBuhId() : 0;
 
         if (request.isPaid()) {
             // Оплата бонуса
@@ -239,7 +245,8 @@ public class BonusPaymentController {
                     request.getCandidate(),
                     0,
                     month,
-                    type
+                    type,
+                    paymentBuhId
             );
         } else {
             // Отмена оплаты
@@ -250,7 +257,8 @@ public class BonusPaymentController {
                     request.getBonus(),
                     request.getActId(),
                     request.getCandidate(),
-                    request.getBonus()
+                    request.getBonus(),
+                    paymentBuhId
             );
         }
     }
@@ -261,7 +269,8 @@ public class BonusPaymentController {
                     user.getUserId(),
                     request.getActId(),
                     request.getCandidate(),
-                    request.getBonus()
+                    request.getBonus(),
+                    request.getPaymentBuhId() != null ? request.getPaymentBuhId() : 0
             );
             return paymentRecord.orElse(null);
         } catch (Exception e) {

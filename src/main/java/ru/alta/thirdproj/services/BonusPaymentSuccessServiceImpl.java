@@ -24,7 +24,7 @@ public class BonusPaymentSuccessServiceImpl {
 
 
     public boolean addPayment(int userId, int employerId, Double paymentSum, int actId, String candidate,
-                              int projectId, int monthKPI, int type){
+                              int projectId, int monthKPI, int type, int paymentBuhId){
 
         PaymentSuccess paymentSuccess = new PaymentSuccess();
 //        if (!findByActId(userId, actId, candidate, paymentSum).isEmpty()) {
@@ -41,13 +41,15 @@ public class BonusPaymentSuccessServiceImpl {
         paymentSuccess.setProjectId(projectId);
         paymentSuccess.setMonthKPI(monthKPI);
         paymentSuccess.setType(type);
+        paymentSuccess.setPaymentBuhId(paymentBuhId);
         bonusPaymentSuccess.save(paymentSuccess);
 
         return true;
     }
 
-    public Optional<PaymentSuccess> findByActId(int userId, int actId, String candidate, Double summ){
-        return Optional.ofNullable(bonusPaymentSuccess.findOneByAct(userId, actId, candidate, summ));
+    public Optional<PaymentSuccess> findByActId(int userId, int actId, String candidate, Double summ,
+                                                int paymentBuhId){
+        return Optional.ofNullable(bonusPaymentSuccess.findOneByAct(userId, actId, candidate, summ, paymentBuhId));
 
     }
 
@@ -92,17 +94,19 @@ public class BonusPaymentSuccessServiceImpl {
     }
 
 
-    public void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate, Double summ){
+    public void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId,
+                              String candidate, Double summ, int paymentBuhId){
 
-        if (findByActId(userId, actId, candidate, summ) != null) {
-            bonusPaymentSuccess.updatePayment(userId, employerId, paymentDate, paymentRealSum, actId, candidate);
+        if (findByActId(userId, actId, candidate, summ, paymentBuhId) != null) {
+            bonusPaymentSuccess.updatePayment(userId, employerId, paymentDate, paymentRealSum, actId, candidate, paymentBuhId);
         }
     }
 
-    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId, String candidate, Double summ){
+    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId,
+                              String candidate, Double summ, int paymentBuhId){
 
-        if (findByActId(userId, actId, candidate, summ) != null) {
-            bonusPaymentSuccess.deletePayment(employerId, paymentRealSum, actId, candidate);
+        if (findByActId(userId, actId, candidate, summ, paymentBuhId) != null) {
+            bonusPaymentSuccess.deletePayment(employerId, paymentRealSum, actId, candidate, paymentBuhId);
         }
     }
 
@@ -158,5 +162,4 @@ public class BonusPaymentSuccessServiceImpl {
 
 
 }
-
 
