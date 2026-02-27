@@ -16,7 +16,8 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
 
     private static final String SELECT_BONUS_PAYMENT_QUERY
-            = "insert INTO paymentSuccess values (:user_id ,\n" +
+            = "insert INTO paymentSuccess (user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, " +
+            "payment_real_summ, month_kpi, payment_type, payment_buh_id) values (:user_id ,\n" +
             ":employer_id ,\n" +
             ":payment_date ,\n" +
             ":payment_summ, " +
@@ -25,22 +26,25 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             ":project_id,\n" +
             ":payment_real_summ," +
             ":month_kpi," +
-            ":payment_type)";
+            ":payment_type," +
+            ":payment_buh_id)";
     private static final String SELECT_ID_BONUS_PAYMENT
-            = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ " +
-            "FROM paymentSuccess ps WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate and ps.payment_summ = :payment_summ";
+            = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, payment_buh_id " +
+            "FROM paymentSuccess ps WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate " +
+            "and ps.payment_summ = :payment_summ and ps.payment_buh_id = :payment_buh_id";
 
 
     private static final String UPDATE_BONUS_PAYMENT =
     "UPDATE [dbo].[paymentSuccess]  SET  employer_id = :employer_id,  payment_date = :payment_date ,payment_real_summ = :payment_real_summ" +
-            "  WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate";
+            "  WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate and ps.payment_buh_id = :payment_buh_id";
 
     private static final String DELETE_BONUS_PAYMENT =
-            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ";
+            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate " +
+            "and payment_summ = :payment_summ and payment_buh_id = :payment_buh_id";
 
 
     private static final String DELETE_BONUS_PAYMENT_KPI = "DELETE paymentSuccess WHERE employer_id = :user_id and candidate = :candidate \n" +
-            "\t\t\tand payment_summ = :payment_summ";
+            "\t\t\tand payment_summ = :payment_summ and payment_buh_id = :payment_buh_id";
 
 
     private static final String DELETE_BONUS_PAYMENT_ALL =
@@ -67,6 +71,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
                     .addParameter("month_kpi", paymentSuccess.getMonthKPI())
                     .addParameter("payment_type", paymentSuccess.getType())
+                    .addParameter("payment_buh_id", paymentSuccess.getPaymentBuhId())
                     .executeUpdate();
             connection.commit();
 
@@ -74,7 +79,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     }
 
     @Override
-    public PaymentSuccess findOneByAct(int userId, int actId, String candidate, Double summ) {
+    public PaymentSuccess findOneByAct(int userId, int actId, String candidate, Double summ, int paymentBuhId) {
         try (Connection connection = sql2o.open()) {
             return connection.createQuery(SELECT_ID_BONUS_PAYMENT)
                     .throwOnMappingFailure(false)
@@ -82,6 +87,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("act_id", actId)
                     .addParameter("candidate", candidate)
                     .addParameter("payment_summ", summ)
+                    .addParameter("payment_buh_id", paymentBuhId)
                     .setColumnMappings(PaymentSuccess.COLUMN_MAPPINGS)
                     .executeAndFetchFirst(PaymentSuccess.class);
         }
@@ -91,13 +97,14 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
     @Transactional
     @Override
-    public void deletePayment(int employerId, Double paymentSum, int actId, String candidate) {
+    public void deletePayment(int employerId, Double paymentSum, int actId, String candidate, int paymentBuhId) {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(DELETE_BONUS_PAYMENT, false)
                     .addParameter("user_id", employerId)
                     .addParameter("payment_summ", paymentSum)
                     .addParameter("act_id", actId)
                     .addParameter("candidate", candidate)
+                    .addParameter("payment_buh_id", paymentBuhId)
                     .executeUpdate();
             connection.commit();
 
@@ -106,12 +113,13 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
     @Transactional
     @Override
-    public void deletePaymentKPI(int employerId, Double paymentSum, String candidate) {
+    public void deletePaymentKPI(int employerId, Double paymentSum, String candidate, int paymentBuhId) {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(DELETE_BONUS_PAYMENT_KPI, false)
                     .addParameter("user_id", employerId)
                     .addParameter("payment_summ", paymentSum)
                     .addParameter("candidate", candidate)
+                    .addParameter("payment_buh_id", paymentBuhId)
                     .executeUpdate();
             connection.commit();
 
@@ -131,7 +139,8 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
     @Transactional
     @Override
-    public void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate)
+    public void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId,
+                              String candidate, int paymentBuhId)
     {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(UPDATE_BONUS_PAYMENT, false)
@@ -141,6 +150,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                     .addParameter("payment_real_summ", paymentRealSum)
                     .addParameter("act_id", actId)
                     .addParameter("candidate", candidate)
+                    .addParameter("payment_buh_id", paymentBuhId)
                     .executeUpdate();
             connection.commit();
 
