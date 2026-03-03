@@ -14,7 +14,7 @@ public class PaymentUpdateRequest {
     private Double bonus;
     private boolean paid;
     private String datePayment;
-    private Integer paymentBuhId;
+    private String paymentBuhId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate paymentRealDate; // Используем LocalDate для SQL Server

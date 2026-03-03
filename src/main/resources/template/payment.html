@@ -447,7 +447,7 @@
         const candidate = checkbox.getAttribute('data-candidate') || '';
         const datePaymentValue = checkbox.getAttribute('data-date-payment') || '';
         const paymentBuhIdValue = checkbox.getAttribute('data-payment-buh-id');
-        const paymentBuhId = paymentBuhIdValue ? parseInt(paymentBuhIdValue, 10) : null;
+        const paymentBuhId = paymentBuhIdValue && paymentBuhIdValue !== 'null' ? paymentBuhIdValue : null;
 
         // Валидация данных
         if (!employerId || !candidate || !bonus || bonus <= 0) {
@@ -470,7 +470,7 @@
             paid: isChecked,
             datePayment: datePaymentValue,
             paymentRealDate: isChecked ? currentDate : null,
-            paymentBuhId: Number.isNaN(paymentBuhId) ? null : paymentBuhId
+            paymentBuhId: paymentBuhId
         };
 
         console.log("Sending payment data:", JSON.stringify(data, null, 2));

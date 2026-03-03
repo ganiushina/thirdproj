@@ -93,7 +93,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
     @Transactional
     @Override
-    public void deletePayment(int employerId, Double paymentSum, int actId, String candidate, Integer paymentBuhId) {
+    public void deletePayment(int employerId, Double paymentSum, int actId, String candidate, String paymentBuhId) {
         try (Connection connection = sql2o.open()) {
             connection.createQuery(DELETE_BONUS_PAYMENT, false)
                     .addParameter("user_id", employerId)

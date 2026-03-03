@@ -137,18 +137,8 @@ public class BonusPaymentRepositoryImpl {
         }
 
         Object payBuId = row.get("payment_buh_id");
-        if (percentValue != null) {
-            Integer payBuIdInt = null;
-            if (payBuId instanceof Integer) {
-                payBuIdInt = (Integer) payBuId;
-            } else if (percentValue instanceof BigDecimal) {
-                payBuIdInt = ((BigDecimal) payBuId).intValue();
-            } else if (payBuId instanceof Long) {
-                payBuIdInt = ((Long) payBuId).intValue();
-            }
-            if (payBuIdInt != null) {
-                act.setPaymentBuhId(payBuIdInt);
-            }
+        if (payBuId != null) {
+            act.setPaymentBuhId(payBuId.toString());
         }
 
 

@@ -21,7 +21,7 @@ public class PaymentSuccess {
     private int projectId;
     private int monthKPI;
     private int type;
-    private Integer paymentBuhId;
+    private String paymentBuhId;
     public String getPaymentDateOnly() {
         if (paymentDate == null) return null;
         return new SimpleDateFormat("dd-MM-yyyy").format(paymentDate);
