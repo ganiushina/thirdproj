@@ -74,7 +74,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     @Transactional
     public void save(PaymentSuccess paymentSuccess)
     {
-        try (Connection connection = sql2o.open()) {
+        try (Connection connection = sql2o.beginTransaction()) {
             try {
                 connection.createQuery(SELECT_BONUS_PAYMENT_QUERY, false)
                         .addParameter("user_id", paymentSuccess.getUserId())
@@ -131,7 +131,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     @Transactional
     @Override
     public void deletePayment(int employerId, Double paymentSum, int actId, String candidate, UUID paymentBuhId) {
-        try (Connection connection = sql2o.open()) {
+        try (Connection connection = sql2o.beginTransaction()) {
             try {
                 connection.createQuery(DELETE_BONUS_PAYMENT, false)
                         .addParameter("user_id", employerId)
@@ -160,7 +160,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     @Transactional
     @Override
     public void deletePaymentKPI(int employerId, Double paymentSum, String candidate) {
-        try (Connection connection = sql2o.open()) {
+        try (Connection connection = sql2o.beginTransaction()) {
             connection.createQuery(DELETE_BONUS_PAYMENT_KPI, false)
                     .addParameter("user_id", employerId)
                     .addParameter("payment_summ", paymentSum)
@@ -174,7 +174,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     @Transactional
     @Override
     public void deletePaymentAll() {
-        try (Connection connection = sql2o.open()) {
+        try (Connection connection = sql2o.beginTransaction()) {
             connection.createQuery(DELETE_BONUS_PAYMENT_ALL, false)
                     .executeUpdate();
             connection.commit();
@@ -186,7 +186,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     @Override
     public void updatePayment(int userId, int employerId, Date paymentDate, Double paymentRealSum, int actId, String candidate)
     {
-        try (Connection connection = sql2o.open()) {
+        try (Connection connection = sql2o.beginTransaction()) {
             connection.createQuery(UPDATE_BONUS_PAYMENT, false)
                     .addParameter("user_id", userId)
                     .addParameter("employer_id", employerId)
