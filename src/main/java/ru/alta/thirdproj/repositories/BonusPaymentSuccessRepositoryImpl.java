@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
+import org.sql2o.Sql2oException;
 import ru.alta.thirdproj.entites.PaymentSuccess;
 
 import java.util.Date;
@@ -27,7 +28,19 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             ":payment_real_summ," +
             ":month_kpi," +
             ":payment_type," +
-            "CAST(:payment_buh_id as uniqueidentifier))";
+            ":payment_buh_id)";
+
+    private static final String SELECT_BONUS_PAYMENT_QUERY_LEGACY
+            = "insert INTO paymentSuccess (user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, month_kpi, payment_type) values (:user_id ,\n" +
+            ":employer_id ,\n" +
+            ":payment_date ,\n" +
+            ":payment_summ, " +
+            ":act_id ,\n" +
+            ":candidate ,\n" +
+            ":project_id,\n" +
+            ":payment_real_summ," +
+            ":month_kpi," +
+            ":payment_type)";
     private static final String SELECT_ID_BONUS_PAYMENT
             = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, payment_buh_id " +
             "FROM paymentSuccess ps WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate and ps.payment_summ = :payment_summ";
@@ -38,8 +51,12 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             "  WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate";
 
     private static final String DELETE_BONUS_PAYMENT =
-            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ and ((payment_buh_id = CAST(:payment_buh_id as uniqueidentifier)) or (:payment_buh_id is null and payment_buh_id is null))";
+            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ and ((CONVERT(nvarchar(64), payment_buh_id) = CONVERT(nvarchar(64), :payment_buh_id)) or (:payment_buh_id is null and payment_buh_id is null))";
 
+
+
+    private static final String DELETE_BONUS_PAYMENT_LEGACY =
+            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ";
 
     private static final String DELETE_BONUS_PAYMENT_KPI = "DELETE paymentSuccess WHERE employer_id = :user_id and candidate = :candidate \n" +
             "\t\t\tand payment_summ = :payment_summ";
@@ -58,19 +75,34 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     public void save(PaymentSuccess paymentSuccess)
     {
         try (Connection connection = sql2o.open()) {
-             connection.createQuery(SELECT_BONUS_PAYMENT_QUERY, false)
-                    .addParameter("user_id", paymentSuccess.getUserId())
-                    .addParameter("employer_id", paymentSuccess.getEmployerId() )
-                    .addParameter("payment_date", paymentSuccess.getPaymentDate())
-                    .addParameter("payment_summ", paymentSuccess.getPaymentSum())
-                    .addParameter("act_id", paymentSuccess.getActId())
-                    .addParameter("candidate", paymentSuccess.getCandidate())
-                    .addParameter("project_id", paymentSuccess.getProjectId())
-                    .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
-                    .addParameter("month_kpi", paymentSuccess.getMonthKPI())
-                    .addParameter("payment_type", paymentSuccess.getType())
-                    .addParameter("payment_buh_id", paymentSuccess.getPaymentBuhId())
-                    .executeUpdate();
+            try {
+                connection.createQuery(SELECT_BONUS_PAYMENT_QUERY, false)
+                        .addParameter("user_id", paymentSuccess.getUserId())
+                        .addParameter("employer_id", paymentSuccess.getEmployerId() )
+                        .addParameter("payment_date", paymentSuccess.getPaymentDate())
+                        .addParameter("payment_summ", paymentSuccess.getPaymentSum())
+                        .addParameter("act_id", paymentSuccess.getActId())
+                        .addParameter("candidate", paymentSuccess.getCandidate())
+                        .addParameter("project_id", paymentSuccess.getProjectId())
+                        .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
+                        .addParameter("month_kpi", paymentSuccess.getMonthKPI())
+                        .addParameter("payment_type", paymentSuccess.getType())
+                        .addParameter("payment_buh_id", paymentSuccess.getPaymentBuhId())
+                        .executeUpdate();
+            } catch (Sql2oException e) {
+                connection.createQuery(SELECT_BONUS_PAYMENT_QUERY_LEGACY, false)
+                        .addParameter("user_id", paymentSuccess.getUserId())
+                        .addParameter("employer_id", paymentSuccess.getEmployerId() )
+                        .addParameter("payment_date", paymentSuccess.getPaymentDate())
+                        .addParameter("payment_summ", paymentSuccess.getPaymentSum())
+                        .addParameter("act_id", paymentSuccess.getActId())
+                        .addParameter("candidate", paymentSuccess.getCandidate())
+                        .addParameter("project_id", paymentSuccess.getProjectId())
+                        .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
+                        .addParameter("month_kpi", paymentSuccess.getMonthKPI())
+                        .addParameter("payment_type", paymentSuccess.getType())
+                        .executeUpdate();
+            }
             connection.commit();
 
         }
@@ -96,13 +128,22 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
     @Override
     public void deletePayment(int employerId, Double paymentSum, int actId, String candidate, UUID paymentBuhId) {
         try (Connection connection = sql2o.open()) {
-            connection.createQuery(DELETE_BONUS_PAYMENT, false)
-                    .addParameter("user_id", employerId)
-                    .addParameter("payment_summ", paymentSum)
-                    .addParameter("act_id", actId)
-                    .addParameter("candidate", candidate)
-                    .addParameter("payment_buh_id", paymentBuhId)
-                    .executeUpdate();
+            try {
+                connection.createQuery(DELETE_BONUS_PAYMENT, false)
+                        .addParameter("user_id", employerId)
+                        .addParameter("payment_summ", paymentSum)
+                        .addParameter("act_id", actId)
+                        .addParameter("candidate", candidate)
+                        .addParameter("payment_buh_id", paymentBuhId)
+                        .executeUpdate();
+            } catch (Sql2oException e) {
+                connection.createQuery(DELETE_BONUS_PAYMENT_LEGACY, false)
+                        .addParameter("user_id", employerId)
+                        .addParameter("payment_summ", paymentSum)
+                        .addParameter("act_id", actId)
+                        .addParameter("candidate", candidate)
+                        .executeUpdate();
+            }
             connection.commit();
 
         }
