@@ -42,6 +42,7 @@ public class PaymentSuccess {
         COLUMN_MAPPINGS.put("monthKPI", "month_kpi");
         COLUMN_MAPPINGS.put("type", "payment_type");
         COLUMN_MAPPINGS.put("payment_buh_id", "paymentBuhId");
+        COLUMN_MAPPINGS.put("pay_guid", "paymentBuhId");
 
     }
 

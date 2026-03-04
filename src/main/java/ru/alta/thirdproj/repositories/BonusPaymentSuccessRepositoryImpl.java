@@ -18,7 +18,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
 
 
     private static final String SELECT_BONUS_PAYMENT_QUERY
-            = "insert INTO paymentSuccess (user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, month_kpi, payment_type, payment_buh_id) values (:user_id ,\n" +
+            = "insert INTO paymentSuccess (user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, month_kpi, payment_type, pay_guid) values (:user_id ,\n" +
             ":employer_id ,\n" +
             ":payment_date ,\n" +
             ":payment_summ, " +
@@ -28,7 +28,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             ":payment_real_summ," +
             ":month_kpi," +
             ":payment_type," +
-            "CAST(:payment_buh_id as uniqueidentifier))";
+            "CAST(:pay_guid as uniqueidentifier))";
 
     private static final String SELECT_BONUS_PAYMENT_QUERY_LEGACY
             = "insert INTO paymentSuccess (user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, month_kpi, payment_type) values (:user_id ,\n" +
@@ -42,7 +42,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             ":month_kpi," +
             ":payment_type)";
     private static final String SELECT_ID_BONUS_PAYMENT
-            = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, payment_buh_id " +
+            = "SELECT user_id, employer_id, payment_date, payment_summ, act_id, candidate, project_id, payment_real_summ, pay_guid as payment_buh_id " +
             "FROM paymentSuccess ps WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate and ps.payment_summ = :payment_summ";
 
 
@@ -51,7 +51,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
             "  WHERE ps.user_id = :user_id and ps.act_id = :act_id and ps.candidate = :candidate";
 
     private static final String DELETE_BONUS_PAYMENT =
-            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ and ((payment_buh_id = CAST(:payment_buh_id as uniqueidentifier)) or (:payment_buh_id is null and payment_buh_id is null))";
+            "DELETE paymentSuccess WHERE employer_id = :user_id and act_id = :act_id and candidate = :candidate and payment_summ = :payment_summ and ((pay_guid = CAST(:pay_guid as uniqueidentifier)) or (:pay_guid is null and pay_guid is null))";
 
 
 
@@ -87,7 +87,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                         .addParameter("payment_real_summ", paymentSuccess.getPaymentRealSum())
                         .addParameter("month_kpi", paymentSuccess.getMonthKPI())
                         .addParameter("payment_type", paymentSuccess.getType())
-                        .addParameter("payment_buh_id", paymentSuccess.getPaymentBuhId() != null ? paymentSuccess.getPaymentBuhId().toString() : null)
+                        .addParameter("pay_guid", paymentSuccess.getPaymentBuhId() != null ? paymentSuccess.getPaymentBuhId().toString() : null)
                         .executeUpdate();
             } catch (Sql2oException e) {
                 if (isMissingPaymentBuhIdColumnError(e)) {
@@ -138,7 +138,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
                         .addParameter("payment_summ", paymentSum)
                         .addParameter("act_id", actId)
                         .addParameter("candidate", candidate)
-                        .addParameter("payment_buh_id", paymentBuhId != null ? paymentBuhId.toString() : null)
+                        .addParameter("pay_guid", paymentBuhId != null ? paymentBuhId.toString() : null)
                         .executeUpdate();
             } catch (Sql2oException e) {
                 if (isMissingPaymentBuhIdColumnError(e)) {
@@ -205,7 +205,7 @@ public class BonusPaymentSuccessRepositoryImpl implements IBonusPaymentSuccess {
         }
 
         String msg = e.getMessage().toLowerCase();
-        return msg.contains("payment_buh_id") &&
+        return (msg.contains("payment_buh_id") || msg.contains("pay_guid")) &&
                 (msg.contains("invalid column") || msg.contains("column") && msg.contains("not found"));
     }
 

@@ -137,10 +137,12 @@ public class BonusPaymentRepositoryImpl {
             }
         }
 
+        Object payGuid = row.get("pay_guid");
         Object payBuId = row.get("payment_buh_id");
-        if (payBuId != null) {
+        Object paymentGuidSource = payGuid != null ? payGuid : payBuId;
+        if (paymentGuidSource != null) {
             try {
-                act.setPaymentBuhId(UUID.fromString(payBuId.toString()));
+                act.setPaymentBuhId(UUID.fromString(paymentGuidSource.toString()));
             } catch (IllegalArgumentException ignored) {
                 act.setPaymentBuhId(null);
             }
