@@ -5,6 +5,7 @@ import lombok.Data;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public class PaymentSuccess {
     private int projectId;
     private int monthKPI;
     private int type;
-    private String paymentBuhId;
+    private UUID paymentBuhId;
     public String getPaymentDateOnly() {
         if (paymentDate == null) return null;
         return new SimpleDateFormat("dd-MM-yyyy").format(paymentDate);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 public class PaymentUpdateRequest {
@@ -14,7 +15,7 @@ public class PaymentUpdateRequest {
     private Double bonus;
     private boolean paid;
     private String datePayment;
-    private String paymentBuhId;
+    private UUID paymentBuhId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate paymentRealDate; // Используем LocalDate для SQL Server

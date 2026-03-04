@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.UUID;
 
 @Data
 public class Act {
@@ -27,5 +28,5 @@ public class Act {
     private String dateClientPay;
     private String bonusRUB;
     private String organization;
-    private String paymentBuhId;
+    private UUID paymentBuhId;
 }

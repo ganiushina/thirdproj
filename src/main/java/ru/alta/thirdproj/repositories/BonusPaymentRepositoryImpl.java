@@ -14,6 +14,7 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -138,7 +139,11 @@ public class BonusPaymentRepositoryImpl {
 
         Object payBuId = row.get("payment_buh_id");
         if (payBuId != null) {
-            act.setPaymentBuhId(payBuId.toString());
+            try {
+                act.setPaymentBuhId(UUID.fromString(payBuId.toString()));
+            } catch (IllegalArgumentException ignored) {
+                act.setPaymentBuhId(null);
+            }
         }
 
 

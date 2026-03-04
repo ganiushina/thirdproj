@@ -24,7 +24,7 @@ public class BonusPaymentSuccessServiceImpl {
 
 
     public boolean addPayment(int userId, int employerId, Double paymentSum, int actId, String candidate,
-                              int projectId, int monthKPI, int type, String paymentBuhId){
+                              int projectId, int monthKPI, int type, UUID paymentBuhId){
 
         PaymentSuccess paymentSuccess = new PaymentSuccess();
 //        if (!findByActId(userId, actId, candidate, paymentSum).isEmpty()) {
@@ -100,7 +100,7 @@ public class BonusPaymentSuccessServiceImpl {
         }
     }
 
-    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId, String candidate, Double summ, String paymentBuhId){
+    public void deletePayment(int userId, int employerId, LocalDate paymentDate, Double paymentRealSum, int actId, String candidate, Double summ, UUID paymentBuhId){
 
         if (findByActId(userId, actId, candidate, summ) != null) {
             bonusPaymentSuccess.deletePayment(employerId, paymentRealSum, actId, candidate, paymentBuhId);
