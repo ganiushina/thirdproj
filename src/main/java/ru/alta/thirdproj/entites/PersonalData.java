@@ -16,7 +16,7 @@ public class PersonalData {
     public static final Map<String, String> COLUMN_MAPPINGS = new HashMap<>();
 
     static {
-        COLUMN_MAPPINGS.put("user_name", "userName");
+        COLUMN_MAPPINGS.put("man_fio", "userName");
         COLUMN_MAPPINGS.put("cnt_total", "cntTotal");
         COLUMN_MAPPINGS.put("cnt_confirmed", "cntConfirmed");
         COLUMN_MAPPINGS.put("cnt_not_confirmed", "cntNotConfirmed");
