@@ -104,7 +104,7 @@
                     <table class="table table-bordered table-hover fixed-header">
                         <thead>
                         <tr>
-                            <th>ID пользователя</th>
+                            <th>Пользователь</th>
                             <th>Всего согласий</th>
                             <th>Подтверждено</th>
                             <th>Не подтверждено</th>
@@ -115,7 +115,7 @@
                             <td colspan="4" class="text-center text-muted">Нет данных за выбранный период</td>
                         </tr>
                         <tr th:each="item : ${personalDataList}">
-                            <td th:text="${item.userId}"></td>
+                            <td th:text="${item.userName}"></td>
                             <td th:text="${item.cntTotal}"></td>
                             <td th:text="${item.cntConfirmed}"></td>
                             <td th:text="${item.cntNotConfirmed}"></td>

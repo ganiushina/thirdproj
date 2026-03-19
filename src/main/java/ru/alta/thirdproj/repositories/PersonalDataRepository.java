@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class PersonalDataRepository {
 
-    private static final String SELECT_ACT_PAYMENT_QUERY = "select * from fn_personal_data_cnt_by_user(:date1, :date2)";
+    private static final String SELECT_PERSONAL_DATA_QUERY = "select * from fn_personal_data_cnt_by_user(:date1, :date2)";
 
     private final Sql2o sql2o;
 
@@ -22,7 +22,7 @@ public class PersonalDataRepository {
 
     public List<PersonalData> getPersonalData(LocalDate date1, LocalDate date2) {
         try (Connection connection = sql2o.open()) {
-            return connection.createQuery(SELECT_ACT_PAYMENT_QUERY, false)
+            return connection.createQuery(SELECT_PERSONAL_DATA_QUERY, false)
                     .addParameter("date1", date1)
                     .addParameter("date2", date2)
                     .setColumnMappings(PersonalData.COLUMN_MAPPINGS)
