@@ -19,11 +19,15 @@
             overflow-x: auto;
         }
 
-        .fixed-header thead th {
+        .fixed-header thead {
             position: sticky;
             top: 56px;
-            background: white;
             z-index: 1020;
+        }
+
+        .fixed-header thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
             box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
         }
 
@@ -102,12 +106,12 @@
 
                 <div class="table-container">
                     <table class="table table-bordered table-hover fixed-header">
-                        <thead>
+                        <thead class="table-light">
                         <tr>
-                            <th>Пользователь</th>
-                            <th>Всего согласий</th>
-                            <th>Подтверждено</th>
-                            <th>Не подтверждено</th>
+                            <th scope="col">Пользователь</th>
+                            <th scope="col">Всего согласий</th>
+                            <th scope="col">Подтверждено</th>
+                            <th scope="col">Не подтверждено</th>
                         </tr>
                         </thead>
                         <tbody>
