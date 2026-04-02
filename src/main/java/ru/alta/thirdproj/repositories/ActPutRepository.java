@@ -44,6 +44,7 @@ public class ActPutRepository {
             "            LEFT JOIN dbo.project p ON p.project_id = ab.project_id\n" +
             "\t\t\tleft join payment_buh pb ON pb.act_id = ab.id\n" +
             "            WHERE convert(date, ab.date_act) >= convert(date, dateadd(yy, -1, :date1))\n" +
+            "            AND (ab.company_name not like 'АЛЬТА ПЕРСОНАЛ ООО' and ab.company_name not like 'АЛЬТА КОНСАЛТ ООО')\n" +
             "\t\t\t) s where pbactid is null or s.summ < s.total";
 
     private static final String SELECT_ACT_DETAILS_BY_COMPANY_BY_DEPARTMENT = "SELECT ab.id, ab.date_act, left(ab.act_num, 11) act_num, ab.company_name, ab.total_no_nds, ab.project_name, \n" +
