@@ -46,7 +46,7 @@ VALUES
      N'Пивовар Янна', 15865624, 165240,
      0.85, 85,
      N'Industrial', 3,
-     N'Новоженина Дарья', 8715253, NULL, NULL, CONVERT(datetime, '2026-06-22'));
+     N'Новоженина Дарья', 8715253, NULL, NULL, CONVERT(datetime, '20260622'));  -- yyyymmdd: безопасно для datetime при любой локали
 
 -- 2) Что увидит override-view (для контроля сторно/начислений)
 SELECT 'v_project_buh_actual' AS stage, act_id, responsible_user_name, summ_responsible_user,
