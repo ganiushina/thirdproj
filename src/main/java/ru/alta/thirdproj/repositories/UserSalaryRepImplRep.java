@@ -172,6 +172,34 @@ public class UserSalaryRepImplRep  {
     private static final String DELETE_FAILED_PROBATION_ACT_BY_ID =
             "DELETE FROM project_buh_failed_probation_period WHERE id = :id";
 
+    // ── Корректировка маржи (failed probation): реверс заработанного бонуса
+    //    исходных участников акта, если их квартал уже закрыт (правило 20-го числа) ──
+    private static final String SELECT_ACT_CORRECTION_INFO =
+            "SELECT DATEPART(mm, ab.date_act) AS src_m, " +
+            "       DATEPART(yy, ab.date_act) AS src_y, " +
+            "       CONVERT(date, ab.date_act) AS date_act, " +
+            "       eq.eff_quarter AS corr_q, " +
+            "       eq.eff_year   AS corr_y, " +
+            "       CASE WHEN eq.eff_quarter = DATEPART(qq, GETDATE()) AND eq.eff_year = DATEPART(yy, GETDATE()) " +
+            "            THEN DATEPART(mm, GETDATE()) ELSE (eq.eff_quarter - 1) * 3 + 1 END AS corr_m " +
+            "FROM act_buh ab CROSS APPLY dbo.fn_effective_quarter(GETDATE()) eq " +
+            "WHERE ab.id = :actId";
+
+    private static final String SELECT_ORIGINAL_ACT_BONUSES =
+            "SELECT man_id, man_fio, dep_id, money_by_candidate " +
+            "FROM dbo.fn_User_Bonus_by_Details_New(:d1, :d2, 0, 0) " +
+            "WHERE act_id = :actId AND money_by_candidate > 0";
+
+    private static final String DELETE_MARGIN_CORRECTION_BY_ACT =
+            "DELETE FROM dbo.margin_bonus_correction WHERE act_id = :actId";
+
+    private static final String INSERT_MARGIN_CORRECTION =
+            "INSERT INTO dbo.margin_bonus_correction " +
+            "(act_id, user_id, user_name, depatment_id, bonus_amount, " +
+            " source_month, source_year, correction_month, correction_year, date_update, reason) " +
+            "VALUES (:actId, :userId, :userName, :depId, :amount, " +
+            " :srcM, :srcY, :corrM, :corrY, GETDATE(), 'failed_probation')";
+
 
     public List<UserSalary> getAllUserSalary(LocalDate date1, LocalDate date2, Integer departmentId) {
         try (Connection connection = sql2o.open()) {
@@ -1044,6 +1072,13 @@ public class UserSalaryRepImplRep  {
                 Map.of("actId", actId),
                 (rs, rowNum) -> rs.getInt("id"));
 
+        // [Correction] Только при ПЕРВОМ редактировании (override ещё нет) и наличии участников:
+        // зафиксировать реверс заработанных бонусов исходных участников, если их квартал закрыт.
+        // Вызывать ДО записи PFPP — пока функция бонусов видит оригинальное распределение.
+        if (existingIds.isEmpty() && !safeParticipants.isEmpty()) {
+            recordFailedProbationCorrections(actId);
+        }
+
         if (!safeParticipants.isEmpty()) {
             int updated = 0;
             int inserted = 0;
@@ -1109,5 +1144,64 @@ public class UserSalaryRepImplRep  {
             log.warn("[UpdateAct] No participants provided for actId={}, removed existing rows: {}", actId,
                     deleted);
         }
+    }
+
+    /**
+     * Фиксирует реверс заработанных бонусов исходных участников акта (failed probation),
+     * если квартал акта уже закрыт (по правилу 20-го числа следующего за кварталом месяца).
+     * Эти бонусы заморожены в закрытом квартале; без реверса они задвоились бы с новым
+     * распределением, которое override переносит в квартал изменения.
+     * Должно вызываться ДО записи в PFPP (пока v_project_buh_actual ещё не отдаёт override
+     * по этому акту, и fn_User_Bonus_by_Details_New возвращает оригинал).
+     */
+    private void recordFailedProbationCorrections(Integer actId) {
+        Map<String, Object> info;
+        try {
+            info = jdbcTemplate.queryForMap(SELECT_ACT_CORRECTION_INFO, Map.of("actId", actId));
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            log.warn("[Correction] act {} not found, skip correction", actId);
+            return;
+        }
+
+        int srcM  = ((Number) info.get("src_m")).intValue();
+        int srcY  = ((Number) info.get("src_y")).intValue();
+        int corrQ = ((Number) info.get("corr_q")).intValue();
+        int corrY = ((Number) info.get("corr_y")).intValue();
+        int corrM = ((Number) info.get("corr_m")).intValue();
+
+        int srcQ = (srcM - 1) / 3 + 1;
+        // Реверс нужен, только если квартал акта строго раньше эффективного квартала изменения.
+        if (srcY * 4 + srcQ >= corrY * 4 + corrQ) {
+            log.info("[Correction] act {}: source {}Q{} not before correction {}Q{} — no reversal",
+                    actId, srcY, srcQ, corrY, corrQ);
+            return;
+        }
+
+        LocalDate d1 = LocalDate.of(srcY, srcM, 1);
+        LocalDate d2 = d1.withDayOfMonth(d1.lengthOfMonth());
+
+        List<Map<String, Object>> bonuses = jdbcTemplate.queryForList(SELECT_ORIGINAL_ACT_BONUSES,
+                Map.of("d1", java.sql.Date.valueOf(d1), "d2", java.sql.Date.valueOf(d2), "actId", actId));
+
+        // Идемпотентность: на случай повторного «первого» редактирования чистим прежние строки акта.
+        jdbcTemplate.update(DELETE_MARGIN_CORRECTION_BY_ACT, Map.of("actId", actId));
+
+        int inserted = 0;
+        for (Map<String, Object> b : bonuses) {
+            Map<String, Object> p = new HashMap<>();
+            p.put("actId", actId);
+            p.put("userId", ((Number) b.get("man_id")).intValue());
+            p.put("userName", b.get("man_fio"));
+            p.put("depId", ((Number) b.get("dep_id")).intValue());
+            p.put("amount", b.get("money_by_candidate"));
+            p.put("srcM", srcM);
+            p.put("srcY", srcY);
+            p.put("corrM", corrM);
+            p.put("corrY", corrY);
+            jdbcTemplate.update(INSERT_MARGIN_CORRECTION, p);
+            inserted++;
+        }
+        log.info("[Correction] act {}: recorded {} bonus reversal(s), closed quarter {}Q{} -> correction {}Q{}",
+                actId, inserted, srcY, srcQ, corrY, corrQ);
     }
 }
