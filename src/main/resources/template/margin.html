@@ -1268,6 +1268,42 @@
                 saveBtn.style.pointerEvents = 'auto';
             }
         }, { capture: true });
+
+        // ---------- АВТОРАСЧЁТ СУММЫ ИЗ ПРОЦЕНТА УЧАСТИЯ ----------
+        // сумма участника = сумма акта (без НДС) * процент участия / 100
+        const recalcSumFromPercent = (totalNoNds, percentField, sumField) => {
+            if (!sumField) return;
+            const percent = parseFloat(percentField?.value || '');
+            if (Number.isFinite(totalNoNds) && Number.isFinite(percent)) {
+                sumField.value = (Math.round(totalNoNds * percent) / 100).toFixed(2);
+            } else if (!Number.isFinite(percent)) {
+                sumField.value = '';
+            }
+        };
+
+        document.addEventListener('input', (event) => {
+            const target = event.target;
+            if (!target) return;
+            const totalNoNds = parseFloat(document.getElementById('editTotalNoNds')?.value || '');
+
+            // изменили % участия консультанта или ресечера → пересчитываем сумму строки
+            if (target.classList.contains('consultant-percent') || target.classList.contains('researcher-percent')) {
+                const isConsultant = target.classList.contains('consultant-percent');
+                const row = target.closest(isConsultant ? '.consultant-row' : '.researcher-row');
+                if (row) {
+                    recalcSumFromPercent(totalNoNds, target, row.querySelector(isConsultant ? '.consultant-sum' : '.researcher-sum'));
+                }
+                return;
+            }
+
+            // изменили сумму акта → пересчитываем суммы всех строк из их процентов
+            if (target.id === 'editTotalNoNds') {
+                document.querySelectorAll('.consultant-row').forEach(row =>
+                    recalcSumFromPercent(totalNoNds, row.querySelector('.consultant-percent'), row.querySelector('.consultant-sum')));
+                document.querySelectorAll('.researcher-row').forEach(row =>
+                    recalcSumFromPercent(totalNoNds, row.querySelector('.researcher-percent'), row.querySelector('.researcher-sum')));
+            }
+        });
     }
 
         // ---------- ДОБАВЛЕНИЕ / УДАЛЕНИЕ УЧАСТНИКОВ ----------
@@ -1387,15 +1423,27 @@
         })
         .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
 
-    const totalConsultantComplicity = consultants.reduce((sum, item) => {
-        return sum + (Number.isFinite(item.complicity) ? item.complicity : 0);
-    }, 0);
+    // Процент участия консультантов берём строго из видимого поля «% участия»
+    // (а не из скрытого исходного значения), чтобы очищенное/исправленное поле
+    // всегда участвовало в проверке.
+    const consultantPercents = consultants.map(item => item.percentVal);
+    const totalConsultantComplicity = consultantPercents.reduce(
+        (sum, p) => sum + (Number.isFinite(p) ? p : 0), 0);
     const totalResearcherComplicity = researchers.reduce((sum, item) => {
         return sum + (Number.isFinite(item.complicity) ? item.complicity : 0);
     }, 0);
 
+    // У каждого консультанта должен быть указан положительный процент участия
+    if (consultants.length > 0 && consultantPercents.some(p => !Number.isFinite(p) || p <= 0)) {
+        errorAlert.textContent = 'У каждого консультанта укажите процент участия (больше 0). Сумма по всем консультантам должна быть равна 100%.';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
+    // Суммарный процент участия консультантов обязан быть ровно 100% (не больше и не меньше)
     if (consultants.length > 0 && Math.abs(totalConsultantComplicity - 100) > 0.0001) {
-        errorAlert.textContent = 'Сумма процентов участия консультантов должна быть равна 100';
+        errorAlert.textContent = 'Сумма процентов участия консультантов должна быть равна 100% (сейчас '
+            + totalConsultantComplicity.toFixed(2) + '%). Исправьте перед сохранением.';
         errorAlert.classList.remove('d-none');
         return;
     }
