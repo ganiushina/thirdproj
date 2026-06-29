@@ -1,23 +1,8 @@
 -- ============================================================
--- ИСПРАВЛЕНИЕ fn_User_Bonus_Payment_NEW
---
--- Внесены два исправления:
---
--- ФИКС 1 (главная причина пропавших бонусов):
---   Нижняя граница окна оплат была привязана к @date1, а не к
---   началу его месяца. При вызове с окном 15.06–30.06 граница
---   DATEADD(mm,-2,@date1) уезжала на 15.04 и теряла все оплаты
---   клиентом за 01.04–14.04.
---   Введена переменная @date1_m = первый день месяца @date1,
---   и все "оглядывания назад" (@mydate, @t4, userBonusKPI)
---   теперь привязаны к @date1_m. Помечено [FIX-1].
---
--- ФИКС 2 (KPI попадает не в то окно):
---   В KPI-ветке date_for_pay считался по старой инвертированной
---   формуле. Приведён к той же логике, что в ветках 1 и 2:
---     позиции из списка → 1-е число (окно 01–14),
---     остальные        → 15-е число (окно 15–30).
---   Помечено [FIX-2].
+-- ROLLBACK / БЭКАП fn_User_Bonus_Payment_NEW
+-- Снято с боевой БД recruting 2026-06-29, ДО применения [FIX-3].
+-- Чтобы откатить FIX-3 — выполнить этот скрипт целиком на recruting.
+-- (CREATE заменён на ALTER, т.к. функция уже существует.)
 -- ============================================================
 
 ALTER FUNCTION [dbo].[fn_User_Bonus_Payment_NEW]
@@ -49,24 +34,18 @@ DECLARE @date3 datetime;
 	SET @date3 = (SELECT CASE WHEN datepart(dd, @date2) = 1 THEN @date2 ELSE
 		DATEADD(m,1,DATEADD(mm, DATEDIFF(m,0,@date2),0)) END)
 
--- [FIX-1] Первый день месяца @date1 — точка отсчёта для всех окон оплат.
--- Не зависит от того, 1-е или 15-е число передано в @date1.
 DECLARE @date1_m date = DATEADD(month, DATEDIFF(month, 0, @date1), 0)
 
 	DECLARE @mydate date = (
 		SELECT MIN(ab.date_act) FROM act_buh ab
 		WHERE ab.id IN (
 			SELECT pb.act_id FROM payment_buh pb
-			-- [FIX-1] было: DATEADD(mm, -3, @date1)
 			WHERE pb.payment_date BETWEEN DATEADD(mm, -3, @date1_m) AND @date2
 		)
 	)
 
 DECLARE @date4 date = (SELECT DATEADD(month, DATEDIFF(month, 0, @mydate), 0))
 
--- -------------------------------------------------------
--- [OPT-A] Pre-computed scalar variables
--- -------------------------------------------------------
 DECLARE @ya_date2          int       = DATEPART(yy, @date2)
 DECLARE @mon_date2         int       = DATEPART(mm, @date2)
 DECLARE @date2_hi          datetime2 = DATEADD(day, 1, CAST(@date2   AS datetime2))
@@ -100,9 +79,6 @@ DECLARE @tmp_money_extra_bonus TABLE (
 	mon int, ya int, act_id int, date_act datetime
 )
 
--- -------------------------------------------------------
--- Консультанты
--- -------------------------------------------------------
 INSERT @tmp_money_consultant
 SELECT DISTINCT
 	responsible_user_id, responsible_user_name, company_name, candidate, summ_responsible_user,
@@ -121,9 +97,6 @@ FROM (
 ) z1
 
 
--- -------------------------------------------------------
--- Ресёрчеры
--- -------------------------------------------------------
 INSERT @tmp_money_resecher
 SELECT DISTINCT
 	s4.resecher_id, resecher_name, company_name, candidate, summ_resecher, summ_total,
@@ -155,9 +128,6 @@ FROM (
 ) s4
 
 
--- -------------------------------------------------------
--- Доп. бонусы (extra_bonus)
--- -------------------------------------------------------
 INSERT @tmp_money_extra_bonus
 SELECT
 	s.employer_id, s.man_fio, s.company_name, s.candidate, s.extra_bonus,
@@ -177,9 +147,6 @@ FROM (
 ) s
 
 
--- -------------------------------------------------------
--- Сборка @tmp_money — консультанты
--- -------------------------------------------------------
 INSERT @tmp_money
 SELECT DISTINCT
 	tm.user_id, tm.user_name, company_name, candidate, tm.summ_user, tm.money_tmp_total,
@@ -193,9 +160,6 @@ JOIN dbo.userplanByMonth ubm
 	AND ubm.userplan_year = tm.ya
 
 
--- -------------------------------------------------------
--- Сборка @tmp_money — ресёрчеры
--- -------------------------------------------------------
 INSERT @tmp_money
 SELECT DISTINCT
 	tm.user_id, tm.user_name, company_name, candidate, tm.summ_user, tm.money_tmp_total,
@@ -239,9 +203,6 @@ LEFT JOIN (
 ) ubmres ON ubmres.user_id = tm.user_id
 
 
--- -------------------------------------------------------
--- Сборка @tmp_money — доп. бонусы
--- -------------------------------------------------------
 INSERT @tmp_money
 SELECT DISTINCT
 	tm.user_id, tm.user_name, tm.company_name, tm.candidate, tm.summ_user, tm.money_tmp_total,
@@ -265,9 +226,6 @@ OUTER APPLY (
 ) ubm_last
 
 
--- -------------------------------------------------------
--- Курсор
--- -------------------------------------------------------
 DECLARE @tabl_itog TABLE (
 	user_id int, user_name varchar(255), money_itog money, money_by_candidate money,
 	persent float, company_name varchar(255), candidate varchar(255),
@@ -465,9 +423,6 @@ CLOSE cur1
 DEALLOCATE cur1
 
 
--- -------------------------------------------------------
--- Таблица оплат
--- -------------------------------------------------------
 DECLARE @t4 TABLE (
 	act_id int, pay_buh_id uniqueidentifier, pya_sum money,
 	summ money, payment_date datetime, act_date datetime
@@ -480,14 +435,10 @@ SELECT DISTINCT
 	pb.payment_date, ab.date_act
 FROM payment_buh pb
 JOIN dbo.act_buh ab ON ab.id = pb.act_id
--- [FIX-1] было: DATEADD(mm, -2, CAST(@date1 AS datetime))
 WHERE pb.payment_date >= DATEADD(mm, -2, CAST(@date1_m AS datetime)) AND pb.payment_date < @t4_end
 	AND act_id <> 446
 
 
--- -------------------------------------------------------
--- Временная таблица результатов
--- -------------------------------------------------------
 DECLARE @TempResults TABLE (
 	user_id INT, act_num VARCHAR(255), act_id INT, date_act DATETIME,
 	candidate VARCHAR(255), project_id INT, company_name VARCHAR(255),
@@ -530,9 +481,9 @@ SELECT DISTINCT
 	DATEPART(yy, t4.payment_date) AS ya,
 	CASE
 		WHEN p.id IN (1,2,18,17,21,22,14,24,25)
-		THEN DATEADD(DAY, 1,  EOMONTH(t4.payment_date, 1))   -- 1-е число (январь → 1 марта)
-		ELSE DATEADD(DAY, 15, EOMONTH(t4.payment_date, 1))   -- 15-е число (январь → 15 марта)
-	END AS date_for_pay, -- смещаем границы на 2 недели вперед
+		THEN DATEADD(DAY, 1,  EOMONTH(t4.payment_date, 1))
+		ELSE DATEADD(DAY, 15, EOMONTH(t4.payment_date, 1))
+	END AS date_for_pay,
 	pd.payment_date AS real_date,
 	DATEPART(mm, pd.payment_date) AS real_mon,
 	DATEPART(yy, pd.payment_date) AS real_ya,
@@ -541,25 +492,14 @@ FROM ItogData ti
 JOIN @t4 t4 ON ti.act_id = t4.act_id
 JOIN dbo.project_buh pb ON t4.act_id = pb.act_id
 JOIN dbo.act_buh ab ON ab.id = pb.act_id
--- [FIX-3] Привязка оплаты к КОНКРЕТНОЙ портне акта по pay_guid.
---   Было: pd.payment_rn = ti.itog_rn — оплата матчилась по номеру строки,
---   и при дроблении акта на несколько оплат клиента (один act_id ⇒ несколько
---   строк @t4 с разными pay_guid) поля empPaid и real_date (дата оплаты
---   компанией + оплативший сотрудник) брались из единственной записи
---   paymentSuccess и «протекали» на ВСЕ портни, включая неоплаченные.
---   Стало: матчим pd напрямую по pay_guid портни — оплата (и её дата/сотрудник)
---   показывается только у той строки, которая реально оплачена.
 LEFT JOIN PaymentData pd
 	ON pd.act_id = ti.act_id
 	AND pd.employer_id = ti.user_id
-	AND pd.pay_guid = t4.pay_buh_id
+	AND pd.payment_rn = ti.itog_rn
 JOIN dbo.position p ON p.id = ti.position_id
 JOIN dbo.depatment d ON d.id = ti.dep_id
 
 
--- -------------------------------------------------------
--- Итоговая выборка FilteredData
--- -------------------------------------------------------
 ;WITH FilteredData AS (
 	SELECT DISTINCT
 		s.user_id,
@@ -590,7 +530,6 @@ JOIN dbo.depatment d ON d.id = ti.dep_id
 		ISNULL(s.persent, 0) persent,
 		s.date_for_pay, s.payment_date, s.real_date, s.empPaid, s.payment_buh_id
 	FROM (
-		-- Ветка 1: основные бонусы
 		SELECT DISTINCT
 			z.user_id, LEFT(z.act_num, 11) act_num, z.act_id,
 			CASE WHEN paied > 0 THEN 1 ELSE paied END paied,
@@ -609,7 +548,6 @@ JOIN dbo.depatment d ON d.id = ti.dep_id
 
 		UNION
 
-		-- Ветка 2: extra_bonus
 		SELECT DISTINCT
 			eb.employer_id,
 			LEFT(ab.act_num, 11) act_num,
@@ -623,9 +561,9 @@ JOIN dbo.depatment d ON d.id = ti.dep_id
 			eb.bonus_percent,
 			CASE
 				WHEN ISNULL(ubm_eb.user_position, ubm_eb_last.user_position) IN (1,2,18,17,21,22,14,24,25)
-				THEN DATEADD(DAY, 1,  EOMONTH(t4.payment_date, 1))   -- 1-е число (январь → 1 марта)
-				ELSE DATEADD(DAY, 15, EOMONTH(t4.payment_date, 1))   -- 15-е число (январь → 15 марта)
-			END AS date_for_pay, -- смещаем границы на 2 недели вперед
+				THEN DATEADD(DAY, 1,  EOMONTH(t4.payment_date, 1))
+				ELSE DATEADD(DAY, 15, EOMONTH(t4.payment_date, 1))
+			END AS date_for_pay,
 			t4.payment_date,
 			DATEPART(mm, t4.payment_date) mon,
 			DATEPART(yy, t4.payment_date) ya,
@@ -653,7 +591,6 @@ JOIN dbo.depatment d ON d.id = ti.dep_id
 
 		UNION
 
-		-- Ветка 3: KPI
 		SELECT DISTINCT
 			ubk.user_id,
 			NULL yy, NULL xx,
@@ -662,14 +599,10 @@ JOIN dbo.depatment d ON d.id = ti.dep_id
 			'KPI - ' + ubk.mon candidate,
 			NULL qq, 'KPI' ee,
 			ubk.all_bonus, NULL tt,
-			-- [FIX-2] было (старая инвертированная формула):
-			--   WHEN p.id IN (...) THEN DATEADD(DAY, 15, EOMONTH(DATEADD(mm, 1, ubk.date_kpi), -1))
-			--   ELSE                    DATEADD(DAY, 1,  EOMONTH(DATEADD(mm, 2, ubk.date_kpi), -1))
-			-- стало (как в ветках 1 и 2): список → 1-е число, остальные → 15-е
 			CASE
 				WHEN p.id IN (1,2,18,17,21,22,14,24,25)
-				THEN DATEADD(DAY, 1,  EOMONTH(ubk.date_kpi, 1))   -- 1-е число → окно 01–14
-				ELSE DATEADD(DAY, 15, EOMONTH(ubk.date_kpi, 1))   -- 15-е число → окно 15–30
+				THEN DATEADD(DAY, 1,  EOMONTH(ubk.date_kpi, 1))
+				ELSE DATEADD(DAY, 15, EOMONTH(ubk.date_kpi, 1))
 			END date_for_pay,
 			ubk.date_kpi,
 			ubk.mont,
@@ -677,7 +610,7 @@ JOIN dbo.depatment d ON d.id = ti.dep_id
 			ps.payment_date real_date,
 			ISNULL(m1.man_fio_short, '') + ' ' + CONVERT(VARCHAR(20), ps.payment_summ) empPaid,
 			NULL payment_buh_id
-		FROM userBonusKPI(DATEADD(mm, -2, @date1_m), DATEADD(mm, -1, @date3)) ubk   -- [FIX-1] было DATEADD(mm, -2, @date1)
+		FROM userBonusKPI(DATEADD(mm, -2, @date1_m), DATEADD(mm, -1, @date3)) ubk
 		LEFT JOIN dbo.position p ON p.pos_name = ubk.position
 		LEFT JOIN paymentSuccess ps
 			ON ps.employer_id = ubk.user_id
