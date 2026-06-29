@@ -108,6 +108,10 @@
                 <li class="nav-item" th:classappend="${activeTab} == 'PersonalData' ? 'active'">
                     <a class="nav-link" th:href="@{/personal-data}">Согласия ПД</a>
                 </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('ROLE_MANAGER','ROLE_BUHADMIN')"
+                    th:classappend="${activeTab} == 'ActDistribution' ? 'active'">
+                    <a class="nav-link" th:href="@{/act-distribution}">Распределение актов</a>
+                </li>
             </ul>
         </div>
     </nav>

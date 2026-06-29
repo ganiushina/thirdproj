@@ -76,6 +76,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/bonus-schemes").hasRole("MANAGER")
                 // просмотр страницы бонусных схем — любому аутентифицированному
                 .antMatchers(HttpMethod.GET, "/bonus-schemes").authenticated()
+                // Распределение актов — тимлид и выше
+                .antMatchers("/act-distribution/**").hasAnyRole("MANAGER", "BUHADMIN")
                 .anyRequest()
                 .authenticated()
                 .and()
