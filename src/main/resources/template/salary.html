@@ -133,67 +133,45 @@
                     <td th:text="${marginBonus.departmentName}"></td>
                     <td th:text="${marginBonus.divisionName}"></td>
 
-
                     <td>
                         <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.earnedMoneyDepartment}">
-                                <li>
-                                    <span  th:text="${margin}"/></span>
-                            </li>
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.earnedMoneyDepartment}"></li>
                         </ul>
                     </td>
 
                     <td>
                         <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.earnedMoneyDivision}">
-                                <li>
-                                    <span  th:text="${margin}"/></span>
-                            </li>
-                        </ul>
-                    </td>
-                    <td>
-
-                        <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.paidMoney}">
-                                <li>
-                                    <span  th:text="${margin}"/></span>
-                            </li>
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.earnedMoneyDivision}"></li>
                         </ul>
                     </td>
 
                     <td>
                         <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.marginDepartment}">
-                                <li>
-<!--                        <input id="agreement" type="checkbox" name="salaryAll" >-->
-                                    <span  th:text="${margin}"/></span>
-                            </li>
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.paidMoney}"></li>
                         </ul>
                     </td>
 
                     <td>
                         <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.marginDivision}">
-                                <li>
-                                    <span  th:text="${margin}"/></span>
-                            </li>
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginDepartment}"></li>
                         </ul>
                     </td>
 
                     <td>
                         <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.marginBonusBDM}">
-                                <li>
-                                    <span  th:text="${margin}"/></span>
-                            </li>
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginDivision}"></li>
                         </ul>
                     </td>
+
                     <td>
                         <ul class="list-inline">
-                            <span th:each="margin : ${marginBonus.marginQuarter}">
-                                <li>
-                                    <span  th:text="${margin}"/></span>
-                            </li>
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginBonusBDM}"></li>
+                        </ul>
+                    </td>
+
+                    <td>
+                        <ul class="list-inline">
+                            <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.quarter}"></li>
                         </ul>
                     </td>
 

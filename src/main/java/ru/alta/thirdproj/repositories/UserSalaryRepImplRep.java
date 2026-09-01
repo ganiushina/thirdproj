@@ -338,195 +338,71 @@ public class UserSalaryRepImplRep  {
     }
 
 
+    private double toDouble(Object value) {
+        return value instanceof BigDecimal ? ((BigDecimal) value).doubleValue() : 0.0;
+    }
+
     public List<MarginBonusBDM> getMarginBonus(LocalDate date1, LocalDate date2) {
         try (Connection connection = sql2o.open()) {
-            Query query = connection.createQuery(SELECT_MARGIN_QUARTER_QUERY, false)
+            Table table = connection.createQuery(SELECT_MARGIN_QUARTER_QUERY, false)
                     .addParameter("date1", date1)
-                    .addParameter("date2", date2);
-
-            Table table = query.executeAndFetchTable();
-            List<Map<String, Object>> list = table.asList();
-
-            List<MarginBonusBDM> marginBonusList = new ArrayList<>();
-
+                    .addParameter("date2", date2)
+                    .executeAndFetchTable();
 
             Locale ru = new Locale("ru", "RU");
-            Currency rub = Currency.getInstance(ru);
             NumberFormat currencyInstance = NumberFormat.getCurrencyInstance(ru);
 
-            for (Map<String, Object> n : list) {
-                MarginBonusBDM marginBonus = new MarginBonusBDM();
+            // Направления в порядке их первого появления в выборке
+            Map<String, MarginBonusBDM> byDepartment = new LinkedHashMap<>();
 
-                boolean isNotNew = false;
-                String departmentName = null;
-                String divisionName = null;
+            for (Map<String, Object> n : table.asList()) {
+                String departmentName = (String) n.get("department_name");
 
+                MarginBonusBDM marginBonus = byDepartment.computeIfAbsent(departmentName, name -> {
+                    MarginBonusBDM bdm = new MarginBonusBDM();
+                    bdm.setDepartmentName(name);
+                    return bdm;
+                });
 
-                List<String> earnedMoneyDepartmentList = new ArrayList<>();
-                List<String> earnedMoneyDivisionList = new ArrayList<>();
-                List<String> paidMoneyList = new ArrayList<>();
-                List<String> marginDepartment = new ArrayList<>();
-                List<Double> marginDepartmentSum = new ArrayList<>();
-                List<String> marginDivision = new ArrayList<>();
-                List<String> marginBonusBDMList = new ArrayList<>();
-                List<Integer> marginQuarter = new ArrayList<>();
-
-
-                for (var entry : n.entrySet()) {
-
-                    if (entry.getKey().equals("department_name")) {
-                        for (int j = 0; j < marginBonusList.size(); j++) {
-                            if (marginBonusList.get(j).getDepartmentName().equals(entry.getValue())) {
-                                departmentName = (String) entry.getValue();//
-                                isNotNew = true;
-                            }
-                        }
-                        marginBonus.setDepartmentName((String) entry.getValue());
-                    }
-
-                    if (entry.getKey().equals("division_name")) {
-                        for (int j = 0; j < marginBonusList.size(); j++) {
-                            if (marginBonusList.get(j).getDivisionName().equals(entry.getValue())) {
-                                divisionName = (String) entry.getValue();//
-                            }
-                        }
-                        marginBonus.setDivisionName((String) entry.getValue());
-                    }
-                    if (entry.getKey().equals("money_earned_division")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        if (d != 0.0) {
-                            earnedMoneyDivisionList.add(currencyInstance.format(d));
-                            marginBonus.setEarnedMoneyDivision(earnedMoneyDivisionList);
-                        }
-                    }
-                    if (entry.getKey().equals("earned_money_department")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        if (d != 0.0) {
-                            earnedMoneyDepartmentList.add(currencyInstance.format(d));
-                            marginBonus.setEarnedMoneyDepartment(earnedMoneyDepartmentList);
-                        }
-                    }
-
-                    if (entry.getKey().equals("paid_money")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        if (d != 0.0) {
-                            paidMoneyList.add(currencyInstance.format(d));
-                            marginBonus.setPaidMoney(paidMoneyList);
-                        }
-                    }
-
-                    if (entry.getKey().equals("margin_department")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        if (d != 0.0) {
-                            marginDepartmentSum.add(d);
-                            marginDepartment.add(currencyInstance.format(d));
-                            marginBonus.setMarginDepartment(marginDepartment);
-                            marginBonus.setMarginDepartmentSum(marginDepartmentSum);
-                        }
-                    }
-                    if (entry.getKey().equals("margin_division")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        if (d != 0.0) {
-                            marginDivision.add(currencyInstance.format(d));
-                            marginBonus.setMarginDivision(marginDivision);
-                        }
-                    }
-                    if (entry.getKey().equals("margin_bonus")) {
-                        BigDecimal bd = (BigDecimal) entry.getValue();
-                        double d = bd.doubleValue();
-                        if (d != 0.0) {
-                            marginBonusBDMList.add(currencyInstance.format(d));
-                            marginBonus.setMarginBonusBDM(marginBonusBDMList);
-                        }
-                    }
-                    if (entry.getKey().equals("quat")) {
-                        marginQuarter.add((Integer) entry.getValue());
-                        marginBonus.setMarginQuarter(marginQuarter);
-                    }
-                    if (entry.getKey().equals("ya")) {
-                        marginBonus.setMarginYear((Integer) entry.getValue());
-                    }
+                if (n.get("division_name") != null) {
+                    marginBonus.setDivisionName((String) n.get("division_name"));
+                }
+                if (n.get("ya") instanceof Integer) {
+                    marginBonus.setMarginYear((Integer) n.get("ya"));
                 }
 
-                if (isNotNew ) {
-                    String finalDepartmentName = departmentName;
-                    List<MarginBonusBDM> result = marginBonusList.stream()
-                            .filter(a -> Objects.equals(a.getDepartmentName(), finalDepartmentName))
-                            .collect(toList());
+                double earned = toDouble(n.get("earned_money_department"));
+                double paid = toDouble(n.get("paid_money"));
+                double margin = toDouble(n.get("margin_department"));
+                double bonus = toDouble(n.get("margin_bonus"));
+                double marginWithBonus = margin - bonus;
 
-                    if (marginBonus.getEarnedMoneyDivision() != null) {
-                        if (result.get(0).getEarnedMoneyDivision() == null)
-                            result.get(0).setEarnedMoneyDivision(marginBonus.getEarnedMoneyDivision());
-                        else
-                            result.get(0).getEarnedMoneyDivision().add(marginBonus.getEarnedMoneyDivision().get(0));
-                    }
+                MarginQuarterRow row = new MarginQuarterRow();
+                row.setQuarter((Integer) n.get("quat"));
+                row.setEarnedMoneyDepartment(currencyInstance.format(earned));
+                row.setPaidMoney(currencyInstance.format(paid));
+                row.setMarginDepartment(currencyInstance.format(margin));
+                row.setMarginDepartmentSum(margin);
+                row.setMarginBonusBDM(currencyInstance.format(bonus));
+                row.setMarginWithBdmBonus(currencyInstance.format(marginWithBonus));
+                // Процент маржи от заработанного: без бонуса BDM и с его учётом
+                row.setMarginPercent(earned != 0.0
+                        ? String.format(ru, "%.2f %% / %.2f %%",
+                                margin / earned * 100, marginWithBonus / earned * 100)
+                        : "—");
 
-                    if (marginBonus.getEarnedMoneyDepartment() != null) {
-                        if (result.get(0).getEarnedMoneyDepartment() == null)
-                            result.get(0).setEarnedMoneyDepartment(marginBonus.getEarnedMoneyDepartment());
-                        else
-                            result.get(0).getEarnedMoneyDepartment().add(marginBonus.getEarnedMoneyDepartment().get(0));
-                    }
-
-                    if (marginBonus.getPaidMoney() != null) {
-                        if (result.get(0).getPaidMoney() == null)
-                            result.get(0).setPaidMoney(marginBonus.getPaidMoney());
-                        else if (!result.get(0).getPaidMoney().contains(marginBonus.getPaidMoney().get(0))) {
-                            result.get(0).getPaidMoney().add(marginBonus.getPaidMoney().get(0));
-                        }
-                    }
-                    if (marginBonus.getMarginDepartment() != null) {
-                        if (result.get(0).getMarginDepartment() == null) {
-                            result.get(0).setMarginDepartment(marginBonus.getMarginDepartment());
-                            result.get(0).setMarginDepartmentSum(marginBonus.getMarginDepartmentSum());
-                        }
-                        else if (!result.get(0).getMarginDepartment().contains(marginBonus.getMarginDepartment().get(0))) {
-                            result.get(0).getMarginDepartment().add(marginBonus.getMarginDepartment().get(0));
-                            result.get(0).getMarginDepartmentSum().add(marginBonus.getMarginDepartmentSum().get(0));
-                        }
-                    }
-
-                    if (marginBonus.getMarginDivision() != null) {
-                        if (result.get(0).getMarginDivision() == null) {
-                            result.get(0).setMarginDivision(marginBonus.getMarginDivision());
-                        } else {
-                            result.get(0).getMarginDivision().add(marginBonus.getMarginDivision().get(0));
-
-                        }
-                    }
-
-                    if (marginBonus.getMarginBonusBDM() != null) {
-                        if (result.get(0).getMarginBonusBDM() == null) {
-                            result.get(0).setMarginBonusBDM(marginBonus.getMarginBonusBDM());
-                        } else {
-                            result.get(0).getMarginBonusBDM().add(marginBonus.getMarginBonusBDM().get(0));
-
-                        }
-                    }
-
-                    if (marginBonus.getMarginQuarter() != null) {
-                        if (result.get(0).getMarginQuarter() == null) {
-                            result.get(0).setMarginQuarter(marginBonus.getMarginQuarter());
-                        } else {
-                            result.get(0).getMarginQuarter().add(marginBonus.getMarginQuarter().get(0));
-
-                        }
-                    }
-
-                } else {
-                    marginBonusList.add(marginBonus);
+                if (n.get("money_earned_division") != null) {
+                    row.setEarnedMoneyDivision(currencyInstance.format(toDouble(n.get("money_earned_division"))));
                 }
+                if (n.get("margin_division") != null) {
+                    row.setMarginDivision(currencyInstance.format(toDouble(n.get("margin_division"))));
+                }
+
+                marginBonus.getQuarterRows().add(row);
             }
 
-            return marginBonusList;
-
+            return new ArrayList<>(byDepartment.values());
         }
-
     }
 
     public List<Department> getAllDepartments() {

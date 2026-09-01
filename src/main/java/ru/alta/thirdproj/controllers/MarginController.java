@@ -109,9 +109,8 @@ public class MarginController {
 
         Double allMargin = marginBonusList.stream()
                 .filter(Objects::nonNull)
-                .flatMap(bdm -> bdm.getMarginDepartmentSum() != null ?
-                        bdm.getMarginDepartmentSum().stream() :
-                        Stream.empty())
+                .flatMap(bdm -> bdm.getQuarterRows().stream())
+                .map(MarginQuarterRow::getMarginDepartmentSum)
                 .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)
                 .sum();
@@ -449,8 +448,10 @@ public class MarginController {
         Map<String, Double> departmentMargins = marginBonusList.stream()
                 .collect(Collectors.groupingBy(
                         MarginBonusBDM::getDepartmentName,
-                        Collectors.summingDouble(d -> d.getMarginDepartmentSum().stream()
-                                .mapToDouble(this::safeParseDouble)
+                        Collectors.summingDouble(d -> d.getQuarterRows().stream()
+                                .map(MarginQuarterRow::getMarginDepartmentSum)
+                                .filter(Objects::nonNull)
+                                .mapToDouble(Double::doubleValue)
                                 .sum())
                 ));
 
