@@ -15678,3 +15678,6 @@ build/
 /hh-dictionaries/locales.txt
 /hh-dictionaries/metro.txt
 /hh-dictionaries/professional_roles.txt
+
+### Логи приложения ###
+logs/
