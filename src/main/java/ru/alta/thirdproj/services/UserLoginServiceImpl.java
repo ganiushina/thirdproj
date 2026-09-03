@@ -1,5 +1,6 @@
 package ru.alta.thirdproj.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -7,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.alta.thirdproj.entites.Role;
 import ru.alta.thirdproj.entites.User;
 import ru.alta.thirdproj.entites.UserLogin;
@@ -16,6 +18,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class UserLoginServiceImpl implements UserLoginService {
 
     private BCryptPasswordEncoder passwordEncoder;
@@ -64,8 +67,9 @@ public class UserLoginServiceImpl implements UserLoginService {
 
 
     @Override
-    // @Transactional
+    @Transactional
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+
         UserLogin user = userProvider.getUser(userName);
 
         user.setRoles(userProvider.getUserRole(user.getUserId()));
@@ -73,8 +77,7 @@ public class UserLoginServiceImpl implements UserLoginService {
             throw new UsernameNotFoundException("Invalid username or password.");
         }
         return new org.springframework.security.core.userdetails.User(user.getUserName(), user.getPassword(),
-                mapRolesToAuthorities(user.getRoles()));
-    }
+                mapRolesToAuthorities(user.getRoles()));    }
 
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
         return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());

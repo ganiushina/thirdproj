@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        table td{
+            text-align: left;
+        }
+        .tbl{
+            padding: 15px;
+        }
+
+
+    </style>
+    <meta charset="utf-8"/>
+
+    <title>Каталог товаров</title>
+
+    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+    <meta name="ctx" th:content="${#httpServletRequest.getContextPath()}"/>
+</head>
+
+<body>
+
+<div th:replace="~{navigation :: navi(Shop)}"/>
+<div class="tbl">
+
+<!--<div class="container">-->
+    <br>
+
+    <h1 th:text="Фильтры" />
+
+    <form th:action="@{/actPut/actAll}" method="get">
+
+        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date" placeholder="Дата до">
+
+        <input type="text" id="inputAct" onkeyup="myFunction()" placeholder="Поиск по номеру акта.." title="Type in a act num">
+        <input type="text" id="inputCandidate" onkeyup="searchCandidate()" placeholder="Поиск по кандидату.." title="Type in a candidate">
+        <input type="text" id="inputProject" onkeyup="searchProject()" placeholder="Поиск по проекту.." title="Type in a project">
+
+        <button type="submit" class="btn btn-primary">Фильтровать</button>
+    </form>
+
+    <br>
+
+    <nav>
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+
+            <li class="active">
+                <button href="#tab-table1" data-toggle="tab">Бонусы по актам</button>
+            </li>
+
+            <li>
+                <button href="#tab-table2" data-toggle="tab">Бонусы за KPI</button>
+            </li>
+        </ul>
+    </nav>
+    <div class="container-fluid">
+
+        <div class="tab-content">
+
+            <div class="tab-pane active" id="tab-table1">
+
+    <table class="table table-bordered" id="myTable">
+        <thead>
+            <tr>
+                <th>Номер акта</th>
+                <th>Дата акта</th>
+                <th>Компания</th>
+                <th>Кандидат</th>
+                <th>Проект</th>
+                <th>Сумма</th>
+                <th>Оплата</th>
+                <th>Дата оплаты</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        <tr th:each="act,iterStat : ${actPutList}">
+
+            <td style="white-space: nowrap" th:text="${act.num}"/>
+            <td style="white-space: nowrap" th:text="${act.date}"/>
+
+            <td style="white-space: nowrap" th:text="${act.companies}"/>
+            <td style="white-space: nowrap" th:text="${act.candidate}"/>
+            <td style="white-space: nowrap" th:text="${act.projectName}"/>
+
+            <td style="white-space: nowrap" th:text="${act.bonus}"/>
+            <td style="white-space: nowrap" th:text="${act.paid}"/>
+            <td style="white-space: nowrap" th:text="${act.datePayment}"/>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+            <div class="tab-pane" id="tab-table2">
+
+
+                <table class="table table-bordered" id="myTable2">
+                <thead>
+                <tr>
+                    <th>Номер акта</th>
+                    <th>Дата акта</th>
+                    <th>Компания</th>
+                    <th>Кандидат</th>
+                    <th>Проект</th>
+                    <th>Сумма</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="act,iterStat : ${actNoPayList}">
+                    <td th:text="${act.num}"/>
+                    <td th:text="${act.date}"/>
+
+                    <td th:text="${act.companies}"/>
+                    <td th:text="${act.candidate}"/>
+                    <td th:text="${act.projectName}"/>
+
+                    <td th:text="${act.bonus}"/>
+                </tr>
+                </tbody>
+
+            </table>
+
+
+        </div>
+        </div>
+
+
+        <!--</div>-->
+
+
+<script>
+    function myFunction() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputAct");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchCandidate() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputCandidate");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[3];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchProject() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputProject");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[4];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

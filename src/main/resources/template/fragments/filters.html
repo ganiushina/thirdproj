@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Name filter fragment -->
+<div th:fragment="filters(tableId, nameColumnIndex, firstnameColumnIndex)">
+  <div class="card mb-3">
+    <div class="card-header bg-light">
+      <h6 class="mb-0">Filter by Name</h6>
+    </div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-5">
+          <label for="nameFilter" class="form-label">Last Name</label>
+          <input type="text" class="form-control" id="nameFilter"
+                 placeholder="Filter by last name...">
+        </div>
+        <div class="col-md-5">
+          <label for="firstnameFilter" class="form-label">First Name</label>
+          <input type="text" class="form-control" id="firstnameFilter"
+                 placeholder="Filter by first name...">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetNameFilter()">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners for real-time filtering
+        document.getElementById('nameFilter').addEventListener('input', applyNameFilter);
+        document.getElementById('firstnameFilter').addEventListener('input', applyNameFilter);
+    });
+
+    function applyNameFilter() {
+        const tableId = [[${tableId}]];
+        const nameColIndex = [[${nameColumnIndex}]];
+        const firstnameColIndex = [[${firstnameColumnIndex}]];
+
+        const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+        const firstnameFilter = document.getElementById('firstnameFilter').value.toLowerCase();
+
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const nameCell = row.cells[nameColIndex];
+            const firstnameCell = row.cells[firstnameColIndex];
+
+            if (!nameCell || !firstnameCell) return;
+
+            const rowName = nameCell.textContent.toLowerCase();
+            const rowFirstname = firstnameCell.textContent.toLowerCase();
+
+            const nameMatch = nameFilter === '' || rowName.includes(nameFilter);
+            const firstnameMatch = firstnameFilter === '' || rowFirstname.includes(firstnameFilter);
+
+            row.style.display = (nameMatch && firstnameMatch) ? '' : 'none';
+        });
+    }
+
+    function resetNameFilter() {
+        document.getElementById('nameFilter').value = '';
+        document.getElementById('firstnameFilter').value = '';
+        applyNameFilter();
+    }
+    /*]]>*/
+  </script>
+</div>
+
+</body>
+</html>

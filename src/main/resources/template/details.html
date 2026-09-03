@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="detailsTab">
+    <h4>Маржа поквартально</h4>
+    <p>Маржа за период <span th:text="${#temporals.format(dateFrom)}">...</span>
+         <span th:text="${#temporals.format(dateTo)}">...</span></p>
+    <!-- Добавленный блок с общей маржой -->
+    <div class="alert alert-info" th:if="${totalMargin != null}">
+        <strong>Общая маржа за период:</strong>
+        <span th:text="${totalMargin}">0,00 ₽</span>
+    </div>
+    <!-- Добавляем блок с маржой по отделам -->
+    <div class="alert alert-info" th:if="${not #maps.isEmpty(departmentMargins)}">
+        <h4>Маржа по отделам:</h4>
+        <div class="row row-cols-auto g-2"> <!-- Bootstrap классы для автоматических колонок -->
+            <div class="col" th:each="entry : ${departmentMargins}">
+                <div class="card h-100">
+                    <div class="card-body p-2">
+                        <h6 class="card-title" th:text="${entry.key}">Отдел</h6>
+                        <p class="card-text" th:text="${entry.value}">0,00 ₽</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div th:replace="~{fragments/filter-fragment_quarter :: filter-form(tableId='salesTable')}"></div>
+
+    <div class="sticky-table-wrapper">
+    <table id="salesTable" class="table table-bordered">
+        <thead>
+        <tr>
+            <th scope="col">Направление</th>
+            <th scope="col">Заработано направлением</th>
+            <th scope="col">Выплачено направлению</th>
+            <th scope="col">Маржа направления</th>
+            <th scope="col">Бонус BDM</th>
+            <th scope="col">Маржа с учётом бонуса BDM</th>
+            <th scope="col">% маржи (без бонуса / с бонусом BDM)</th>
+            <th scope="col">Квартал</th>
+            <th scope="col">Год</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="marginBonus : ${marginBonusList}"
+            th:attr="data-name=${marginBonus.departmentName},
+            data-department=${marginBonus.departmentName}">
+
+            <td class="department-name" th:text="${marginBonus.departmentName}"></td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.earnedMoneyDepartment}"></li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.paidMoney}"></li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginDepartment}"></li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginBonusBDM}"></li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginWithBdmBonus}"></li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.marginPercent}"></li>
+                </ul>
+            </td>
+
+            <td>
+                <ul class="list-inline">
+                    <li class="text-nowrap" th:each="row : ${marginBonus.quarterRows}" th:text="${row.quarter}"></li>
+                </ul>
+            </td>
+
+            <td th:text="${marginBonus.marginYear}"></td>
+
+        </tr>
+        </tbody>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function adjustStickyHeader() {
+                    const nav = document.querySelector('nav'); // Или ваш селектор навигации
+                    const navHeight = nav ? nav.offsetHeight : 56; // 56px - стандартная высота
+
+                    document.querySelectorAll('.sticky-table-wrapper thead th').forEach(th => {
+                        th.style.top = navHeight + 'px';
+                    });
+                }
+
+                // Инициализация + обработка ресайза
+                adjustStickyHeader();
+                window.addEventListener('resize', adjustStickyHeader);
+
+                // Для динамических изменений в навигации
+                new MutationObserver(adjustStickyHeader).observe(
+                    document.querySelector('nav'),
+                    { attributes: true, attributeFilter: ['style'] }
+                );
+            });
+        </script>
+    </table>
+</div>
+</div>
+
+</body>
+</html>

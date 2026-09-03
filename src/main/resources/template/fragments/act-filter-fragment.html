@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Act filter fragment -->
+<div th:fragment="filter-form">
+    <div class="card mb-3">
+        <div class="card-header">Фильтры</div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Поисковые фильтры -->
+                <div class="col-md-3">
+                    <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">
+                </div>
+                <div class="col-md-3" th:with="departmentOptions=${departments}">
+                    <label for="globalDepartmentSearch" class="form-label">Направление</label>
+                    <select id="globalDepartmentSearch"
+                            class="form-control form-select mb-2">
+                        <option value="">Все направления</option>
+                        <option th:each="department : ${departmentOptions}"
+                                th:value="${department.name}"
+                                th:text="${department.name}"
+                                th:attr="data-department-id=${department.id}"></option>
+                    </select>
+                </div>
+
+                <!-- Фильтр по типу периода (только один чекбокс) -->
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterByCreationDate">
+                        <label class="form-check-label" for="filterByCreationDate">
+                            Только акты созданные в период
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Фильтр по оплате -->
+                <div class="col-md-4">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterByPayment">
+                        <label class="form-check-label" for="filterByPayment">
+                            Фильтровать по оплате
+                        </label>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <select class="form-control" id="paymentStatus" disabled>
+                                <option value="all">Все статусы</option>
+                                <option value="1">Оплаченные</option>
+                                <option value="0">Неоплаченные</option>
+                                <option value="2">Частично оплаченные</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопка экспорта -->
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-success" onclick="exportFilteredActsToExcel()">
+                        <i class="bi bi-file-excel"></i> Экспорт
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<body>-->
+<!--    &lt;!&ndash; Act filter fragment &ndash;&gt;-->
+<!--    <div th:fragment="filter-form">-->
+<!--        <div class="card mb-3">-->
+<!--            <div class="card-header">Фильтры</div>-->
+<!--            <div class="card-body">-->
+<!--                <div class="row">-->
+<!--                    &lt;!&ndash; Поисковые фильтры &ndash;&gt;-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalActNumSearch" class="form-control mb-2" placeholder="Поиск по номеру акта">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalCandidateSearch" class="form-control mb-2" placeholder="Поиск по кандидату">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalProjectSearch" class="form-control mb-2" placeholder="Поиск по проекту">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3">-->
+<!--                        <input type="text" id="globalCompanySearch" class="form-control mb-2" placeholder="Поиск по компании">-->
+<!--                    </div>-->
+<!--                    <div class="col-md-3" th:with="departmentOptions=${departments}">-->
+<!--                        <label for="globalDepartmentSearch" class="form-label">Направление</label>-->
+<!--                        <select id="globalDepartmentSearch"-->
+<!--                                class="form-control form-select mb-2">-->
+<!--                            <option value="">Все направления</option>-->
+<!--                            <option th:each="department : ${departmentOptions}"-->
+<!--                                    th:value="${department.name}"-->
+<!--                                    th:text="${department.name}"-->
+<!--                                    th:attr="data-department-id=${department.id}"></option>-->
+<!--                        </select>-->
+<!--                    </div>-->
+
+
+<!--                    &lt;!&ndash; Фильтр по типу периода (только один чекбокс) &ndash;&gt;-->
+<!--                    <div class="col-md-4">-->
+<!--                        <div class="form-check mb-2">-->
+<!--                            <input class="form-check-input" type="checkbox" id="filterByCreationDate">-->
+<!--                            <label class="form-check-label" for="filterByCreationDate">-->
+<!--                                Только акты созданные в период-->
+<!--                            </label>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Фильтр по оплате &ndash;&gt;-->
+<!--                    <div class="col-md-4">-->
+<!--                        <div class="form-check mb-2">-->
+<!--                            <input class="form-check-input" type="checkbox" id="filterByPayment">-->
+<!--                            <label class="form-check-label" for="filterByPayment">-->
+<!--                                Фильтровать по оплате-->
+<!--                            </label>-->
+<!--                        </div>-->
+<!--                        <div class="row">-->
+<!--                            <div class="col-md-6">-->
+<!--                                <select class="form-control" id="paymentStatus" disabled>-->
+<!--                                    <option value="all">Все</option>-->
+<!--                                    <option value="paid">Оплаченные</option>-->
+<!--                                    <option value="unpaid">Неоплаченные</option>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Кнопка экспорта &ndash;&gt;-->
+<!--                    <div class="col-md-4 d-flex align-items-end">-->
+<!--                        <button class="btn btn-success" onclick="exportFilteredActsToExcel()">-->
+<!--                            <i class="bi bi-file-excel"></i> Экспорт-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</body>-->
+<!--</html>-->
+

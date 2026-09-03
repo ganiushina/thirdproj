@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Marginal profit</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script th:inline="javascript">
+
+        function departmentFilter(inputElement) {
+
+            const value = inputElement.value;
+            var tr, td, i, j;
+
+            const filter = value.toUpperCase();
+
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId); // Get the table element
+
+            if(tableId == 'salesTable' || tableId === 'myTable') {
+                tr = table.getElementsByTagName("tr");
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[0];
+                          if (td) {
+                                      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                          tr[i].style.display = "";
+                                      } else {
+                                          tr[i].style.display = "none";
+                                      }
+                                  }
+                }
+            }
+
+            if(tableId == 'payments') {
+                tr = table.getElementsByTagName("tr");
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[2];
+                          if (td) {
+                                      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                          tr[i].style.display = "";
+                                      } else {
+                                          tr[i].style.display = "none";
+                                      }
+                                  }
+                }
+            }
+
+        }
+
+        function monthFilter(inputElement) {
+
+            var tr, td, i, j;
+            const value = inputElement.value;
+            const filter = value.toUpperCase();
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId); // Get the table element
+
+            if(tableId == 'myTable'){
+                tr = table.getElementsByTagName("tr");
+                    for (i = 0; i < tr.length; i++) {
+                        td = tr[i].getElementsByTagName("td")[1];
+                              if (td) {
+                                          if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                              tr[i].style.display = "";
+                                          } else {
+                                              tr[i].style.display = "none";
+                                          }
+                                      }
+                    }
+            }
+
+            if(tableId == 'payments'){
+                tr = table.getElementsByTagName("tr");
+                    for (i = 0; i < tr.length; i++) {
+                        td = tr[i].getElementsByTagName("td")[9];
+                              if (td) {
+                                          if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                              tr[i].style.display = "";
+                                          } else {
+                                              tr[i].style.display = "none";
+                                          }
+                                      }
+                    }
+            }
+            if(tableId == 'interpreters'){
+                tr = table.getElementsByTagName("tr");
+                    for (i = 0; i < tr.length; i++) {
+                        td = tr[i].getElementsByTagName("td")[10];
+                              if (td) {
+                                          if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                              tr[i].style.display = "";
+                                          } else {
+                                              tr[i].style.display = "none";
+                                          }
+                                      }
+                    }
+            }
+        }
+
+                        // Функции фильтрации для таблицы interpreters
+        function nameFilterInterpreters(inputElement) {
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId);
+            const filter = inputElement.value.trim().toUpperCase();
+
+            if (!filter) {
+                resetFiltersForTable(tableId);
+                return;
+            }
+
+            // Сначала скрываем все строки
+            table.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = 'none';
+            });
+
+            // Показываем только группы, где имя соответствует фильтру
+            const userGroups = {};
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const userKey = row.getAttribute('data-user-fio') + '|' +
+                              row.getAttribute('data-position') + '|' +
+                              row.getAttribute('data-department');
+
+                if (!userGroups[userKey]) {
+                    userGroups[userKey] = {
+                        name: row.getAttribute('data-user-fio'),
+                        rows: []
+                    };
+                }
+                userGroups[userKey].rows.push(row);
+            });
+
+            // Применяем фильтр по имени
+            Object.values(userGroups).forEach(group => {
+                const isMatch = group.name.toUpperCase().includes(filter);
+                group.rows.forEach(row => {
+                    row.style.display = isMatch ? '' : 'none';
+                });
+            });
+
+            rebuildRowspans(tableId);
+        }
+
+        function departmentFilterInterpreters(inputElement) {
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId);
+            const filter = inputElement.value.trim().toUpperCase();
+
+            if (!filter) {
+                resetFiltersForTable(tableId);
+                return;
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const deptCell = row.querySelector('td:nth-child(3)');
+                if (deptCell) {
+                    const deptText = deptCell.textContent.toUpperCase();
+                    row.style.display = deptText.includes(filter) ? '' : 'none';
+                }
+            });
+            rebuildRowspans(tableId);
+        }
+
+        function filterByMonthInterpreters(inputElement) {
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId);
+            const filter = inputElement.value.trim().toLowerCase();
+
+            if (!filter) {
+                resetFiltersForTable(tableId);
+                return;
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const monthCell = row.querySelector('.month-cell');
+                if (monthCell) {
+                    const monthText = monthCell.textContent.toLowerCase();
+                    row.style.display = monthText.includes(filter) ? '' : 'none';
+                }
+            });
+            rebuildRowspans(tableId);
+        }
+
+        // Сброс фильтров для таблицы
+        function resetFiltersForTable(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            table.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = '';
+            });
+            rebuildRowspans(tableId);
+        }
+
+        // Перестроение rowspan для таблицы
+        function rebuildRowspans(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            const userGroups = {};
+
+            // Группируем видимые строки по пользователям
+            table.querySelectorAll('tbody tr').forEach(row => {
+                if (row.style.display !== 'none') {
+                    const userKey = row.getAttribute('data-user-fio') + '|' +
+                                  row.getAttribute('data-position') + '|' +
+                                  row.getAttribute('data-department');
+
+                    if (!userGroups[userKey]) {
+                        userGroups[userKey] = [];
+                    }
+                    userGroups[userKey].push(row);
+                }
+            });
+
+            // Удаляем все существующие объединенные ячейки
+            table.querySelectorAll('td[rowspan]').forEach(cell => cell.remove());
+
+            // Создаем новые объединенные ячейки для каждой группы
+            Object.values(userGroups).forEach(group => {
+                if (group.length === 0) return;
+
+                const firstRow = group[0];
+
+                // Создаем и добавляем объединенные ячейки
+                const addMergedCell = (content, position) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = content;
+                    cell.setAttribute('rowspan', group.length);
+
+                    // Вставляем ячейку в правильную позицию
+                    if (firstRow.children.length > position) {
+                        firstRow.children[position].before(cell);
+                    } else {
+                        firstRow.appendChild(cell);
+                    }
+                };
+
+                addMergedCell(firstRow.getAttribute('data-user-fio'), 0);
+                addMergedCell(firstRow.getAttribute('data-position'), 1);
+                addMergedCell(firstRow.getAttribute('data-department'), 2);
+            });
+        }
+
+        // Debounce для оптимизации
+        let filterTimeout;
+        function debounceFilter(filterFunc, inputElement) {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => filterFunc(inputElement), 300);
+        }
+
+
+        function exportInterpretersToExcel(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            // Создаем временную таблицу для экспорта
+            const tempTable = document.createElement('table');
+
+            // Копируем заголовки
+            const thead = table.querySelector('thead');
+            if (thead) {
+                tempTable.appendChild(thead.cloneNode(true));
+            }
+
+            // Обрабатываем строки данных
+            const tbody = document.createElement('tbody');
+            const visibleRows = Array.from(table.querySelectorAll('tbody tr'))
+                .filter(row => row.style.display !== 'none');
+
+            // Группируем строки по пользователям
+            const userGroups = {};
+            visibleRows.forEach(row => {
+                const userKey = row.getAttribute('data-user-fio') + '|' +
+                              row.getAttribute('data-position') + '|' +
+                              row.getAttribute('data-department');
+
+                if (!userGroups[userKey]) {
+                    userGroups[userKey] = {
+                        userFio: row.getAttribute('data-user-fio'),
+                        position: row.getAttribute('data-position'),
+                        department: row.getAttribute('data-department'),
+                        rows: []
+                    };
+                }
+                userGroups[userKey].rows.push(row);
+            });
+
+            // Создаем строки для экспорта
+            Object.values(userGroups).forEach(group => {
+                group.rows.forEach((row, index) => {
+                    const newRow = document.createElement('tr');
+
+                    // Добавляем объединенные ячейки только для первой строки группы
+                    if (index === 0) {
+                        const fioCell = document.createElement('td');
+                        fioCell.textContent = group.userFio;
+                        newRow.appendChild(fioCell);
+
+                        const positionCell = document.createElement('td');
+                        positionCell.textContent = group.position;
+                        newRow.appendChild(positionCell);
+
+                        const deptCell = document.createElement('td');
+                        deptCell.textContent = group.department;
+                        newRow.appendChild(deptCell);
+                    } else {
+                        // Пустые ячейки для объединенных полей
+                        newRow.appendChild(document.createElement('td'));
+                        newRow.appendChild(document.createElement('td'));
+                        newRow.appendChild(document.createElement('td'));
+                    }
+
+                    // Копируем остальные ячейки с учетом числового формата
+                    const cells = row.querySelectorAll('td:not([rowspan])');
+                    cells.forEach((cell, cellIndex) => {
+                        const newCell = document.createElement('td');
+
+                        // Для числовых ячеек убираем форматирование и преобразуем в число
+                        if (cell.classList.contains('numeric')) {
+                            const numValue = parseFloat(cell.textContent.replace(/\s/g, '').replace(',', '.'));
+                            newCell.textContent = isNaN(numValue) ? cell.textContent : numValue;
+                            newCell.setAttribute('style', 'mso-number-format:#,##0.00');
+                        } else {
+                            newCell.textContent = cell.textContent;
+                            newCell.setAttribute('style', 'mso-number-format:"\@"');
+                        }
+
+                        newRow.appendChild(newCell);
+                    });
+
+                    tbody.appendChild(newRow);
+                });
+            });
+
+            tempTable.appendChild(tbody);
+
+            // Создаем HTML для экспорта
+            const html = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                      xmlns:x="urn:schemas-microsoft-com:office:excel"
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>Детализация выплат</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:DisplayGridlines/>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                    <![endif]-->
+                    <meta charset="UTF-8">
+                    <style>
+                        td {
+                            padding: 2px 5px;
+                            border: 1px solid #ddd;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${tempTable.outerHTML}
+                </body>
+                </html>
+            `;
+
+            // Создаем и скачиваем файл
+            const blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Детализация_выплат_${new Date().toLocaleDateString()}.xls`;
+            link.click();
+        }
+
+        async function sendVerificationEmails() {
+            try {
+                // 1. Получаем текущие даты
+                const dateFrom = document.getElementById('dateFrom').value;
+                const dateTo = document.getElementById('dateTo').value;
+
+                if (!dateFrom || !dateTo) {
+                    showAlert('Укажите период для сверки', 'danger');
+                    return;
+                }
+
+                // 2. Находим элементы в текущем контексте
+                const statusElement = document.querySelector('#interpreterContent #verification-status') ||
+                                     document.getElementById('verification-status');
+
+                const infoElement = document.querySelector('#interpreterContent #verification-period-info') ||
+                                   document.getElementById('verification-period-info');
+
+                const sendBtn = document.querySelector('#interpreterContent #send-verification-btn') ||
+                               document.getElementById('send-verification-btn');
+
+                if (!statusElement || !infoElement || !sendBtn) {
+                    throw new Error('Не удалось найти элементы управления на странице');
+                }
+
+                // 3. Блокируем кнопку и показываем статус
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Отправка...';
+                statusElement.textContent = 'Отправка запроса...';
+                statusElement.className = 'fw-bold text-info';
+
+                // 4. Отправляем запрос
+                const response = await fetch('/margin/send-verification-emails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dateFrom, dateTo })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Ошибка сервера');
+                }
+
+                // 5. Обновляем данные
+                const data = await response.json();
+
+                // 6. Обновляем UI
+                statusElement.textContent = 'Проверено';
+                statusElement.className = 'fw-bold text-success';
+                infoElement.textContent = data.successInfo;
+
+                // 7. Показываем уведомление
+                showAlert(data.message || 'Проверка успешно отправлена', 'success');
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showAlert(error.message, 'danger');
+            } finally {
+                // 8. Разблокируем кнопку (если она найдена)
+                const sendBtn = document.querySelector('#interpreterContent #send-verification-btn') ||
+                               document.getElementById('send-verification-btn');
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Отправить проверку';
+                }
+            }
+        }
+
+        // Вспомогательная функция для уведомлений
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts-container') ||
+                                  document.createElement('div');
+
+            if (!alertsContainer.id) {
+                alertsContainer.id = 'alerts-container';
+                alertsContainer.style.position = 'fixed';
+                alertsContainer.style.top = '20px';
+                alertsContainer.style.right = '20px';
+                alertsContainer.style.zIndex = '1000';
+                document.body.appendChild(alertsContainer);
+            }
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            alertsContainer.prepend(alert);
+
+            setTimeout(() => {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 150);
+            }, 5000);
+        }
+
+        function updateVerificationElements() {
+            return {
+                status: document.querySelector('#verification-container #verification-status'),
+                info: document.querySelector('#verification-container #verification-period-info'),
+                btn: document.querySelector('#verification-container #send-verification-btn')
+            };
+        }
+
+        function nameFilter(inputElement) {
+
+            var tr, td, i, j;
+            const value = inputElement.value;
+            const filter = value.toUpperCase();
+            const tableId = inputElement.getAttribute('data-table-id');
+            const table = document.getElementById(tableId); // Get the table element
+
+            if(tableId == 'payments' ){
+                tr = table.getElementsByTagName("tr");
+                    for (i = 0; i < tr.length; i++) {
+                        td = tr[i].getElementsByTagName("td")[0];
+                              if (td) {
+                                          if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                                              tr[i].style.display = "";
+                                          } else {
+                                              tr[i].style.display = "none";
+                                          }
+                                      }
+                    }
+            }
+        }
+        console.log('Name filter:', nameFilter);
+        console.log('Month filter:', monthFilter);
+        console.log('Department filter:', departmentFilter);
+
+    </script>
+    <style>
+        /* Основной контейнер для таблицы */
+        .sticky-table-wrapper {
+            position: relative;
+            overflow: visible;
+        }
+
+        /* Фиксируем заголовок ПОД навигацией */
+        .sticky-table-wrapper table thead th {
+            position: sticky;
+            top: 56px; /* Высота навигации (подставьте своё значение) */
+            background: white;
+            z-index: 500; /* Ниже навигации (у неё обычно z-index: 1000) */
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+        }
+
+        /* Если навигация имеет тень/бордер - добавим отступ */
+        .sticky-table-wrapper table thead th {
+            margin-top: 1px;
+        }
+
+        .table-sortable th {
+            cursor: pointer;
+            position: relative;
+        }
+        .table-sortable th::after {
+            content: "↓↑";
+            opacity: 0.3;
+            position: absolute;
+            right: 8px;
+        }
+        .table-sortable th.sorted-asc::after {
+            content: "↑";
+            opacity: 1;
+        }
+        .table-sortable th.sorted-desc::after {
+            content: "↓";
+            opacity: 1;
+        }
+        .list-divider {
+        margin: 0.3rem 0;
+        border: 0;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Стиль для объединенных ячеек */
+    td {
+        vertical-align: middle;
+        padding: 0.5rem !important;
+    }
+
+    /* Подсветка строк */
+    tr:hover td {
+        background-color: #f8f9fa;
+    }
+
+        /* Добавляем новые стили для блока с общей маржой */
+        .margin-summary-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .margin-summary-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .verification-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .status-details {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        #send-verification-btn {
+            transition: all 0.3s ease;
+        }
+
+        #verification-status.text-success {
+            color: #198754 !important;
+        }
+
+        #verification-status.text-secondary {
+            color: #6c757d !important;
+        }
+
+        #verification-status.text-danger {
+            color: #dc3545 !important;
+        }
+
+        #verification-status.text-info {
+            color: #0dcaf0 !important;
+        }
+    </style>
+
+</head>
+
+
+<body>
+<div th:replace="~{navigation :: navi(Home)}" />
+<!--<div class="container mt-4">-->
+<div class="main-content">
+    <div class="container-fluid mt-4 px-3">
+        <div class="row justify-content-center">
+            <div class="col-12 table-width-limiter">
+                <h2>Маржинальная прибыль</h2>
+
+
+                <!-- Date Range Filter Form -->
+                <form id="dateFilterForm" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="dateFrom" class="form-label">От:</label>
+                            <input type="date" class="form-control" id="dateFrom" name="dateFrom"
+                                   th:value="${dateFrom != null} ? ${#temporals.format(dateFrom, 'yyyy-MM-dd')}">
+
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateTo" class="form-label">До:</label>
+                            <input type="date" class="form-control" id="dateTo" name="dateTo"
+                                   th:value="${dateTo != null} ? ${#temporals.format(dateTo, 'yyyy-MM-dd')}">
+                        </div>
+
+                        <div class="col-md-2 align-self-end">
+                            <button type="button" class="btn btn-primary" onclick="loadActiveTab()">Применить</button>
+                        </div>
+                    </div>
+                </form>
+
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="summary-tab" data-bs-toggle="tab"
+                                data-bs-target="#summary" type="button" role="tab"
+                                aria-controls="summary" aria-selected="true"
+                                onclick="loadTabContent('/margin/summary', 'summaryTab')">
+                            Помесячно
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="details-tab" data-bs-toggle="tab"
+                                data-bs-target="#details" type="button" role="tab"
+                                aria-controls="details" aria-selected="false"
+                                onclick="loadTabContent('/margin/detailed', 'detailsTab')">
+                            Поквартально
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="charts-tab" data-bs-toggle="tab"
+                                data-bs-target="#charts" type="button" role="tab"
+                                aria-controls="charts" aria-selected="false"
+                                onclick="loadTabContent('/margin/charts', 'chartsTab')">
+                            Выплаты
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="interpreter-tab" data-bs-toggle="tab"
+                                data-bs-target="#interpreter" type="button" role="tab"
+                                aria-controls="interpreter" aria-selected="true"
+                                onclick="loadTabContent('/margin/interpreters', 'interpreterTab')">
+                            Детализация выплат
+                        </button>
+                    </li>
+                    <!-- Исправленная вкладка для актов -->
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="actByUser-tab" data-bs-toggle="tab"
+                                data-bs-target="#actByUserCheck" type="button" role="tab"
+                                aria-controls="actByUserCheck" aria-selected="false"
+                                onclick="loadTabContent('/margin/userAct', 'actByUserTab')">
+                            Акты по пользователям
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Contents -->
+                <div class="tab-content p-3 border border-top-0 rounded-bottom" id="reportTabsContent">
+                    <!-- Summary Tab Content -->
+                    <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                        <div id="summaryContent">
+                            <!-- Content will be loaded via AJAX -->
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Report Tab Content -->
+                    <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                        <div id="detailsContent">
+                            <!-- Content will be loaded via AJAX -->
+                        </div>
+                    </div>
+
+                    <!-- Charts Tab Content -->
+                    <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+                        <div id="chartsContent">
+                            <!-- Content will be loaded via AJAX -->
+                        </div>
+                    </div>
+
+                    <!-- Interpreter Tab Content -->
+                    <div class="tab-pane fade" id="interpreter" role="tabpanel" aria-labelledby="interpreter-tab">
+                        <div id="interpreterContent">
+                            <!-- Content will be loaded via AJAX -->
+                        </div>
+                    </div>
+
+                    <!-- New Acts Tab Content -->
+                    <div class="tab-pane fade" id="actByUserCheck" role="tabpanel" aria-labelledby="actByUser-tab">
+                        <div id="actByUserContent">
+                            <!-- Content will be loaded via AJAX -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Tab Content Loading Script -->
+<script>
+    // Load content when page first loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTabContent('/margin/summary', 'summaryTab');
+        const urlParams = new URLSearchParams(window.location.search);
+        const dateFrom = urlParams.get('dateFrom');
+        const dateTo = urlParams.get('dateTo');
+
+        if (dateFrom && dateTo) {
+            updateVerificationInfo(dateFrom, dateTo);
+        }
+    });
+
+    async function loadTabContent(url, fragment) {
+        try {
+            // 1. Получаем параметры дат
+            const dateFrom = document.getElementById('dateFrom')?.value;
+            const dateTo = document.getElementById('dateTo')?.value;
+
+            // 2. Определяем целевой div для контента
+            const targetDiv = getTargetDiv(fragment);
+            if (!targetDiv) throw new Error('Target container not found');
+
+            // 3. Показываем индикатор загрузки
+            showLoadingIndicator(targetDiv);
+
+            // 4. Формируем параметры запроса
+            const params = new URLSearchParams();
+            if (dateFrom) params.append('dateFrom', dateFrom);
+            if (dateTo) params.append('dateTo', dateTo);
+
+            // 5. Выполняем запрос
+            const response = await fetch(`${url}?${params.toString()}`);
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            // 6. Вставляем полученный HTML
+            const html = await response.text();
+            targetDiv.innerHTML = html;
+
+            // 7. Специальная обработка для вкладки интерпретатора
+            if (fragment === 'interpreterTab') {
+                await handleInterpreterTabLoaded(targetDiv);
+            }
+
+            // 8. Инициализация дополнительных компонентов
+            initializeComponents(fragment);
+
+        } catch (error) {
+            console.error('Error loading tab content:', error);
+            showErrorInTargetDiv(targetDiv, error);
+        }
+    }
+
+    // Вспомогательные функции
+    function getTargetDiv(fragment) {
+        const divMap = {
+            'summaryTab': 'summaryContent',
+            'interpreterTab': 'interpreterContent',
+            'detailsTab': 'detailsContent',
+            'chartsTab': 'chartsContent',
+            'actByUserTab': 'actByUserContent'  // Добавляем новую вкладку
+        };
+        const divId = divMap[fragment] || 'summaryContent';
+        return document.getElementById(divId);
+    }
+
+    function showLoadingIndicator(targetDiv) {
+        targetDiv.innerHTML = `
+            <div class="text-center my-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Загрузка данных...</p>
+            </div>
+        `;
+    }
+
+    async function handleInterpreterTabLoaded(targetDiv) {
+        // 1. Находим элементы статуса проверки
+        const statusElement = targetDiv.querySelector('#verification-status');
+        const infoElement = targetDiv.querySelector('#verification-period-info');
+        const sendBtn = targetDiv.querySelector('#send-verification-btn');
+
+        // 2. Проверяем наличие данных о выплатах
+        const paymentsData = targetDiv.querySelector('#interpreters tbody tr');
+        if (!paymentsData) {
+            console.warn('No payments data found in interpreter tab');
+            if (infoElement) {
+                infoElement.textContent = 'Данные о выплатах не загружены';
+            }
+        }
+
+        // 3. Обновляем обработчики событий
+        if (sendBtn) {
+            sendBtn.onclick = sendVerificationEmails;
+        }
+    }
+
+    function initializeComponents(fragment) {
+        // Инициализация сортировки таблиц и других компонентов
+        if (fragment === 'interpreterTab' || fragment === 'summaryTab' || fragment === 'actByUserTab') {
+            setTimeout(initTableSorting, 100);
+        }
+
+        if (fragment === 'actByUserTab') {
+            initActByUserEditing();
+        }
+    }
+
+    function initActByUserEditing() {
+        const container = document.getElementById('actByUserContent');
+        if (!container) {
+            console.warn('[UpdateAct] actByUserContent not found');
+            return;
+        }
+
+        // Предотвращаем повторную инициализацию, чтобы события не срабатывали дважды
+        if (container.dataset.actEditInitialized === 'true') {
+            return;
+        }
+        container.dataset.actEditInitialized = 'true';
+
+
+
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ СТРОК УЧАСТНИКОВ ----------
+        let cachedEmployees = [];
+        let cachedDepartments = [];
+        let referenceDataPromise = null;
+
+        async function loadReferenceData() {
+            if (!referenceDataPromise) {
+                referenceDataPromise = Promise.all([
+                    fetch('/userAct/employees').then(r => r.ok ? r.json() : []),
+                    fetch('/userAct/departments').then(r => r.ok ? r.json() : [])
+                ]).then(([employees, departments]) => {
+                    cachedEmployees = Array.isArray(employees) ? employees : [];
+                    cachedDepartments = Array.isArray(departments) ? departments : [];
+                    return { employees: cachedEmployees, departments: cachedDepartments };
+                }).catch(err => {
+                    console.error('[UpdateAct] Failed to load reference data', err);
+                    cachedEmployees = [];
+                    cachedDepartments = [];
+                    return { employees: [], departments: [] };
+                });
+            }
+
+            return referenceDataPromise;
+        }
+
+        function buildOptions(list, valueKey, labelKey, selectedValue, placeholderLabel, fallbackLabel) {
+            const options = [
+                `<option value="">${placeholderLabel}</option>`
+            ];
+
+            let hasSelected = false;
+
+            list.forEach(item => {
+                const value = item?.[valueKey];
+                const label = item?.[labelKey];
+
+                if (value === undefined || label === undefined) {
+                    return;
+                }
+
+                const isSelected = selectedValue !== undefined && selectedValue !== null && String(selectedValue) === String(value);
+                if (isSelected) {
+                    hasSelected = true;
+                }
+                options.push(`<option value="${value}" ${isSelected ? 'selected' : ''}>${label}</option>`);
+            });
+
+            if (!hasSelected && fallbackLabel) {
+                options.push(`<option value="${selectedValue ?? ''}" selected>${fallbackLabel}</option>`);
+            }
+
+            return options.join('');
+        }
+
+        function createConsultantRow(data = {}) {
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-end consultant-row mb-2';
+
+            const employeeOptions = buildOptions(
+                cachedEmployees,
+                'manId',
+                'manFIO',
+                data.id,
+                'ФИО консультанта',
+                data.name
+            );
+
+            const departmentOptions = buildOptions(
+                cachedDepartments,
+                'id',
+                'name',
+                data.departmentId,
+                'Направление',
+                data.department
+            );
+
+            row.innerHTML = `
+                <div class="col-md-3">
+                    <select class="form-select consultant-name" aria-label="ФИО консультанта">
+                        ${employeeOptions}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select consultant-department" aria-label="Направление консультанта">
+                        ${departmentOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control consultant-sum"
+                           placeholder="Сумма"
+                           value="${data.sum ?? ''}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control consultant-percent"
+                           placeholder="% участия"
+                           value="${data.percent ?? ''}">
+                </div>
+                <div class="col-md-2 d-flex">
+                    <button type="button"
+                            class="btn btn-outline-danger w-100 remove-participant">
+                        Удалить
+                    </button>
+                </div>
+                <input type="hidden"
+                       class="consultant-complicity"
+                       value="${data.complicity ?? ''}">
+                <input type="hidden"
+                       class="consultant-leader"
+                       value="${data.leader || ''}">
+                <input type="hidden"
+                       class="consultant-leader-id"
+                       value="${data.leaderId ?? ''}">
+                <input type="hidden"
+                       class="consultant-city"
+                       value="${data.city || ''}">
+                <input type="hidden"
+                       class="consultant-city-id"
+                       value="${data.cityId ?? ''}">
+            `;
+            return row;
+        }
+
+        function createResearcherRow(data = {}) {
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-end researcher-row mb-2';
+
+            const employeeOptions = buildOptions(
+                cachedEmployees,
+                'manId',
+                'manFIO',
+                data.id,
+                'ФИО ресечера',
+                data.name
+            );
+
+            const departmentOptions = buildOptions(
+                cachedDepartments,
+                'id',
+                'name',
+                data.departmentId,
+                'Направление',
+                data.department
+            );
+
+            row.innerHTML = `
+                <div class="col-md-3">
+                    <select class="form-select researcher-name" aria-label="ФИО ресечера">
+                        ${employeeOptions}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select researcher-department" aria-label="Направление ресечера">
+                        ${departmentOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control researcher-sum"
+                           placeholder="Сумма"
+                           value="${data.sum ?? ''}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number"
+                           step="0.01"
+                           class="form-control researcher-percent"
+                           placeholder="% участия"
+                           value="${data.percent ?? ''}">
+                </div>
+                <div class="col-md-2 d-flex">
+                    <button type="button"
+                            class="btn btn-outline-danger w-100 remove-participant">
+                        Удалить
+                    </button>
+                </div>
+                <input type="hidden"
+                       class="researcher-complicity"
+                       value="${data.complicity ?? ''}">
+                <input type="hidden"
+                       class="researcher-leader"
+                       value="${data.leader || ''}">
+                <input type="hidden"
+                       class="researcher-leader-id"
+                       value="${data.leaderId ?? ''}">
+                <input type="hidden"
+                       class="researcher-city"
+                       value="${data.city || ''}">
+                <input type="hidden"
+                       class="researcher-city-id"
+                       value="${data.cityId ?? ''}">
+            `;
+            return row;
+        }
+
+        // ---------- ОТКРЫТИЕ МОДАЛКИ ПО КНОПКЕ "ИЗМЕНИТЬ" ----------
+
+        container.addEventListener('click', async (event) => {
+            try {
+                const editBtn = event.target.closest('.edit-act-btn');
+                if (!editBtn) return;
+
+                console.log('[UpdateAct] Edit button clicked');
+
+                const row = editBtn.closest('tr');
+                const actId = row?.dataset.actId;
+                if (!actId) {
+                    console.error('[UpdateAct] actId not found on row');
+                    return;
+                }
+
+                const modalElement = document.getElementById('editActModal');
+                const errorAlert = document.getElementById('editActError');
+                const successAlert = document.getElementById('editActSuccess');
+                const consultantsContainer = document.getElementById('consultantsContainer');
+                const researchersContainer = document.getElementById('researchersContainer');
+
+                if (!modalElement || !errorAlert || !successAlert || !consultantsContainer || !researchersContainer) {
+                    console.error('[UpdateAct] Modal elements not found');
+                    return;
+                }
+
+            await loadReferenceData();
+
+            // Заполняем основные поля из data-* атрибутов первой строки группы
+            const setValue = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.value = value ?? '';
+            };
+
+            setValue('editActId', row.dataset.actId);
+            setValue('editActNumber', row.dataset.actNum);
+            setValue('editActDate', row.dataset.actDate);
+            setValue('editTotalNoNds', row.dataset.total);
+            setValue('editCandidate', row.dataset.candidate);
+
+            // Очищаем старых участников
+            consultantsContainer.innerHTML = '';
+            researchersContainer.innerHTML = '';
+
+            // Собираем все строки этого акта
+            const allActRows = Array.from(
+                container.querySelectorAll(`tr[data-act-id="${actId}"]`)
+            );
+
+            const consultants = [];
+            const researchers = [];
+
+            allActRows.forEach(r => {
+                const consultantName = (r.dataset.consultant || '').trim();
+                const researcherName = (r.dataset.researcher || '').trim();
+
+                const dept = r.dataset.department || '';
+                const resecherDept = r.dataset.resecherDepartment || '';
+                const departmentId = parseInt(r.dataset.departmentId || '', 10);
+                const resecherDepartmentId = parseInt(r.dataset.resecherDepartmentId || '', 10);
+                const consultantId = parseInt(r.dataset.responsibleUserId || '', 10);
+                const researcherId = parseInt(r.dataset.resecherId || '', 10);
+                const consultantComplicity = parseFloat(r.dataset.percentResponsibleComplicity || '');
+                const researcherComplicity = parseFloat(r.dataset.percentResecherComplicity || '');
+                const resecherLeader = r.dataset.resecherLeader || '';
+                const resecherLeaderId = parseInt(r.dataset.resecherLeaderId || '', 10);
+                const cityResponsible = r.dataset.responsibleCity || '';
+                const cityResponsibleId = parseInt(r.dataset.responsibleCityId || '', 10);
+
+                if (consultantName) {
+                    const sum = parseFloat(r.dataset.summResponsible || '');
+                    const percent = parseFloat(r.dataset.percentResponsibleComplicity || '');
+                    consultants.push({
+                        name: consultantName,
+                        sum: Number.isFinite(sum) ? sum : '',
+                        percent: Number.isFinite(percent) ? percent : '',
+                        department: dept,
+                        departmentId: Number.isFinite(departmentId) ? departmentId : '',
+                        id: Number.isFinite(consultantId) ? consultantId : '',
+                        complicity: Number.isFinite(consultantComplicity) ? consultantComplicity : '',
+                        leader: resecherLeader,
+                        leaderId: Number.isFinite(resecherLeaderId) ? resecherLeaderId : '',
+                        city: cityResponsible,
+                        cityId: Number.isFinite(cityResponsibleId) ? cityResponsibleId : ''
+                    });
+                }
+
+                if (researcherName) {
+                    const sum = parseFloat(r.dataset.summResecher || '');
+                    const percent = parseFloat(r.dataset.percentResecherComplicity || '');
+                    researchers.push({
+                        name: researcherName,
+                        sum: Number.isFinite(sum) ? sum : '',
+                        percent: Number.isFinite(percent) ? percent : '',
+                        department: resecherDept,
+                        departmentId: Number.isFinite(resecherDepartmentId) ? resecherDepartmentId : '',
+                        id: Number.isFinite(researcherId) ? researcherId : '',
+                        complicity: Number.isFinite(researcherComplicity) ? researcherComplicity : '',
+                        leader: resecherLeader,
+                        leaderId: Number.isFinite(resecherLeaderId) ? resecherLeaderId : '',
+                        city: cityResponsible,
+                        cityId: Number.isFinite(cityResponsibleId) ? cityResponsibleId : ''
+                    });
+                }
+            });
+
+            // Заполняем консультантов
+            if (consultants.length === 0) {
+                consultantsContainer.appendChild(createConsultantRow());
+            } else {
+                consultants.forEach(c => consultantsContainer.appendChild(createConsultantRow(c)));
+            }
+
+            // Заполняем ресечеров
+            if (researchers.length === 0) {
+                researchersContainer.appendChild(createResearcherRow());
+            } else {
+                researchers.forEach(r => researchersContainer.appendChild(createResearcherRow(r)));
+            }
+
+            // Сбрасываем алерты
+            errorAlert.classList.add('d-none');
+            successAlert.classList.add('d-none');
+
+                // Предварительно снимаем aria-hidden и делаем видимой, чтобы избежать блокировки
+                // Жёстко снимаем скрытие и aria-hidden перед показом
+                modalElement.classList.remove('fade');
+                modalElement.removeAttribute('aria-hidden');
+                modalElement.setAttribute('aria-hidden', 'false');
+                modalElement.setAttribute('aria-modal', 'true');
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+                document.body.classList.add('modal-open');
+
+            // Открываем Bootstrap
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modalInstance.show();
+    
+
+                // Фолбэк: если aria-hidden снова вернулся, принудительно снимаем
+                setTimeout(() => {
+                    if (modalElement.getAttribute('aria-hidden') === 'true') {
+                        modalElement.removeAttribute('aria-hidden');
+                        modalElement.setAttribute('aria-hidden', 'false');
+                        modalElement.style.display = 'block';
+                        modalElement.classList.add('show');
+                        document.body.classList.add('modal-open');
+                        
+                    }
+                }, 50);
+
+            // Наблюдаем за атрибутами, чтобы aria-hidden не возвращался
+            const observer = new MutationObserver(() => {
+                if (modalElement.getAttribute('aria-hidden') === 'true') {
+                    modalElement.removeAttribute('aria-hidden');
+                    modalElement.setAttribute('aria-hidden', 'false');
+                    
+                }
+            });
+            observer.observe(modalElement, { attributes: true, attributeFilter: ['aria-hidden'] });
+            // Сохраняем observer на элемент, чтобы можно было остановить при закрытии
+            modalElement._ariaObserver = observer;
+            } catch (e) {
+                console.error('[UpdateAct] Error opening modal', e);
+            }
+        });
+
+    // ---------- ОБРАБОТКА SUBMIT И КНОПКИ "СОХРАНИТЬ" ----------
+
+    const modalElement = document.getElementById('editActModal');
+    if (modalElement && !modalElement.dataset.handlersAttached) {
+        modalElement.dataset.handlersAttached = 'true';
+
+        document.addEventListener('submit', async (event) => {
+            const form = event.target;
+            if (form?.id !== 'editActForm') {
+                return;
+            }
+
+            event.preventDefault();
+            await submitActUpdate();
+        });
+
+        document.addEventListener('click', async (event) => {
+            const saveBtn = event.target?.closest('#editActSaveBtn');
+            if (!saveBtn) {
+                return;
+            }
+
+            event.preventDefault();
+            saveBtn.disabled = true;
+            saveBtn.style.pointerEvents = 'none';
+            try {
+                await submitActUpdate();
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.style.pointerEvents = 'auto';
+            }
+        }, { capture: true });
+
+        // ---------- АВТОРАСЧЁТ СУММЫ ИЗ ПРОЦЕНТА УЧАСТИЯ ----------
+        // сумма участника = сумма акта (без НДС) * процент участия / 100
+        const recalcSumFromPercent = (totalNoNds, percentField, sumField) => {
+            if (!sumField) return;
+            const percent = parseFloat(percentField?.value || '');
+            if (Number.isFinite(totalNoNds) && Number.isFinite(percent)) {
+                sumField.value = (Math.round(totalNoNds * percent) / 100).toFixed(2);
+            } else if (!Number.isFinite(percent)) {
+                sumField.value = '';
+            }
+        };
+
+        document.addEventListener('input', (event) => {
+            const target = event.target;
+            if (!target) return;
+            const totalNoNds = parseFloat(document.getElementById('editTotalNoNds')?.value || '');
+
+            // изменили % участия консультанта или ресечера → пересчитываем сумму строки
+            if (target.classList.contains('consultant-percent') || target.classList.contains('researcher-percent')) {
+                const isConsultant = target.classList.contains('consultant-percent');
+                const row = target.closest(isConsultant ? '.consultant-row' : '.researcher-row');
+                if (row) {
+                    recalcSumFromPercent(totalNoNds, target, row.querySelector(isConsultant ? '.consultant-sum' : '.researcher-sum'));
+                }
+                return;
+            }
+
+            // изменили сумму акта → пересчитываем суммы всех строк из их процентов
+            if (target.id === 'editTotalNoNds') {
+                document.querySelectorAll('.consultant-row').forEach(row =>
+                    recalcSumFromPercent(totalNoNds, row.querySelector('.consultant-percent'), row.querySelector('.consultant-sum')));
+                document.querySelectorAll('.researcher-row').forEach(row =>
+                    recalcSumFromPercent(totalNoNds, row.querySelector('.researcher-percent'), row.querySelector('.researcher-sum')));
+            }
+        });
+    }
+
+        // ---------- ДОБАВЛЕНИЕ / УДАЛЕНИЕ УЧАСТНИКОВ ----------
+
+        container.addEventListener('click', async (event) => {
+            if (event.target?.id === 'addConsultantBtn') {
+                event.preventDefault();
+                await loadReferenceData();
+                const list = document.getElementById('consultantsContainer');
+                if (list) list.appendChild(createConsultantRow());
+            }
+
+            if (event.target?.id === 'addResearcherBtn') {
+                event.preventDefault();
+                await loadReferenceData();
+                const list = document.getElementById('researchersContainer');
+                const consultantsCount = document.querySelectorAll('.consultant-row').length;
+                const researchersCount = document.querySelectorAll('.researcher-row').length;
+                const errorAlert = document.getElementById('editActError');
+
+                if (researchersCount >= consultantsCount) {
+                    if (errorAlert) {
+                        errorAlert.textContent = 'Ресечеров не может быть больше консультантов';
+                        errorAlert.classList.remove('d-none');
+                    }
+                    return;
+                }
+
+                if (errorAlert) errorAlert.classList.add('d-none');
+                if (list) list.appendChild(createResearcherRow());
+            }
+
+            if (event.target?.classList.contains('remove-participant')) {
+                event.preventDefault();
+                const row = event.target.closest('.consultant-row, .researcher-row');
+                if (row) row.remove();
+            }
+        });
+    }
+
+
+    async function submitActUpdate() {
+    console.log('[UpdateAct] submitActUpdate invoked');
+    const modalElement = document.getElementById('editActModal');
+    const errorAlert = document.getElementById('editActError');
+    const successAlert = document.getElementById('editActSuccess');
+
+    if (!modalElement || !errorAlert || !successAlert) {
+        console.error('[UpdateAct] modal or alerts not found');
+        return;
+    }
+
+    errorAlert.classList.add('d-none');
+    successAlert.classList.add('d-none');
+
+
+    const payload = {
+        actId: parseInt(document.getElementById('editActId')?.value || '0', 10),
+        totalNoNds: parseFloat(document.getElementById('editTotalNoNds')?.value || '0'),
+        candidate: document.getElementById('editCandidate')?.value || '',
+        participants: []
+    };
+
+    const consultants = Array.from(document.querySelectorAll('.consultant-row'))
+        .map(row => {
+            const consultantSelect = row.querySelector('.consultant-name');
+            const consultantDeptSelect = row.querySelector('.consultant-department');
+
+            const name = consultantSelect?.value
+                ? consultantSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
+            const sumVal = parseFloat(row.querySelector('.consultant-sum')?.value || '');
+            const percentVal = parseFloat(row.querySelector('.consultant-percent')?.value || '');
+            const department = consultantDeptSelect?.value
+                ? consultantDeptSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
+            const departmentId = parseInt(consultantDeptSelect?.value || '', 10);
+            const responsibleUserId = parseInt(consultantSelect?.value || '', 10);
+            const complicityRaw = parseFloat(row.querySelector('.consultant-complicity')?.value || '');
+            const complicity = Number.isFinite(percentVal)
+                ? percentVal
+                : (Number.isFinite(complicityRaw) ? complicityRaw : null);
+            const leader = row.querySelector('.consultant-leader')?.value || '';
+            const leaderId = parseInt(row.querySelector('.consultant-leader-id')?.value || '', 10);
+            const city = row.querySelector('.consultant-city')?.value || '';
+            const cityId = parseInt(row.querySelector('.consultant-city-id')?.value || '', 10);
+
+            return { name, sumVal, percentVal, department, departmentId, responsibleUserId, complicity, leader, leaderId, city, cityId };
+        })
+        .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
+
+    const researchers = Array.from(document.querySelectorAll('.researcher-row'))
+        .map(row => {
+            const researcherSelect = row.querySelector('.researcher-name');
+            const researcherDeptSelect = row.querySelector('.researcher-department');
+
+            const name = researcherSelect?.value
+                ? researcherSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
+            const sumVal = parseFloat(row.querySelector('.researcher-sum')?.value || '');
+            const percentVal = parseFloat(row.querySelector('.researcher-percent')?.value || '');
+            const department = researcherDeptSelect?.value
+                ? researcherDeptSelect.selectedOptions[0]?.textContent.trim() || ''
+                : '';
+            const departmentId = parseInt(researcherDeptSelect?.value || '', 10);
+            const researcherId = parseInt(researcherSelect?.value || '', 10);
+            const complicityRaw = parseFloat(row.querySelector('.researcher-complicity')?.value || '');
+            const complicity = Number.isFinite(percentVal)
+                ? percentVal
+                : (Number.isFinite(complicityRaw) ? complicityRaw : null);
+            const leader = row.querySelector('.researcher-leader')?.value || '';
+            const leaderId = parseInt(row.querySelector('.researcher-leader-id')?.value || '', 10);
+            const city = row.querySelector('.researcher-city')?.value || '';
+            const cityId = parseInt(row.querySelector('.researcher-city-id')?.value || '', 10);
+
+            return { name, sumVal, percentVal, department, departmentId, researcherId, complicity, leader, leaderId, city, cityId };
+        })
+        .filter(item => item.name || Number.isFinite(item.sumVal) || Number.isFinite(item.percentVal));
+
+    // Процент участия консультантов берём строго из видимого поля «% участия»
+    // (а не из скрытого исходного значения), чтобы очищенное/исправленное поле
+    // всегда участвовало в проверке.
+    const consultantPercents = consultants.map(item => item.percentVal);
+    const totalConsultantComplicity = consultantPercents.reduce(
+        (sum, p) => sum + (Number.isFinite(p) ? p : 0), 0);
+    const totalResearcherComplicity = researchers.reduce((sum, item) => {
+        return sum + (Number.isFinite(item.complicity) ? item.complicity : 0);
+    }, 0);
+
+    // У каждого консультанта должен быть указан положительный процент участия
+    if (consultants.length > 0 && consultantPercents.some(p => !Number.isFinite(p) || p <= 0)) {
+        errorAlert.textContent = 'У каждого консультанта укажите процент участия (больше 0). Сумма по всем консультантам должна быть равна 100%.';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
+    // Суммарный процент участия консультантов обязан быть ровно 100% (не больше и не меньше)
+    if (consultants.length > 0 && Math.abs(totalConsultantComplicity - 100) > 0.0001) {
+        errorAlert.textContent = 'Сумма процентов участия консультантов должна быть равна 100% (сейчас '
+            + totalConsultantComplicity.toFixed(2) + '%). Исправьте перед сохранением.';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
+    if (totalResearcherComplicity > 100.0001) {
+        errorAlert.textContent = 'Сумма процентов участия ресечеров не может превышать 100';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
+    if (researchers.length > consultants.length) {
+        errorAlert.textContent = 'Ресечеров не может быть больше консультантов';
+        errorAlert.classList.remove('d-none');
+        return;
+    }
+
+    payload.departmentName = consultants[0]?.department || researchers[0]?.department || '';
+    payload.departmentId = Number.isFinite(consultants[0]?.departmentId)
+        ? consultants[0].departmentId
+        : (Number.isFinite(researchers[0]?.departmentId) ? researchers[0].departmentId : null);
+    payload.resecherDepartmentName = researchers[0]?.department || '';
+    payload.depatmentResecherId = Number.isFinite(researchers[0]?.departmentId) ? researchers[0].departmentId : null;
+    const fallbackConsultantDepartment = payload.departmentName || '';
+    const fallbackConsultantDepartmentId = payload.departmentId ?? null;
+    const fallbackResearcherDepartment = payload.resecherDepartmentName || payload.departmentName || '';
+    const fallbackResearcherDepartmentId = payload.depatmentResecherId ?? payload.departmentId ?? null;
+    const maxParticipants = Math.max(consultants.length, researchers.length);
+
+    for (let i = 0; i < maxParticipants; i++) {
+        const consultant = consultants[i] || {};
+        const researcher = researchers[i] || {};
+
+        if (!consultant.name && !researcher.name &&
+            !Number.isFinite(consultant.sumVal) && !Number.isFinite(researcher.sumVal) &&
+            !Number.isFinite(consultant.percentVal) && !Number.isFinite(researcher.percentVal)) {
+            continue;
+        }
+
+        payload.participants.push({
+            responsibleUserName: consultant.name || null,
+            responsibleUserId: Number.isFinite(consultant.responsibleUserId) ? consultant.responsibleUserId : null,
+            summResponsibleUser: Number.isFinite(consultant.sumVal) ? consultant.sumVal : null,
+            candidatePercent: Number.isFinite(consultant.percentVal) ? consultant.percentVal : null,
+            departmentName: consultant.department || fallbackConsultantDepartment,
+            departmentId: Number.isFinite(consultant.departmentId) ? consultant.departmentId : fallbackConsultantDepartmentId,
+            percentResponsibleUserComplicity: Number.isFinite(consultant.complicity) ? consultant.complicity : null,
+            teameLeaderName: consultant.leader || null,
+            teameLeaderId: Number.isFinite(consultant.leaderId) ? consultant.leaderId : null,
+            cityResponsibleUser: consultant.city || null,
+            cityResponsibleUserId: Number.isFinite(consultant.cityId) ? consultant.cityId : null,
+            resecherName: researcher.name || null,
+            resecherId: Number.isFinite(researcher.researcherId) ? researcher.researcherId : null,
+            summResecher: Number.isFinite(researcher.sumVal) ? researcher.sumVal : null,
+            resecherPercent: Number.isFinite(researcher.percentVal) ? researcher.percentVal : null,
+            resecherDepartmentName: researcher.department || fallbackResearcherDepartment,
+            depatmentResecherId: Number.isFinite(researcher.departmentId) ? researcher.departmentId : fallbackResearcherDepartmentId,
+            percentResecherComplicity: Number.isFinite(researcher.complicity) ? researcher.complicity : null
+        });
+    }
+
+    try {
+        console.log('[UpdateAct] Submitting payload', payload);
+
+        // Отправляем данные в контроллер MarginController#updateFailedProbationAct
+        // (маршрут @PostMapping("/userAct/update"))
+        const response = await fetch('/userAct/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const rawText = await response.clone().text().catch(() => '');
+        let result = {};
+        try {
+            result = JSON.parse(rawText);
+        } catch (_) {}
+
+        console.log('[UpdateAct] Response status', response.status, { result, rawText });
+
+        if (!response.ok) {
+            const errorMessage = result.error || rawText || 'Не удалось сохранить изменения';
+            throw new Error(errorMessage);
+        }
+
+        successAlert.classList.remove('d-none');
+        loadTabContent('/margin/userAct', 'actByUserTab');
+        // закрываем через bootstrap
+        setTimeout(() => bootstrap.Modal.getOrCreateInstance(modalElement)?.hide(), 400);
+    } catch (err) {
+        console.error('[UpdateAct] Save failed', err);
+        errorAlert.textContent = err.message || 'Не удалось сохранить изменения';
+        errorAlert.classList.remove('d-none');
+    }
+}
+
+    // Делаем доступным для inline-обработчика (кнопка сохранения)
+    window.submitActUpdate = submitActUpdate;
+
+
+
+function showErrorInTargetDiv(targetDiv, error, url, fragment) {
+            if (!targetDiv) return;
+
+            targetDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Ошибка загрузки данных</h5>
+                    <p>${error.message || 'Неизвестная ошибка'}</p>
+                    <button class="btn btn-sm btn-outline-secondary"
+                            onclick="loadTabContent('${url}', '${fragment}')">
+                        Повторить попытку
+                    </button>
+                </div>
+            `;
+        }
+
+    // Reload active tab when filter changes
+    function loadActiveTab() {
+        const activeTab = document.querySelector('#reportTabs .nav-link.active');
+        if (activeTab) {
+            activeTab.click();
+        }
+    }
+
+</script>
+
+
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Initialize charts with the data from controller
+    const chartData = /*[[${chartData}]]*/ {};
+
+    // Chart.js initialization code would go here
+    console.log('Chart data loaded:', chartData);
+    /*]]>*/
+</script>
+
+<script>
+    // Общая функция сортировки (добавить в main.html)
+    function initTableSorting() {
+        document.querySelectorAll('.table-sortable').forEach(table => {
+            const headers = table.querySelectorAll('thead th');
+
+            headers.forEach((header, columnIndex) => {
+                header.addEventListener('click', () => {
+                    const direction = header.classList.contains('sorted-asc') ? 'desc' : 'asc';
+
+                    // Сброс предыдущей сортировки
+                    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                    header.classList.add(`sorted-${direction}`);
+
+                    // Сортировка
+                    const rows = Array.from(table.querySelectorAll('tbody tr'));
+                    rows.sort((a, b) => {
+                        const aVal = a.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
+                        const bVal = b.querySelector(`td:nth-child(${columnIndex + 1})`)?.textContent.trim();
+                        return compareValues(aVal, bVal, direction);
+                    });
+
+                    // Обновление таблицы
+                    table.querySelector('tbody').replaceChildren(...rows);
+                });
+            });
+        });
+    }
+
+    // Вспомогательная функция сравнения
+    function compareValues(a, b, direction) {
+        const isNumeric = !isNaN(a) && !isNaN(b);
+        const result = isNumeric ? parseFloat(a) - parseFloat(b) : a.localeCompare(b);
+        return direction === 'asc' ? result : -result;
+    }
+
+    // Инициализация при загрузке и после AJAX
+    document.addEventListener('DOMContentLoaded', initTableSorting);
+
+    // Для динамически загружаемых таблиц (например, во вкладках)
+    function onTabLoaded() {
+        setTimeout(initTableSorting, 50); // Небольшая задержка для гарантии загрузки DOM
+    }
+
+    function sortTable(table, columnIndex, direction) {
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.querySelector(`td:nth-child(${columnIndex + 1})`);
+            const cellB = rowB.querySelector(`td:nth-child(${columnIndex + 1})`);
+            let aValue = cellA ? cellA.textContent.trim() : '';
+            let bValue = cellB ? cellB.textContent.trim() : '';
+
+            // Для ячеек со списками берем первое значение
+            if (aValue.includes('\n')) {
+                aValue = aValue.split('\n')[0];
+            }
+            if (bValue.includes('\n')) {
+                bValue = bValue.split('\n')[0];
+            }
+
+            // Дальнейшая логика сортировки...
+        });
+    }
+    const actByUserState = {
+        table: null,
+        groups: new Map(),
+        initialised: false
+    };
+
+    // Функция фильтрации таблицы актов
+    function filterTable() {
+        const table = document.getElementById('actByUser');
+        if (!table) {
+            return;
+        }
+
+        ensureActByUserState(table);
+
+        const filters = {
+            actNum: document.getElementById('filterActNum').value.trim().toLowerCase(),
+            company: document.getElementById('filterCompany').value.trim().toLowerCase(),
+            candidate: document.getElementById('filterCandidate').value.trim().toLowerCase(),
+            department: document.getElementById('filterDepartment').value.trim().toLowerCase(),
+            person: document.getElementById('filterPerson').value.trim().toLowerCase()
+        };
+
+        let hasVisibleRows = false;
+
+        actByUserState.groups.forEach(group => {
+            const visibleRows = group.rows.filter(row => matchesActRow(row, filters));
+
+            group.rows.forEach(row => {
+                row.style.display = 'none';
+            });
+
+            if (visibleRows.length > 0) {
+                hasVisibleRows = true;
+                visibleRows.forEach(row => {
+                    row.style.display = '';
+                });
+            }
+
+            applyGroupHeaders(group, visibleRows);
+        });
+
+        toggleNoDataMessage(table, hasVisibleRows);
+    }
+
+    function ensureActByUserState(table) {
+        if (actByUserState.table !== table || !actByUserState.initialised) {
+            buildActByUserGroups(table);
+        }
+    }
+
+    function buildActByUserGroups(table) {
+        actByUserState.table = table;
+        actByUserState.groups = new Map();
+
+        const rows = Array.from(table.querySelectorAll('tbody tr.act-row'));
+
+        rows.forEach(row => {
+            const actNum = row.dataset.actNum;
+            if (!actNum) {
+                return;
+            }
+
+            if (!actByUserState.groups.has(actNum)) {
+                actByUserState.groups.set(actNum, {
+                    rows: [],
+                    headerTemplates: []
+                });
+            }
+
+            const group = actByUserState.groups.get(actNum);
+            group.rows.push(row);
+
+            const headerCells = row.querySelectorAll('[data-header-cell]');
+            if (headerCells.length) {
+                group.headerTemplates = Array.from(headerCells).map(cell => cell.cloneNode(true));
+            }
+        });
+
+        actByUserState.initialised = true;
+    }
+
+    function matchesActRow(row, filters) {
+        const actNum = normalizeValue(row.dataset.actNum);
+        const company = normalizeValue(row.dataset.company);
+        const candidate = normalizeValue(row.dataset.candidate);
+        const department = normalizeValue(row.dataset.department);
+        const consultant = normalizeValue(row.dataset.consultant);
+        const researcher = normalizeValue(row.dataset.researcher);
+
+        return valueMatches(actNum, filters.actNum) &&
+            valueMatches(company, filters.company) &&
+            valueMatches(candidate, filters.candidate) &&
+            valueMatches(department, filters.department) &&
+            (!filters.person || consultant.includes(filters.person) || researcher.includes(filters.person));
+    }
+
+    function applyGroupHeaders(group, visibleRows) {
+        group.rows.forEach(row => {
+            row.querySelectorAll('[data-header-cell]').forEach(cell => cell.remove());
+            row.classList.remove('act-group-start');
+        });
+
+        if (!visibleRows.length) {
+            return;
+        }
+
+        const headerClones = group.headerTemplates.map(template => {
+            const clone = template.cloneNode(true);
+            clone.setAttribute('rowspan', visibleRows.length);
+            return clone;
+        });
+
+        const targetRow = visibleRows[0];
+        targetRow.classList.add('act-group-start');
+
+        for (let i = headerClones.length - 1; i >= 0; i--) {
+            targetRow.insertBefore(headerClones[i], targetRow.firstChild);
+        }
+    }
+
+    function toggleNoDataMessage(table, hasVisibleRows) {
+        const noDataRow = table.querySelector('tbody tr.no-data-row');
+        if (noDataRow) {
+            noDataRow.style.display = hasVisibleRows ? 'none' : '';
+        }
+    }
+
+    function normalizeValue(value) {
+        return (value || '').toString().trim().toLowerCase();
+    }
+
+    function valueMatches(source, filter) {
+        return !filter || source.includes(filter);
+    }
+
+    // Функция очистки фильтров
+    function clearFilters() {
+        document.getElementById('filterActNum').value = '';
+        document.getElementById('filterCompany').value = '';
+        document.getElementById('filterCandidate').value = '';
+        document.getElementById('filterDepartment').value = '';
+        document.getElementById('filterPerson').value = '';
+
+        filterTable();
+    }
+
+    // Функция экспорта в Excel для таблицы актов
+    function exportToExcel() {
+        const table = document.getElementById('actByUser');
+        if (!table) return;
+
+        // Создаем временную таблицу для экспорта
+        const tempTable = document.createElement('table');
+
+        // Копируем заголовки
+        const thead = table.querySelector('thead');
+        if (thead) {
+            tempTable.appendChild(thead.cloneNode(true));
+        }
+
+        // Обрабатываем строки данных
+        const tbody = document.createElement('tbody');
+        const visibleRows = Array.from(table.querySelectorAll('tbody tr'))
+            .filter(row => row.style.display !== 'none' && !row.querySelector('td[colspan]'));
+
+        // Группируем строки по номеру акта
+        const actGroups = {};
+        visibleRows.forEach(row => {
+            const actNum = row.cells[0]?.textContent;
+            if (actNum) {
+                if (!actGroups[actNum]) {
+                    actGroups[actNum] = [];
+                }
+                actGroups[actNum].push(row);
+            }
+        });
+
+        // Создаем строки для экспорта
+        Object.values(actGroups).forEach(group => {
+            group.forEach((row, index) => {
+                const newRow = document.createElement('tr');
+
+                // Добавляем объединенные ячейки только для первой строки группы
+                if (index === 0) {
+                    for (let i = 0; i < 6; i++) {
+                        const cell = document.createElement('td');
+                        cell.textContent = row.cells[i]?.textContent || '';
+
+                        // Форматирование числовых значений
+                        if (i === 2) { // Сумма акта
+                            const numValue = parseFloat(cell.textContent.replace(/\s/g, '').replace(',', '.'));
+                            cell.textContent = isNaN(numValue) ? cell.textContent : numValue;
+                            cell.setAttribute('style', 'mso-number-format:#,##0.00');
+                        } else {
+                            cell.setAttribute('style', 'mso-number-format:"\@"');
+                        }
+
+                        newRow.appendChild(cell);
+                    }
+                } else {
+                    // Пустые ячейки для объединенных полей в последующих строках
+                    for (let i = 0; i < 6; i++) {
+                        newRow.appendChild(document.createElement('td'));
+                    }
+                }
+
+                // Копируем остальные ячейки
+                for (let i = 6; i < row.cells.length; i++) {
+                    const newCell = document.createElement('td');
+                    newCell.textContent = row.cells[i]?.textContent || '';
+
+                    // Форматирование числовых значений
+                    if (i === 8 || i === 10) { // Сумма консультанта и ресечера
+                        const numValue = parseFloat(newCell.textContent.replace(/\s/g, '').replace(',', '.'));
+                        newCell.textContent = isNaN(numValue) ? newCell.textContent : numValue;
+                        newCell.setAttribute('style', 'mso-number-format:#,##0.00');
+                    } else if (i === 11) { // Процент участия
+                        const numValue = parseFloat(newCell.textContent.replace('%', '').replace(/\s/g, '').replace(',', '.'));
+                        newCell.textContent = isNaN(numValue) ? newCell.textContent : numValue;
+                        newCell.setAttribute('style', 'mso-number-format:#,##0.00');
+                    } else {
+                        newCell.setAttribute('style', 'mso-number-format:"\@"');
+                    }
+
+                    newRow.appendChild(newCell);
+                }
+
+                tbody.appendChild(newRow);
+            });
+        });
+
+        tempTable.appendChild(tbody);
+
+        // Создаем HTML для экспорта
+        const html = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:x="urn:schemas-microsoft-com:office:excel"
+                  xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <!--[if gte mso 9]>
+                <xml>
+                    <x:ExcelWorkbook>
+                        <x:ExcelWorksheets>
+                            <x:ExcelWorksheet>
+                                <x:Name>Акты по пользователям</x:Name>
+                                <x:WorksheetOptions>
+                                    <x:DisplayGridlines/>
+                                </x:WorksheetOptions>
+                            </x:ExcelWorksheet>
+                        </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <meta charset="UTF-8">
+                <style>
+                    td {
+                        padding: 2px 5px;
+                        border: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #f8f9fa;
+                        font-weight: bold;
+                    }
+                </style>
+            </head>
+            <body>
+                ${tempTable.outerHTML}
+            </body>
+            </html>
+        `;
+
+        // Создаем и скачиваем файл
+        const blob = new Blob([html], {type: 'application/vnd.ms-excel'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Акты_по_пользователям_${new Date().toLocaleDateString()}.xls`;
+        link.click();
+    }
+
+    // Инициализация при загрузке вкладки
+    function initActByUserTab() {
+        // Добавляем обработчики событий для фильтров с debounce
+        const filterInputs = [
+            'filterActNum', 'filterCompany', 'filterCandidate',
+            'filterDepartment', 'filterPerson'
+        ];
+
+        filterInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (!input || input.dataset.filterBound === 'true') {
+                return;
+            }
+
+            input.addEventListener('input', debounce(filterTable, 300));
+
+            if (input.tagName === 'SELECT') {
+                input.addEventListener('change', filterTable);
+            }
+
+            input.dataset.filterBound = 'true';
+        });
+
+        // Пересобираем группировку, чтобы учесть текущее состояние фильтров
+        if (document.getElementById('actByUser')) {
+            filterTable();
+        }
+    }
+
+    // Debounce функция для оптимизации
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Автоматическая инициализация при загрузке вкладки
+    document.addEventListener('DOMContentLoaded', function() {
+        // Следим за переключением вкладок
+        const actTab = document.getElementById('actByUser-tab');
+        if (actTab) {
+            actTab.addEventListener('click', function() {
+                setTimeout(initActByUserTab, 100);
+            });
+        }
+    });
+
+</script>
+</body>
+</html>

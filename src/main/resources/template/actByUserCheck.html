@@ -1,0 +1,193 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="actByUserTab">
+
+    <h4>Выставленные акты по направлениям и людям</h4>
+    <p>Акты за период <span th:text="${#temporals.format(dateFrom)}">...</span> -
+        <span th:text="${#temporals.format(dateTo)}">...</span></p>
+
+    <div th:replace="~{fragments/filter-fragment_acts :: filter-form}"></div>
+
+    <div class="sticky-table-wrapper">
+        <table id="actByUser" class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Номер акта</th>
+                <th>Дата акта</th>
+                <th>Сумма акта</th>
+                <th>Компания</th>
+                <th>Кандидат</th>
+                <th>Выставлен от</th>
+                <th>Направление</th>
+                <th>Консультант</th>
+                <th>Сумма консультанта</th>
+                <th>Ресечер</th>
+                <th>Сумма ресечера</th>
+                <th>Процент участия консультанта</th>
+                <th>Проект</th>
+                <th class="text-center">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <th:block th:if="${!groupedActs.isEmpty()}">
+                <th:block th:each="entry : ${groupedActs.entrySet()}">
+                    <th:block th:with="acts=${entry.value}">
+                        <tr th:each="act,iter : ${acts}"
+                            th:class="${iter.index == 0} ? 'act-row act-group-start' : 'act-row'"
+                            th:data-act-id="${act.actId}"
+                            th:data-act-num="${entry.key}"
+                            th:data-act-date="${act.dateAct != null ? #temporals.format(act.dateAct, 'yyyy-MM-dd') : ''}"
+                            th:data-company="${#strings.defaultString(act.companyName, '')}"
+                            th:data-candidate="${#strings.defaultString(act.candidate, '')}"
+                            th:data-organization="${#strings.defaultString(act.organization, '')}"
+                            th:data-department="${#strings.defaultString(act.departmentName, '')}"
+                            th:data-consultant="${#strings.defaultString(act.responsibleUserName, '')}"
+                            th:data-responsible-user-id="${act.responsibleUserId}"
+                            th:data-researcher="${#strings.defaultString(act.resecherName, '')}"
+                            th:data-resecher-id="${act.resecherId}"
+                            th:data-resecher-department="${#strings.defaultString(act.resecherDepartmentName, '')}"
+                            th:data-resecher-department-id="${act.depatmentResecherId}"
+                            th:data-project="${#strings.defaultString(act.projectName, '')}"
+                            th:data-total="${act.totalNoNds}"
+                            th:data-summ-responsible="${act.summResponsibleUser}"
+                            th:data-summ-resecher="${act.summResecher}"
+                            th:data-candidate-percent="${act.candidatePercent}"
+                            th:data-percent-responsible-complicity="${act.percentResponsibleUserComplicity}"
+                            th:data-consultant-percent="${act.responsibleUserName != null ? act.candidatePercent : ''}"
+                            th:data-resecher-percent="${act.resecherPercent}"
+                            th:data-percent-resecher-complicity="${act.percentResecherComplicity}"
+                            th:data-department-id="${act.departmentId}"
+                            th:data-resecher-leader="${#strings.defaultString(act.teameLeaderName, '')}"
+                            th:data-resecher-leader-id="${act.teameLeaderId}"
+                            th:data-responsible-city="${#strings.defaultString(act.cityResponsibleUser, '')}"
+                            th:data-responsible-city-id="${act.cityResponsibleUserId}">
+                            <!-- Объединяем ячейки только для первой строки группы -->
+                            <td class="act-header-cell" data-header-cell="true"
+                                th:text="${entry.key}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td class="act-header-cell" data-header-cell="true"
+                                th:text="${#temporals.format(act.dateAct, 'dd.MM.yyyy')}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td class="act-header-cell" data-header-cell="true"
+                                th:text="${#numbers.formatDecimal(act.totalNoNds, 1, 2)}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td class="act-header-cell" data-header-cell="true"
+                                th:text="${act.companyName}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td class="act-header-cell" data-header-cell="true"
+                                th:text="${act.candidate}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+                            <td class="act-header-cell" data-header-cell="true"
+                                th:text="${act.organization}"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}"></td>
+
+                            <!-- Остальные поля для всех строк -->
+                            <td th:text="${act.departmentName}"></td>
+                            <td th:text="${act.responsibleUserName}"></td>
+                            <td th:text="${#numbers.formatDecimal(act.summResponsibleUser, 1, 2)}"></td>
+                            <td th:text="${act.resecherDisplay}"></td>
+                            <td th:text="${#numbers.formatDecimal(act.summResecher, 1, 2)}"></td>
+                            <td>
+                                <span th:if="${act.responsibleUserName != null}"
+                                      th:text="${#numbers.formatDecimal(act.percentResponsibleUserComplicity, 1, 2)} + '%'">
+                                </span>
+                                <span th:if="${act.responsibleUserName == null}"
+                                      th:text="${#numbers.formatDecimal(act.percentResecherComplicity, 1, 2)} + '%'">
+                                </span>
+                            </td>
+                            <td th:text="${act.projectName}"></td>
+                            <td class="text-center"
+                                th:if="${iter.index == 0}"
+                                th:rowspan="${acts.size()}">
+                                <button type="button" class="btn btn-outline-primary btn-sm edit-act-btn">
+                                    Изменить
+                                </button>
+                            </td>
+                        </tr>
+                    </th:block>
+                </th:block>
+            </th:block>
+
+            <th:block th:if="${groupedActs.isEmpty()}">
+                <tr class="no-data-row">
+                    <td colspan="14" class="text-center text-muted">
+                        Нет данных для отображения за выбранный период
+                    </td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="editActModal" tabindex="-1" aria-labelledby="editActModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editActModalLabel">Изменить данные акта</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editActForm">
+                    <div class="modal-body bg-white">
+                        <input type="hidden" id="editActId" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="editActNumber" class="form-label">Номер акта</label>
+                                <input type="text" class="form-control" id="editActNumber" disabled />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editActDate" class="form-label">Дата акта</label>
+                                <input type="text" class="form-control" id="editActDate" disabled />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editTotalNoNds" class="form-label">Сумма акта (без НДС)</label>
+                                <input type="number" step="0.01" class="form-control" id="editTotalNoNds" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editCandidate" class="form-label">Кандидат</label>
+                                <input type="text" class="form-control" id="editCandidate" required />
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Консультанты</h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addConsultantBtn">Добавить консультанта</button>
+                            </div>
+                            <p class="text-muted small mb-2">Выберите ФИО и направление для каждого консультанта.</p>
+                            <div id="consultantsContainer" class="participant-list"></div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Ресечеры</h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addResearcherBtn">Добавить ресечера</button>
+                            </div>
+                            <p class="text-muted small mb-2">Выберите ФИО и направление для каждого ресечера.</p>
+                            <div id="researchersContainer" class="participant-list"></div>
+                        </div>
+                        <div class="alert alert-danger mt-3 d-none" id="editActError"></div>
+                        <div class="alert alert-success mt-3 d-none" id="editActSuccess">Данные сохранены</div>
+                    </div>
+                    <div class="modal-footer bg-white">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+
+                        <!-- Тип submit, чтобы гарантированно срабатывал слушатель form.submit -->
+                        <button type="submit"
+                                class="btn btn-primary"
+                                id="editActSaveBtn">
+                            Сохранить
+                        </button>
+                    </div>
+                </form>
+                
+        </div>
+        </div>
+    </div>
+</div>
+</html>
+

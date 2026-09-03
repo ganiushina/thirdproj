@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Распределение актов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root { --nav-height: 56px; }
+        body  { padding-top: calc(var(--nav-height) + 16px); background: #f8f9fa; }
+
+        .table-acts thead th {
+            position: sticky;
+            top: var(--nav-height);
+            background: #fff;
+            z-index: 10;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .badge-distributed   { background-color: #198754; }
+        .badge-undistributed { background-color: #6c757d; }
+
+        .row-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: #fff;
+            position: relative;
+        }
+        .row-card .btn-delete-row {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .sum-display {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        /* Подсветка процентов > 100 */
+        .percent-warning { border-color: #dc3545 !important; }
+
+        /* Итог по процентам в модалке */
+        .totals-bar { font-size: 0.9rem; }
+        .totals-bar .bad  { color: #dc3545; font-weight: 600; }
+        .totals-bar .good { color: #198754; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<!-- Навигация -->
+<div th:replace="navigation :: navi('ActDistribution')"></div>
+
+<div class="container-fluid px-4">
+
+    <h4 class="mb-3 mt-2">Распределение актов</h4>
+
+    <!-- ─── Фильтры ───────────────────────────────────────────────────────── -->
+    <div class="card filter-card mb-2">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-2">
+                    <input type="text" id="fNum" class="form-control form-control-sm"
+                           placeholder="Номер акта" oninput="applyFilters()">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="fCompany" class="form-control form-control-sm"
+                           placeholder="Компания" oninput="applyFilters()">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="fCandidate" class="form-control form-control-sm"
+                           placeholder="Кандидат" oninput="applyFilters()">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="fProject" class="form-control form-control-sm"
+                           placeholder="Проект" oninput="applyFilters()">
+                </div>
+                <div class="col-md-2">
+                    <select id="fStatus" class="form-select form-select-sm" onchange="applyFilters()">
+                        <option value="">Все акты</option>
+                        <option value="yes">Распределённые</option>
+                        <option value="no">Не распределённые</option>
+                        <option value="multi">Больше одной строки</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">Сбросить</button>
+                    <span class="text-muted small" id="filterCount"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Таблица актов ─────────────────────────────────────────────────── -->
+    <!-- Без .table-responsive: overflow-x создаёт свой скролл-контейнер, и липкая
+         шапка отсчитывает top от него, съезжая на 56px вниз и накрывая первую строку. -->
+    <div>
+        <table class="table table-hover table-sm table-acts bg-white">
+            <thead class="table-light">
+            <tr>
+                <th>Номер акта</th>
+                <th>Дата</th>
+                <th>Компания</th>
+                <th>Кандидат</th>
+                <th>Сумма без НДС</th>
+                <th>Проект</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="act : ${acts}" class="act-row"
+                th:data-num="${act.actNum}"
+                th:data-company="${act.companyName}"
+                th:data-candidate="${act.candidate}"
+                th:data-project="${act.projectName}"
+                th:data-rows="${act.distributionRowsCount}">
+                <td th:text="${act.actNum}">00АП-00048</td>
+                <td th:text="${#temporals.format(act.dateAct, 'dd.MM.yyyy')}">01.04.2026</td>
+                <td th:text="${act.companyName}">Компания</td>
+                <td th:text="${act.candidate}">Иванов</td>
+                <td th:text="${#numbers.formatDecimal(act.totalNoNds, 1, 'COMMA', 0, 'POINT')} + ' ₽'">0</td>
+                <td class="text-muted small" th:text="${act.projectName}">—</td>
+                <td>
+                    <span th:if="${act.distributed}"
+                          class="badge badge-distributed">
+                        ✓ Распределён (<span th:text="${act.distributionRowsCount}">0</span>)
+                    </span>
+                    <span th:unless="${act.distributed}"
+                          class="badge badge-undistributed">
+                        Не распределён
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary"
+                            th:data-act-id="${act.id}"
+                            th:data-act-num="${act.actNum}"
+                            th:data-company="${act.companyName}"
+                            th:data-candidate="${act.candidate}"
+                            th:data-total="${act.totalNoNds}"
+                            onclick="openActModal(this)">
+                        <i class="bi bi-pencil-square"></i> Распределить
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ─── Модальное окно распределения ─────────────────────────────────────── -->
+<div class="modal fade" id="distributionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#d23c3d; color:#fff;">
+                <h5 class="modal-title">
+                    Распределение: <span id="modalActNum"></span>
+                    &nbsp;|&nbsp; <span id="modalCompany"></span>
+                    &nbsp;|&nbsp; <span id="modalCandidate"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <!-- Инфо об акте -->
+                <div class="alert alert-light d-flex justify-content-between align-items-center mb-3 py-2">
+                    <span>Сумма акта без НДС:</span>
+                    <strong id="modalTotal" class="fs-5 text-success"></strong>
+                </div>
+
+                <!-- Итог по процентам -->
+                <div class="totals-bar mb-2" id="percentTotals"></div>
+
+                <!-- Список существующих строк -->
+                <div id="rowsContainer"></div>
+
+                <!-- Кнопка добавить строку -->
+                <button class="btn btn-success btn-sm mt-1" onclick="addNewRowForm()">
+                    <i class="bi bi-plus-circle"></i> Добавить строку
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Шаблон формы строки (скрытый) ───────────────────────────────────── -->
+<template id="rowFormTemplate">
+    <div class="row-card" data-row-id="0">
+        <button class="btn btn-sm btn-outline-danger btn-delete-row" onclick="deleteRow(this)">
+            <i class="bi bi-trash"></i>
+        </button>
+
+        <div class="row g-2">
+            <!-- Консультант -->
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small mb-1">Консультант</label>
+                <select class="form-select form-select-sm consultant-select" onchange="onConsultantChange(this)">
+                    <option value="">— выберите —</option>
+                </select>
+                <input type="hidden" class="consultant-id">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">% консультанта</label>
+                <input type="number" min="0" max="100" step="0.01"
+                       class="form-control form-control-sm consultant-percent"
+                       placeholder="0" oninput="recalcSums(this.closest('.row-card'))">
+                <div class="sum-display consultant-sum-display">= 0 ₽</div>
+            </div>
+
+            <!-- Ресечер -->
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small mb-1">Ресечер</label>
+                <select class="form-select form-select-sm researcher-select" onchange="onResearcherChange(this)">
+                    <option value="">— нет —</option>
+                </select>
+                <input type="hidden" class="researcher-id">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">% ресечера</label>
+                <input type="number" min="0" max="100" step="0.01"
+                       class="form-control form-control-sm researcher-percent"
+                       placeholder="0" oninput="recalcSums(this.closest('.row-card'))">
+                <div class="sum-display researcher-sum-display">= 0 ₽</div>
+            </div>
+
+            <!-- Доп. поля -->
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small mb-1">Отдел консультанта</label>
+                <input type="text" class="form-control form-control-sm department-name" placeholder="Pharma">
+                <input type="hidden" class="department-id">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small mb-1">Тимлид</label>
+                <input type="text" class="form-control form-control-sm team-leader-name" placeholder="ФИО тимлида">
+                <input type="hidden" class="team-leader-id">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small mb-1">Город консультанта</label>
+                <input type="text" class="form-control form-control-sm city-name" placeholder="Москва">
+                <input type="hidden" class="city-id">
+            </div>
+        </div>
+
+        <div class="text-end mt-2">
+            <button class="btn btn-primary btn-sm" onclick="saveRow(this.closest('.row-card'))">
+                <i class="bi bi-check2"></i> Сохранить
+            </button>
+        </div>
+    </div>
+</template>
+
+<!-- ─── Данные сотрудников из Thymeleaf ──────────────────────────────────── -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const EMPLOYEES = /*[[${employees}]]*/ [];
+    /*]]>*/
+</script>
+
+<!-- ─── JavaScript ───────────────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentActId   = null;
+    let currentTotal   = 0;
+    let distributionModal = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        distributionModal = new bootstrap.Modal(document.getElementById('distributionModal'));
+        applyFilters();
+    });
+
+    /* ─── Фильтры по таблице актов ────────────────────────────────────────── */
+    // Номер акта ищем без пробелов: в базе он лежит как «00АП-00094 2026»,
+    // чтобы находилось и по «94», и по «00АП-00094».
+    function norm(s)    { return (s || '').toString().toLowerCase().trim(); }
+    function normNum(s) { return norm(s).replace(/\s+/g, ''); }
+
+    function applyFilters() {
+        const fNum       = normNum(document.getElementById('fNum').value);
+        const fCompany   = norm(document.getElementById('fCompany').value);
+        const fCandidate = norm(document.getElementById('fCandidate').value);
+        const fProject   = norm(document.getElementById('fProject').value);
+        const fStatus    = document.getElementById('fStatus').value;
+
+        const rows = document.querySelectorAll('tr.act-row');
+        let shown = 0;
+
+        rows.forEach(tr => {
+            const rowsCount = parseInt(tr.dataset.rows) || 0;
+
+            const okStatus = fStatus === ''      ? true
+                           : fStatus === 'yes'   ? rowsCount > 0
+                           : fStatus === 'no'    ? rowsCount === 0
+                           : /* multi */           rowsCount > 1;
+
+            const ok = okStatus
+                && (!fNum       || normNum(tr.dataset.num).includes(fNum))
+                && (!fCompany   || norm(tr.dataset.company).includes(fCompany))
+                && (!fCandidate || norm(tr.dataset.candidate).includes(fCandidate))
+                && (!fProject   || norm(tr.dataset.project).includes(fProject));
+
+            tr.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+
+        document.getElementById('filterCount').textContent = `${shown} из ${rows.length}`;
+    }
+
+    function resetFilters() {
+        ['fNum', 'fCompany', 'fCandidate', 'fProject'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('fStatus').value = '';
+        applyFilters();
+    }
+
+    /* ─── Открыть модалку ─────────────────────────────────────────────────── */
+    function openActModal(btn) {
+        currentActId = parseInt(btn.dataset.actId);
+        currentTotal = parseFloat(btn.dataset.total) || 0;
+
+        document.getElementById('modalActNum').textContent   = btn.dataset.actNum;
+        document.getElementById('modalCompany').textContent  = btn.dataset.company;
+        document.getElementById('modalCandidate').textContent = btn.dataset.candidate;
+        document.getElementById('modalTotal').textContent    = formatMoney(currentTotal) + ' ₽';
+
+        loadRows();
+        distributionModal.show();
+    }
+
+    /* ─── Загрузить существующие строки ───────────────────────────────────── */
+    function loadRows() {
+        fetch(`/act-distribution/${currentActId}/rows`)
+            .then(r => r.json())
+            .then(rows => {
+                const container = document.getElementById('rowsContainer');
+                container.innerHTML = '';
+                rows.forEach(row => container.appendChild(buildRowCard(row)));
+                updateTotals();
+                syncActRowBadge(rows.length);
+            });
+    }
+
+    /* ─── Построить карточку строки (из данных сервера) ──────────────────── */
+    function buildRowCard(row) {
+        const card = cloneTemplate();
+        card.dataset.rowId = row.id;
+
+        fillSelect(card.querySelector('.consultant-select'), row.consultantId, row.consultantName);
+        card.querySelector('.consultant-id').value         = row.consultantId || '';
+        card.querySelector('.consultant-percent').value    = row.consultantPercent || '';
+        card.querySelector('.department-name').value       = row.department || '';
+        card.querySelector('.department-id').value         = row.departmentId || '';
+        card.querySelector('.team-leader-name').value      = row.teamLeaderName || '';
+        card.querySelector('.team-leader-id').value        = row.teamLeaderId || '';
+        card.querySelector('.city-name').value             = row.city || '';
+        card.querySelector('.city-id').value               = row.cityId || '';
+
+        fillSelect(card.querySelector('.researcher-select'), row.researcherId, row.researcherName);
+        card.querySelector('.researcher-id').value         = row.researcherId || '';
+        card.querySelector('.researcher-percent').value    = row.researcherPercent || '';
+
+        recalcSums(card);
+        return card;
+    }
+
+    /* ─── Добавить пустую форму ───────────────────────────────────────────── */
+    function addNewRowForm() {
+        const card = cloneTemplate();
+        card.dataset.rowId = '0'; // 0 = новая строка
+        document.getElementById('rowsContainer').appendChild(card);
+        updateTotals();
+    }
+
+    /* ─── Заполнить select ────────────────────────────────────────────────── */
+    function fillSelect(sel, selectedId, selectedName) {
+        sel.innerHTML = '<option value="">— выберите —</option>';
+        EMPLOYEES.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = emp.manId;
+            opt.textContent = emp.manFIO;
+            if (emp.manId === selectedId) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        // Если id не найден в списке, но есть имя — добавим как Option
+        if (selectedId && !EMPLOYEES.find(e => e.manId === selectedId)) {
+            const opt = document.createElement('option');
+            opt.value = selectedId;
+            opt.textContent = selectedName || selectedId;
+            opt.selected = true;
+            sel.appendChild(opt);
+        }
+    }
+
+    function onConsultantChange(sel) {
+        const card = sel.closest('.row-card');
+        card.querySelector('.consultant-id').value = sel.value;
+    }
+
+    function onResearcherChange(sel) {
+        const card = sel.closest('.row-card');
+        card.querySelector('.researcher-id').value = sel.value;
+    }
+
+    /* ─── Пересчёт сумм по % ──────────────────────────────────────────────── */
+    function recalcSums(card) {
+        const cp = parseFloat(card.querySelector('.consultant-percent').value) || 0;
+        const rp = parseFloat(card.querySelector('.researcher-percent').value)  || 0;
+        card.querySelector('.consultant-sum-display').textContent  = '= ' + formatMoney(currentTotal * cp / 100) + ' ₽';
+        card.querySelector('.researcher-sum-display').textContent  = '= ' + formatMoney(currentTotal * rp / 100) + ' ₽';
+        updateTotals();
+    }
+
+    /* ─── Итог по процентам всех строк акта ───────────────────────────────── */
+    /* Сумма долей консультантов по акту должна быть ровно 100 % — иначе акт
+       попадёт в выручку отдела дважды (или недосчитается). */
+    function updateTotals() {
+        const cards = document.querySelectorAll('#rowsContainer .row-card');
+        let cSum = 0, rSum = 0;
+
+        cards.forEach(c => {
+            cSum += parseFloat(c.querySelector('.consultant-percent').value) || 0;
+            rSum += parseFloat(c.querySelector('.researcher-percent').value)  || 0;
+        });
+
+        // Красная рамка на процентах консультанта, если в сумме перебор
+        cards.forEach(c => c.querySelector('.consultant-percent')
+                            .classList.toggle('percent-warning', cSum > 100.001));
+
+        const cls = Math.abs(cSum - 100) < 0.01 ? 'good' : 'bad';
+        const hint = cSum > 100.001
+                ? ' — акт распределён больше чем на 100 %, выручка отдела задвоится'
+                : (cSum < 99.999 ? ' — акт распределён не полностью' : '');
+
+        document.getElementById('percentTotals').innerHTML = cards.length === 0 ? ''
+            : `Строк: ${cards.length} &nbsp;|&nbsp; % консультантов: <span class="${cls}">${formatPercent(cSum)} %</span>`
+            + ` (${formatMoney(currentTotal * cSum / 100)} ₽)`
+            + ` &nbsp;|&nbsp; % ресечеров: <span class="${rSum > 100.001 ? 'bad' : ''}">${formatPercent(rSum)} %</span>`
+            + `<span class="${cls}">${hint}</span>`;
+    }
+
+    function formatPercent(v) {
+        return Number(v).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
+    }
+
+    /* Обновить статус акта в таблице, не перезагружая страницу */
+    function syncActRowBadge(count) {
+        const btn = document.querySelector(`tr.act-row button[data-act-id="${currentActId}"]`);
+        if (!btn) return;
+        const tr = btn.closest('tr.act-row');
+        tr.dataset.rows = count;
+        const cell = tr.querySelectorAll('td')[6];
+        if (cell) {
+            cell.innerHTML = count > 0
+                ? `<span class="badge badge-distributed">✓ Распределён (${count})</span>`
+                : `<span class="badge badge-undistributed">Не распределён</span>`;
+        }
+        applyFilters();
+    }
+
+    /* ─── Сохранить строку ────────────────────────────────────────────────── */
+    function saveRow(card) {
+        const rowId = parseInt(card.dataset.rowId);
+        const isNew = rowId === 0;
+
+        const body = {
+            totalNoNds:             currentTotal,
+            consultantName:         card.querySelector('.consultant-select').options[card.querySelector('.consultant-select').selectedIndex]?.text || '',
+            consultantId:           card.querySelector('.consultant-id').value,
+            consultantPercent:      card.querySelector('.consultant-percent').value,
+            researcherName:         card.querySelector('.researcher-select').options[card.querySelector('.researcher-select').selectedIndex]?.text || '',
+            researcherId:           card.querySelector('.researcher-id').value,
+            researcherPercent:      card.querySelector('.researcher-percent').value,
+            department:             card.querySelector('.department-name').value,
+            departmentId:           card.querySelector('.department-id').value,
+            teamLeaderName:         card.querySelector('.team-leader-name').value,
+            teamLeaderId:           card.querySelector('.team-leader-id').value,
+            city:                   card.querySelector('.city-name').value,
+            cityId:                 card.querySelector('.city-id').value,
+        };
+
+        // Убираем текст "— нет —" / "— выберите —" из имён
+        if (body.consultantName.startsWith('—')) body.consultantName = '';
+        if (body.researcherName.startsWith('—')) body.researcherName = '';
+
+        const url    = isNew ? `/act-distribution/${currentActId}/row` : `/act-distribution/row/${rowId}`;
+        const method = isNew ? 'POST' : 'PUT';
+
+        fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'ok') {
+                showToast('Строка сохранена', 'success');
+                loadRows();
+            } else {
+                showToast('Ошибка: ' + (res.error || 'неизвестная'), 'danger');
+            }
+        })
+        .catch(() => showToast('Ошибка сети', 'danger'));
+    }
+
+    /* ─── Удалить строку ──────────────────────────────────────────────────── */
+    function deleteRow(btn) {
+        const card  = btn.closest('.row-card');
+        const rowId = parseInt(card.dataset.rowId);
+        if (rowId === 0) { card.remove(); updateTotals(); return; } // просто убрать незаписанную форму
+
+        if (!confirm('Удалить строку распределения?')) return;
+
+        fetch(`/act-distribution/row/${rowId}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(res => {
+                if (res.status === 'ok') {
+                    showToast('Строка удалена', 'success');
+                    loadRows();
+                } else {
+                    showToast('Ошибка: ' + (res.error || 'неизвестная'), 'danger');
+                }
+            });
+    }
+
+    /* ─── Утилиты ─────────────────────────────────────────────────────────── */
+    function cloneTemplate() {
+        const tpl = document.getElementById('rowFormTemplate');
+        const clone = tpl.content.cloneNode(true).querySelector('.row-card');
+        // Заполнить select'ы сотрудников
+        fillSelect(clone.querySelector('.consultant-select'), null, null);
+        fillSelect(clone.querySelector('.researcher-select'), null, null);
+        return clone;
+    }
+
+    function formatMoney(v) {
+        return Number(v).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /* Простой toast-уведомления */
+    function showToast(msg, type = 'success') {
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.style.cssText = 'position:fixed;top:70px;right:20px;z-index:9999;';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} py-2 px-3 shadow`;
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+</script>
+</body>
+</html>

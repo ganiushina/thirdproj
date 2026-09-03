@@ -1,0 +1,142 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="interpreterTab">
+    <div id="verification-container">
+    <h4>Детализация выплат</h4>
+    <p>Выплаты за период <span th:text="${#temporals.format(dateFrom)}">...</span> -
+        <span th:text="${#temporals.format(dateTo)}">...</span></p>
+
+    <!-- Блок статуса проверки -->
+    <div class="verification-info mb-3 p-3 border rounded">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Статус проверки выплат:</h5>
+            <button id="send-verification-btn" class="btn btn-primary btn-sm"
+                    onclick="sendVerificationEmails()">
+                Отправить проверку
+            </button>
+        </div>
+
+        <div class="status-details">
+            <p class="mb-1">
+                Текущий статус:
+                <span id="verification-status" class="fw-bold"
+                      th:classappend="${userSalarySuccesses != null} ? 'text-success' : 'text-secondary'"
+                      th:text="${userSalarySuccesses != null} ? 'Проверено' : 'Не проверено'">
+                    Не проверено
+                </span>
+            </p>
+            <p class="mb-0">
+                Информация:
+                <span id="verification-period-info" th:text="${userSalarySuccesses ?: 'Нет данных о проверке'}">
+                    Нет данных о проверке
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/filter-fragment_interpreters :: filter-form(tableId='interpreters')}"></div>
+
+    <div class="sticky-table-wrapper">
+        <table id="interpreters" class="table table-bordered table-sortable">
+            <thead>
+            <tr>
+                <th>ФИО</th>
+                <th>Должность</th>
+                <th>Отдел</th>
+                <th>Зарплата</th>
+                <th>Бонус</th>
+                <th>Бонус БДМ KPI</th>
+                <th>Бонус проект BDM</th>
+                <th>Бонус БДМ</th>
+                <th>НДФЛ</th>
+                <th>Больничные</th>
+                <th>Отпускные</th>
+                <th>Бонус+НДФЛ</th>
+                <th>Вся сумма</th>
+                <th>Месяц</th>
+                <th>Квартал</th>
+                <th>Год</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Внешний цикл по пользователям -->
+            <th:block th:each="user : ${userSalaryList}">
+
+
+                <tr th:each="salary,iter : ${user.salaryList}"
+                    th:data-user-fio="${user.userFio}"
+                    th:data-position="${user.position}"
+                    th:data-department="${user.department}"
+                    th:data-month="${#strings.toLowerCase(salary.salaryMonthStr)}">
+
+
+                    <!-- Объединенные ячейки (только для первой строки) -->
+                    <td th:text="${user.userFio}"
+                        th:if="${iter.index == 0}"
+                        th:rowspan="${user.salaryList.size()}"></td>
+                    <td th:text="${user.position}"
+                        th:if="${iter.index == 0}"
+                        th:rowspan="${user.salaryList.size()}"></td>
+                    <td th:text="${user.department}"
+                        th:if="${iter.index == 0}"
+                        th:rowspan="${user.salaryList.size()}"></td>
+
+                    <!-- Данные по зарплате -->
+                    <td th:text="${salary.userSalaryRUB}" class="numeric"></td>
+                    <td th:text="${salary.userBonusRUB}" class="numeric"></td>
+                    <td th:text="${salary.userBonusBDMKPI}" class="numeric"></td>
+                    <td th:text="${salary.userBonusProjectBDM}" class="numeric"></td>
+                    <td th:text="${salary.userBonusBDMRUB}" class="numeric"></td>
+                    <td th:text="${salary.userSalaryNDFLRUB}" class="numeric"></td>
+                    <td th:text="${salary.salarySickDaysPayRUB}" class="numeric"></td>
+                    <td th:text="${salary.salaryVacationPayRUB}" class="numeric"></td>
+                    <td th:text="${salary.userSalarySingleRUB}" class="numeric"></td>
+                    <td th:text="${salary.userSalaryAllRUB}" class="numeric"></td>
+                    <td th:text="${salary.salaryMonthStr}" class="month-cell"></td>
+                    <td th:text="${salary.salaryQuarter}" class="numeric"></td>
+                    <td th:text="${salary.salaryYear}" class="numeric"></td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+    </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function adjustStickyHeader() {
+                const nav = document.querySelector('nav'); // Или ваш селектор навигации
+                const navHeight = nav ? nav.offsetHeight : 56; // 56px - стандартная высота
+
+                document.querySelectorAll('.sticky-table-wrapper thead th').forEach(th => {
+                    th.style.top = navHeight + 'px';
+                });
+            }
+
+            // Инициализация + обработка ресайза
+            adjustStickyHeader();
+            window.addEventListener('resize', adjustStickyHeader);
+
+            // Для динамических изменений в навигации
+            new MutationObserver(adjustStickyHeader).observe(
+                document.querySelector('nav'),
+                { attributes: true, attributeFilter: ['style'] }
+            );
+        });
+    </script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Инициализация сортировки для этой таблицы
+        document.addEventListener('DOMContentLoaded', function() {
+            initTableSorting(); // Вызов функции из main.html
+        });
+
+        // Если таблица загружается через AJAX:
+        setTimeout(initTableSorting, 50);
+        /*]]>*/
+
+        console.log('Инициализация таблицы:', table.id);
+    </script>
+</div>
+</html>
+

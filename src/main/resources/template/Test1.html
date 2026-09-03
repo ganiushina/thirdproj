@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <title>Title</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Open Sans";
+
+        }
+        .wrapper {
+            max-width: 50rem;
+            width: 100%;
+            margin: 10px;
+        }
+        /*.tabs {*/
+        /*   */
+        /*    margin: 3rem 0;*/
+        /*    background: #1abc9c;*/
+        /*    height: 14.75rem;*/
+        /*}*/
+        .tabs::before,
+        .tabs::after {
+            content: "";
+            display: table;
+        }
+        .tabs::after {
+            clear: both;
+        }
+        .tab {
+            float: left;
+        }
+        .tab-switch {
+            display: none;
+        }
+        .tab-label {
+            position: relative;
+            display: block;
+            line-height: 2.75em;
+            height: 3em;
+            padding: 0 1.618em;
+            background: #1abc9c;
+            border-right: 0.125rem solid #16a085;
+            color: #fff;
+            cursor: pointer;
+            top: 0;
+            transition: all 0.25s;
+        }
+        .tab-label:hover {
+            top: -0.25rem;
+            transition: top 0.25s;
+        }
+        .tab-content {
+
+            position: absolute;
+            z-index: 2;
+            top: 2.75em;
+            left: 0;
+            padding: 1.618rem;
+            background: #fff;
+            color: #2c3e50;
+            border-bottom: 0.25rem solid #bdc3c7;
+            opacity: 0;
+            transition: all 0.35s;
+        }
+        .tab-switch:checked + .tab-label {
+            background: #fff;
+            color: #2c3e50;
+            border-bottom: 0;
+            border-right: 0.125rem solid #fff;
+            transition: all 0.35s;
+            z-index: 2;
+            top: -0.0625rem;
+        }
+        .tab-switch:checked + label + .tab-content {
+            z-index: 3;
+            opacity: 1;
+            transition: all 0.35s;
+        }
+        .nomarker{
+            list-style-type: none;
+            padding: 0px;
+        }
+        table td{
+            text-align: left;
+        }
+        .headers{
+            z-index: 1;
+
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="headers">
+
+
+    <h1 th:text="Бонусы"/>
+
+    <p th:text="Всего  + ' ' + заработано + ' ' + бонусов + ': '  + ${allBonusMoney}">
+
+    <p th:text="Всего  + ' ' + заработано + ': '  + ${allMoney}">
+
+
+    <form th:action="@{/bonus/getall}" method="get">
+
+        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date"
+               placeholder="Дата от ">
+        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"
+               placeholder="Дата до">
+
+
+        <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по фамилии.."
+               title="Type in a name">
+        <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.."
+               title="Type in a department">
+
+        <button type="submit" class="btn btn-primary">Фильтровать</button>
+
+    </form>
+</div>
+
+    <div class="wrapper">
+
+    <div class="tabs">
+        <div class="tab">
+            <input type="radio" name="css-tabs" id="tab-1" checked class="tab-switch">
+            <label for="tab-1" class="tab-label">Tab One</label>
+            <div class="tab-content">My father had a small estate in Nottinghamshire: I was the third of five sons. He sent me to Emanuel College in Cambridge at fourteen years old, where I resided three years, and applied myself close to my studies; but the charge of maintaining me, although I had a very scanty allowance, being too great for a narrow fortune, I was bound apprentice to Mr. James Bates, an eminent surgeon in London, with whom I continued four years. </div>
+        </div>
+        <div class="tab">
+            <input type="radio" name="css-tabs" id="tab-2" class="tab-switch">
+            <label for="tab-2" class="tab-label">Tab Two</label>
+            <div class="tab-content">
+                <table id="myTable" class="table table-bordered border-primary">
+                    <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Должность</th>
+                        <th>Департамент</th>
+                        <th>Всего заработано</th>
+                        <th>Всего Бонус</th>
+                        <th>Месяц</th>
+                        <th>Бонус за кандидата</th>
+                        <th>Заработано за кандидата</th>
+                        <th>Кандидат</th>
+                        <th>Компания</th>
+                        <th>Процент</th>
+                        <th>Процент за предачу</th>
+                        <th>Добавить</th>
+                    </thead>
+
+                    <tbody>
+
+
+                    <tr th:each="userBonus,iterStat : ${userBonus}">
+                        <td th:text="${userBonus.fio}"/>
+                        <td th:text="${userBonus.position}"/>
+                        <td th:text="${userBonus.department}"/>
+
+                        <td>
+                            <ul class="nomarker">
+                                        <span th:each="monthSummName : ${userBonus.monthSummName}">
+                                            <li>
+                                        <span style="white-space: nowrap" th:text="${monthSummName}"/></span>
+                                </li>
+                            </ul>
+
+                        </td>
+
+
+                        <td>
+                            <ul class="nomarker">
+                                        <span th:each="monthMoneyName : ${userBonus.monthMoneyName}">
+                                             <li>
+                                        <span style="white-space: nowrap" th:text="${monthMoneyName}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+
+                        <td>
+                            <ul class="nomarker">
+                                        <span th:each="monthName : ${userBonus.monthName}">
+                                             <li>
+                                            <span style="white-space: nowrap" th:text="${monthName}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+
+                        <td>
+                            <ul class="nomarker">
+                                    <span th:each="moneyByCandidate : ${userBonus.moneyByCandidate}">
+                                         <li>
+                                                 <span style="white-space: nowrap" th:text="${moneyByCandidate}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+                        <td>
+                            <ul class="nomarker">
+                                            <span th:each="sumUser : ${userBonus.sumUser}">
+                                         <li>
+                                                <span style="white-space: nowrap" th:text="${sumUser}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+
+                        <td>
+                            <ul class="nomarker">
+                                         <span th:each="candidateName : ${userBonus.candidateName}">
+                                            <li>
+                                                <span style="white-space: nowrap" th:text="${candidateName}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+
+                        <td>
+                            <ul class="nomarker">
+                                        <span th:each="companyName : ${userBonus.companyName}">
+                                             <li>
+                                        <span style="white-space: nowrap" th:text="${companyName}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+                        <td>
+                            <ul class="nomarker">
+                                        <span  th:each="percent : ${userBonus.percent}">
+                                             <li>
+                                        <span style="white-space: nowrap" th:text="${percent}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+
+                        <td>
+                            <ul class="nomarker">
+                                    <span th:each="extraAct : ${userBonus.extraBonusAct}">
+                                        <li>
+
+                                    <span th:text="${extraAct}"/></span>
+                                </li>
+                            </ul>
+                        </td>
+
+                        <td>
+                            <button type="submit" class="btn btn-primary" th:value="${userBonus.fio}"
+                                    th:name="fio">Добавить
+                            </button>
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                    <input hidden name="date1" th:value="${date1}"/>
+                    <input hidden name="date2" th:value="${date2}"/>
+
+                </table>
+            </div>
+        </div>
+        <div class="tab">
+            <input type="radio" name="css-tabs" id="tab-3" class="tab-switch">
+            <label for="tab-3" class="tab-label">Tab Three</label>
+            <div class="tab-content">When I left Mr. Bates, I went down to my father: where, by the assistance of him and my uncle John, and some other relations, I got forty pounds, and a promise of thirty pounds a year to maintain me at Leyden: there I studied physic two years and seven months, knowing it would be useful in long voyages.</div>
+        </div>
+    </div>
+
+<!--</div>-->
+</div>
+
+
+</body>
+</html>

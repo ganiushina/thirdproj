@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="actUnpaidTab">
+    <div class="table-scroll-container">
+        <table id="unpaidTable" class="table table-bordered table-hover fixed-header" data-numeric-cols="Сумма">
+            <thead class="table-light">
+            <tr>
+                <th>Номер акта</th>
+                <th>Дата акта</th>
+                <th>Компания</th>
+                <th>Сумма</th>
+                <th>Кандидат</th>
+                <th>Проект</th>
+                <th>Оплата до</th>
+                <th>Частично оплачено</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="act : ${actNoPayList}">
+                <td th:text="${act.num}"></td>
+                <td th:text="${act.date}"></td>
+                <td th:text="${act.companies}"></td>
+                <td th:text="${act.bonusRUB}" class="numeric"></td>
+                <td th:text="${act.candidate}"></td>
+                <td th:text="${act.projectName}"></td>
+                <td th:text="${act.dateClientPay}"></td>
+                <td th:text="${act.sumPaidFor}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
+

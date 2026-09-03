@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #myTable {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+            font-size: 18px;
+
+        }
+
+        #myTable th, #myTable td {
+            text-align: left;
+            padding: 12px;
+
+        }
+
+        #myTable tr {
+            border-bottom: 1px solid #ddd;
+
+        }
+
+        #myTable tr.header, #myTable tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .container {
+            display: flex;
+        }
+
+    </style>
+    <meta charset="utf-8"/>
+
+    <title>Бонусы</title>
+
+    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body>
+
+<div th:replace="~{navigation :: navi(Cart)}"/>
+
+<section id="tabs" class="project-tab">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <nav>
+                    <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Project Tab 1</a>
+                        <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Project Tab 2</a>
+                        <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact" role="tab" aria-controls="nav-contact" aria-selected="false">Project Tab 3</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                        <table id="myTable" class="table" cellspacing="0">
+                            <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Должность</th>
+                                <th>Департамент</th>
+                                <th>Всего заработано</th>
+                                <th>Всего Бонус</th>
+                                <th>Бонус за кандидата</th>
+                                <th>Заработано за кандидата</th>
+                                <th>Имя кандидата</th>
+                                <th>Наименование компании</th>
+                                <th>Процент</th>
+                                <th>Месяц</th>
+                                <th>Год</th>
+                                <th>Процент за предачу</th>
+                                <th>Добавить</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="userBonus,iterStat : ${userBonus}">
+                                <td th:text="${userBonus.fio}"/>
+                                <td th:text="${userBonus.position}"/>
+                                <td th:text="${userBonus.department}"/>
+                                <td>
+                                    <span th:each="monthSummName : ${userBonus.monthSummName}">
+                                    <span th:text="${monthSummName}"/></span>
+                                </td>
+
+                                <td>
+                                    <span th:each="monthMoneyName : ${userBonus.monthMoneyName}">
+                                    <span th:text="${monthMoneyName}"/></span>
+                                </td>
+
+                                <td>
+                                    <span th:each="moneyByCandidate : ${userBonus.moneyByCandidate}">
+                                    <span th:text="${moneyByCandidate}"/></span>
+                                </td>
+
+                                <td>
+                                    <span th:each="sumUser : ${userBonus.sumUser}">
+                                    <span th:text="${sumUser}"/></span>
+                                </td>
+
+                                <td>
+                                    <ul>
+                                        <span th:each="candidateName : ${userBonus.candidateName}">
+                                        <li>
+                                            <span th:text="${candidateName}"/></span>
+                                        </li>
+                                    </ul>
+                                </td>
+
+                                <td>
+                                    <ul>
+                                        <span th:each="companyName : ${userBonus.companyName}">
+                                        <li>
+                                            <span th:text="${companyName}"/></span>
+                                        </li>
+                                    </ul>
+                                </td>
+
+                                <td>
+                                    <ul>
+                                        <span th:each="percent : ${userBonus.percent}">
+                                        <li>
+                                            <span th:text="${percent}"/></span>
+                                        </li>
+                                    </ul>
+                                </td>
+
+                                <td>
+                                    <ul>
+                                        <span th:each="monthName : ${userBonus.monthName}">
+                                        <li>
+                                            <span th:text="${monthName}"/></span>
+                                        </li>
+                                    </ul>
+
+                                </td>
+
+                                <td>
+                                    <ul>
+                                        <span th:each="year : ${userBonus.year}">
+                                            <li>
+                                                <span th:text="${year}"/></span>
+                                        </li>
+                                    </ul>
+                                </td>
+
+                                <td>
+                                    <span th:each="extraAct : ${userBonus.extraBonusAct}">
+                                    <span th:text="${extraAct}"/></span>
+                                </td>
+
+                                <td>
+                                    <button type="submit" class="btn btn-primary" th:value="${userBonus.fio}"
+                                            th:name="fio">Добавить
+                                    </button>
+                                </td>
+
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                        <table id="myTable2" class="table" cellspacing="0">
+                            <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Должность</th>
+                                <th>Бонус</th>
+                                <th>Юонус за 1-ое место</th>
+                                <th>Весь бонус</th>
+                                <th>Месяц</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="userBonusKPI,iterStat : ${userBonusKPI}">
+                                <td th:text="${userBonusKPI.fio}"/>
+                                <td th:text="${userBonusKPI.position}"/>
+
+                                <td>
+                                    <ul>
+                                         <span th:each="bonus : ${userBonusKPI.bonus}">
+                                            <li>
+                                                <span th:text="${bonus}"/></span>
+                                        </li>
+                                    </ul>
+
+                                </td>
+
+                                <td>
+                                    <ul>
+                                         <span th:each="bonusBest : ${userBonusKPI.bonusBest}">
+                                            <li>
+                                                <span th:text="${bonusBest}"/></span>
+                                        </li>
+                                    </ul>
+                                </td>
+
+                                <td>
+
+                                    <ul>
+                                          <span th:each="bonusAll : ${userBonusKPI.bonusAll}">
+                                            <li>
+                                                <span th:text="${bonusAll}"/></span>
+                                        </li>
+                                    </ul>
+
+                                </td>
+
+                                <td>
+                                    <ul>
+                                          <span th:each="month : ${userBonusKPI.month}">
+                                            <li>
+                                                <span th:text="${month}"/></span>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+    function myFunction() {
+        var input, filter, table, table1, tr, tr1, td, td1, i, j;
+        input = document.getElementById("inputName");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+
+        table1 = document.getElementById("myTable2");
+        tr1 = table1.getElementsByTagName("tr");
+
+        for (j = 0; j < tr1.length; j++) {
+            td1 = tr1[j].getElementsByTagName("td")[0];
+            if (td1) {
+                if (td1.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr1[j].style.display = "";
+                } else {
+                    tr1[j].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchDep() {
+        var input, filter, table, table1, tr, tr1, td, td1, i, j;
+        input = document.getElementById("inputDepartment");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[2];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+
+        table1 = document.getElementById("myTable2");
+        tr1 = table1.getElementsByTagName("tr");
+
+        for (j = 0; j < tr1.length; j++) {
+            td1 = tr1[j].getElementsByTagName("td")[2];
+            if (td1) {
+                if (td1.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr1[j].style.display = "";
+                } else {
+                    tr1[j].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

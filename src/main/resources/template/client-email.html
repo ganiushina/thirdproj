@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <title th:remove="all">Template for HTML email</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+</head>
+<body>
+
+<div style="text-align: center;">
+<p>
+    Привет, <b> <span th:text="${name}"></span>! </b>
+</p>
+<p>
+   Сегодня <b> <span th:text="${date}"></span></b> дни рождения отмечают:
+</p>
+
+
+<ul style="list-style:none;">
+
+    <li style="list-style:none;" th:each="user : ${userBirthday}">
+        <hr>
+     <p>  <b>Именинник:</b>  <span style="color:blue" th:text="${user.manFIO}"></span> </p>
+
+     <p> <b>Комания\Должность:</b> <span th:text="| ${user.companyName}, ${user.position}|"></span> </p>
+
+     <p> <b>Проект\Статус:</b> <span style="color:red" th:text="|${user.projectName} ${user.manStatus}|"> </span></p>
+
+    </li>
+</ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+package ru.alta.thirdproj.services;
+
+import ru.alta.thirdproj.entites.Act;
+import ru.alta.thirdproj.entites.ActByCompanyByDepartment;
+import ru.alta.thirdproj.entites.Employer;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public interface iActPutService {
+
+    List<Act> getAllPutAct(LocalDate date1, LocalDate date2);
+    List<Act> getANoPaymentAct(LocalDate date1);
+    Double allDebitAct(List<Act> actList);
+    List<ActByCompanyByDepartment> getActByDepartmentByCompany(LocalDate dateStart, LocalDate dateFinish);
+}

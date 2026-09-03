@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        /* Основной контейнер таблицы */
+        .table-scroll-container {
+            height: calc(100vh - 350px);
+            overflow-y: auto;
+            position: relative;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+
+        /* Фиксированные заголовки */
+        .fixed-header thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+        }
+
+        /* Раскраска строк */
+        .paid-true {
+            background-color: #4caf50 !important;
+        }
+        .paid-false {
+            background-color: #f44336 !important;
+        }
+
+        /* Оптимизация отображения таблицы */
+        .fixed-header {
+            width: 100%;
+            margin-bottom: 0;
+            table-layout: auto;
+        }
+        .fixed-header td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+        }
+        .fixed-header td.company-col,
+        .fixed-header td.project-col {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow: visible !important;
+            text-overflow: unset !important;
+            max-width: 250px;
+        }
+
+        /* Фиксация заголовков таблицы именно во фрагменте */
+        #periodTable thead th {
+            position: sticky;
+            top: 56px;
+            background: white;
+            z-index: 500;
+            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+        }
+
+        /* Стили для блока с суммами */
+        .summary-block {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .summary-item {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .summary-item.left {
+            border-right: 1px solid #dee2e6;
+        }
+
+        .summary-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .summary-value {
+            font-size: 1.2rem;
+            color: #212529;
+        }
+
+        .department-summary {
+            margin-top: 10px;
+        }
+
+        .department-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .department-name {
+            font-weight: 500;
+        }
+
+        .department-value {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div th:fragment="actByDepartmentTab">
+    <p>Акты за период <span th:text="${date1 != null} ? ${#temporals.format(date1)}">...</span>
+        <span th:text="${date2 != null} ? ${#temporals.format(date2)}">...</span></p>
+
+    <div class="alert alert-info" th:if="${not #maps.isEmpty(formattedDepartmentSums)}">
+        <h4>Сумма актов по направлениям:</h4>
+        <div class="row row-cols-auto g-2"> <!-- Bootstrap классы для автоматических колонок -->
+            <div class="col" th:each="entry : ${formattedDepartmentSums}">
+                <div class="card h-100">
+                    <div class="card-body p-2">
+                        <h6 class="card-title" th:text="${entry.key}">Отдел</h6>
+                        <p class="card-text" th:text="${entry.value}">0,00 ₽</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Блок с информацией о выбранной компании -->
+    <div class="alert alert-primary" th:if="${selectedCompany != null}">
+        <h4>Сумма актов по компании:</h4>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${selectedCompany}"></h5>
+                        <p class="card-text">
+                            <strong>Сумма актов:</strong>
+                            <span th:text="${formattedCompanySum}">0,00 ₽</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div class="table-scroll-container">
+        <table id="departmentTable" class="table table-bordered table-hover fixed-header" data-numeric-cols="Сумма">
+            <thead class="table-light">
+            <tr>
+                <th>Компания</th>
+                <th>Номер акта</th>
+                <th>Дата акта</th>
+                <th>Сумма</th>
+                <th>Кандидат</th>
+                <th>Проект</th>
+                <th>Направление</th>
+                <th>% Участия</th>
+                <th>Выставлено от</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="act : ${actByCompanyByDepartments}">
+                <td th:text="${act.company}" class="company-col"></td>
+                <td th:text="${act.num}"></td>
+                <td th:text="${#temporals.format(act.dateAct)}"></td>
+                <td th:text="${#numbers.formatDecimal(act.sumActNoNDS, 1, 2, 'COMMA')}" class="numeric"></td>
+                <td th:text="${act.candidate}"></td>
+                <td th:text="${act.projectName}" class="project-col"></td>
+                <td th:text="${act.departmentName}"></td>
+                <td th:text="${#numbers.formatDecimal(act.percentByDepartment, 1, 2, 'COMMA')}"></td>
+                <td th:text="${act.organization}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Применяем стили при загрузке фрагмента
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarHeight = document.querySelector('.navbar').offsetHeight;
+            document.querySelectorAll('.fixed-header thead th').forEach(th => {
+                th.style.top = navbarHeight + 'px';
+            });
+        });
+        /*]]>*/
+    </script>
+</div>
+</body>
+</html>
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <style>-->
+<!--        /* Основной контейнер таблицы */-->
+<!--        .table-scroll-container {-->
+<!--            height: calc(100vh - 350px);-->
+<!--            overflow-y: auto;-->
+<!--            position: relative;-->
+<!--            margin-bottom: 20px;-->
+<!--            border: 1px solid #dee2e6;-->
+<!--            border-radius: 4px;-->
+<!--        }-->
+
+<!--        /* Фиксированные заголовки */-->
+<!--        .fixed-header thead th {-->
+<!--            position: sticky;-->
+<!--            top: 0;-->
+<!--            background: white;-->
+<!--            z-index: 10;-->
+<!--            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);-->
+<!--        }-->
+
+<!--        /* Раскраска строк */-->
+<!--        .paid-true {-->
+<!--            background-color: #4caf50 !important;-->
+<!--        }-->
+<!--        .paid-false {-->
+<!--            background-color: #f44336 !important;-->
+<!--        }-->
+
+<!--        /* Оптимизация отображения таблицы */-->
+<!--        .fixed-header {-->
+<!--            width: 100%;-->
+<!--            margin-bottom: 0;-->
+<!--            table-layout: auto;-->
+<!--        }-->
+<!--        .fixed-header td {-->
+
+<!--            overflow: hidden;-->
+<!--            text-overflow: ellipsis;-->
+<!--            vertical-align: middle;-->
+<!--        }-->
+<!--        .fixed-header td.company-col,-->
+<!--        .fixed-header td.project-col {-->
+<!--            white-space: normal !important;-->
+<!--            word-break: break-word;-->
+<!--            overflow: visible !important;-->
+<!--            text-overflow: unset !important;-->
+<!--            max-width: 250px; /* можно варьировать */-->
+<!--        }-->
+<!--        /* Фиксация заголовков таблицы именно во фрагменте */-->
+<!--        #periodTable thead th {-->
+<!--            position: sticky;-->
+<!--            top: 56px; /* высота твоей .navbar */-->
+<!--            background: white;-->
+<!--            z-index: 500;-->
+<!--            box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);-->
+<!--        }-->
+<!--}-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div th:fragment="actByDepartmentTab">-->
+<!--    <p>Акты за период <span th:text="${date1 != null} ? ${#temporals.format(date1)}">...</span>-->
+<!--        <span th:text="${date2 != null} ? ${#temporals.format(date2)}">...</span></p>-->
+
+<!--&lt;!&ndash;    <div th:replace="~{fragments/act-filter-fragment :: filter-form(tableId='periodTable')}"></div>&ndash;&gt;-->
+
+<!--    <div class="table-scroll-container">-->
+<!--        <table id="departmentTable" class="table table-bordered table-hover fixed-header" data-numeric-cols="Сумма">-->
+<!--            <thead class="table-light">-->
+<!--            <tr>-->
+<!--                <th>Компания</th>-->
+<!--                <th>Номер акта</th>-->
+<!--                <th>Дата акта</th>-->
+<!--                <th>Сумма</th>-->
+<!--                <th>Кандидат</th>-->
+<!--                <th>Проект</th>-->
+<!--                <th>Направление</th>-->
+<!--                <th>% Участия</th>-->
+<!--                <th>Выставлено от</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+<!--            <tbody>-->
+<!--            <tr th:each="act : ${actByCompanyByDepartments}">-->
+<!--                <td th:text="${act.company}" class="company-col"></td>-->
+<!--                <td th:text="${act.num}"></td>-->
+<!--                <td th:text="${act.dateAct}"></td>-->
+<!--                <td th:text="${act.sumActNoNDS}" class="numeric"></td>-->
+<!--                <td th:text="${act.candidate}"></td>-->
+<!--                <td th:text="${act.projectName}" class="project-col"></td>-->
+<!--                <td th:text="${act.departmentName}"></td>-->
+<!--                <td th:text="${act.percentByDepartment}"></td>-->
+<!--                <td th:text="${act.organization}"></td>-->
+
+<!--            </tr>-->
+<!--            </tbody>-->
+<!--        </table>-->
+<!--    </div>-->
+
+<!--    <script th:inline="javascript">-->
+<!--        /*<![CDATA[*/-->
+<!--        // Применяем стили при загрузке фрагмента-->
+<!--        document.addEventListener('DOMContentLoaded', function() {-->
+<!--            const navbarHeight = document.querySelector('.navbar').offsetHeight;-->
+<!--            document.querySelectorAll('.fixed-header thead th').forEach(th => {-->
+<!--                th.style.top = navbarHeight + 'px';-->
+<!--            });-->
+<!--        });-->
+<!--        /*]]>*/-->
+<!--    </script>-->
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
+

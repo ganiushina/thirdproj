@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AltaPersonnel</title>
+    <link rel="icon" type="image/png" th:href="@{/favicon.ico}"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/webjars/htmx.org/dist/htmx.min.js}"></script>
+    <style>
+        /* Основной блок приветствия */
+        .greeting-block {
+            font-family: 'Arial', sans-serif;
+            font-size: 28px;
+            color: #333; /* Нейтральный тёмно-серый */
+            line-height: 1.5;
+        }
+
+        /* Имя пользователя */
+        .user-name {
+            font-weight: 800; /* Супержирный */
+            font-size: 32px; /* Крупнее основного текста */
+            padding: 0 2px;
+        }
+
+        /* Сообщение для Даши */
+        .dasha-message {
+            font-weight: 600;
+            font-size: 28px;
+        }
+    </style>
+</head>
+
+<body>
+<div th:replace="~{navigation :: navi(Home)}"></div>
+
+<div class="container text-center mt-5">
+    <h1 class="display-4">Добро пожаловать в Альта бонус!</h1>
+    <div th:utext="${greeting}"></div>
+<!--    <p class="greeting"-->
+<!--      >-->
+
+<!--       th:utext="${userFullName != null} ? 'Здравствуй, &lt;strong&gt;' + ${userFullName} + '&lt;/strong&gt;!' : 'Здравствуй!'">-->
+    </p>
+
+<!--    <p class="lead" th:text="${userFullName != null} ? 'Здравствуй, ' + ${userFullName} + '!' : 'Здравствуй!'"></p>-->
+</div>
+</body>
+</html>
+

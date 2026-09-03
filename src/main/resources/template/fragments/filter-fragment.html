@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<style>
+    .filter-container .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .filter-container .filter-control {
+        flex: 1 1 220px;
+        min-width: 180px;
+    }
+
+    @media (max-width: 576px) {
+        .filter-container .filter-control {
+            flex-basis: 100%;
+        }
+    }
+</style>
+
+<!-- Name filter fragment -->
+<div th:fragment="filter-form(tableId)">
+
+    <div class="card mb-3">
+        <div class="filter-container mb-4 p-3 bg-light rounded">
+            <div class="filter-row" th:with="departmentOptions=${departments}">
+                <select class="filter-control" th:attr="data-table-id=${tableId}" id="departmentFilter"
+                        th:onchange="departmentFilter(this)"
+                        th:oninput="departmentFilter(this)">
+                    <option value="">Все направления</option>
+                    <option th:each="department : ${departmentOptions}"
+                            th:value="${department.name}"
+                            th:text="${department.name}"
+                            th:attr="data-department-id=${department.id}"></option>
+                </select>
+                <input class="filter-control" type="text" th:attr="data-table-id=${tableId}" id="monthFilter"
+                       placeholder="Искать по месяцу"
+                       th:oninput="monthFilter(this)" />
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

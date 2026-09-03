@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Сверка выплат</title>
+</head>
+<body>
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #2c3e50;">Сверка выплат произведена</h2>
+    <p>Уважаемый коллега,</p>
+
+    <p>Проверка выплат за период: <strong th:text="${period}"></strong> успешно завершена.</p>
+    <p>Все выплаты были сверены и подтверждены.</p>
+
+    <p style="margin-top: 30px;">
+        <small>Дата проверки: <span th:text="${currentDate}"></span></small><br>
+        <small>С уважением,<br>Бухгалтерия компании</small>
+    </p>
+</div>
+</body>
+</html>
+

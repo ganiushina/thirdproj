@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Bonus</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+       body {
+           padding-top: 70px;
+           margin: 0;
+           padding: 3px;
+           font-family: Arial, sans-serif;
+       }
+       /* Общие стили для фильтров */
+       .filter-container {
+           display: flex;
+           flex-wrap: wrap;
+           gap: 15px;
+           margin-bottom: 15px;
+           align-items: flex-end;
+           padding: 15px;
+           background-color: #f8f9fa;
+           border-radius: 5px;
+           border: 1px solid #dee2e6;
+       }
+
+       .filter-group {
+           display: flex;
+           flex-direction: column;
+           min-width: 200px;
+       }
+
+       .filter-group label {
+           margin-bottom: 5px;
+           font-weight: bold;
+           color: #495057;
+       }
+
+       .filter-group input,
+       .filter-group select {
+           padding: 8px 12px;
+           border: 1px solid #ced4da;
+           border-radius: 4px;
+           font-size: 0.9rem;
+       }
+
+       .filter-group button {
+           padding: 8px 16px;
+           background-color: #007bff; /* Синий цвет для кнопки Применить */
+           color: white;
+           border: none;
+           border-radius: 4px;
+           cursor: pointer;
+           font-size: 0.9rem;
+       }
+
+       .filter-group button:hover {
+           background-color: #0069d9;
+       }
+
+       /* Стили для статистического блока */
+       .stats-block {
+           background-color: transparent;
+           padding: 0;
+           margin-bottom: 20px;
+           display: flex;
+           flex-wrap: wrap;
+           gap: 15px;
+       }
+
+       .stats-block .stat-card {
+           flex: 1;
+           min-width: 250px;
+           background-color: #f8f9fa;
+           border: 1px solid #dee2e6;
+           border-radius: 5px;
+           padding: 15px;
+       }
+
+       .stats-block .stat-item {
+           margin-bottom: 10px;
+       }
+
+       .stats-block .stat-label {
+           font-weight: bold;
+           color: #495057;
+           margin-right: 8px;
+       }
+
+       .stats-block .stat-value {
+           color: #212529;
+           font-family: monospace;
+           font-size: 1.1em;
+       }
+
+       /* Кнопка экспорта */
+       .export-container {
+           margin: 15px 0;
+           text-align: left;
+       }
+
+       .btn-export {
+           background-color: #28a745; /* Зеленый цвет для кнопки экспорта */
+           color: white;
+           padding: 8px 16px;
+           border-radius: 4px;
+           border: none;
+           cursor: pointer;
+           font-size: 0.9rem;
+       }
+
+       .btn-export:hover {
+           background-color: #218838;
+       }
+
+       .fas {
+           margin-right: 8px;
+       }
+
+       /* Адаптация для мобильных устройств */
+       @media (max-width: 768px) {
+           .filter-container {
+               flex-direction: column;
+               align-items: stretch;
+           }
+
+           .filter-group {
+               width: 100%;
+           }
+
+           .stats-block .stat-card {
+               min-width: 100%;
+           }
+       }
+       th, td {
+           border: 1px solid #ddd;
+           padding: 8px;
+           text-align: left;
+           word-wrap: break-word;
+       }
+       th {
+           background-color: #f2f2f2;
+           position: sticky;
+           top: 0;
+       }
+       tr:nth-child(even) {
+           background-color: #f9f9f9;
+       }
+       .summary {
+           margin-top: 15px;
+           font-weight: bold;
+       }
+       .act-table {
+           width: 100%;
+           margin-top: 5px;
+           border-collapse: collapse;
+       }
+       .act-table th, .act-table td {
+           border: 1px solid #ccc;
+           padding: 5px;
+           font-size: 0.9em;
+       }
+       .hidden-row {
+           display: none;
+       }
+       .bonus-container {
+           display: flex;
+           align-items: center;
+           gap: 8px;
+           height: 100%;
+       }
+
+       .bonus-checkbox {
+           margin: 0;
+           cursor: pointer;
+           flex-shrink: 0;
+       }
+
+       .bonus-amount {
+           flex-grow: 1;
+       }
+       .act-table {
+           table-layout: fixed; /* Фиксированная ширина колонок */
+       }
+
+       .act-table th:nth-child(5),
+       .act-table td:nth-child(5) {
+           width: 150px; /* Ширина колонки с бонусом */
+       }
+       .act-table {
+           width: 100%;
+           border-collapse: collapse;
+           margin-top: 5px;
+       }
+
+       .act-table th, .act-table td {
+           border: 1px solid #ddd;
+           padding: 5px;
+           font-size: 0.9em;
+       }
+
+       /* Скрываем вложенные таблицы при экспорте */
+       @media print {
+           .act-table {
+               display: none;
+           }
+       }
+
+        @media (max-width: 768px) {
+            /* ... существующие стили ... */
+
+            /* Добавьте эти стили для таблиц */
+            #mainTable {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .act-table {
+                width: auto;
+                min-width: 100%;
+            }
+
+            #mainTable th, #mainTable td {
+                white-space: nowrap;
+            }
+
+            /* Опционально: уменьшите padding для экономии места */
+            #mainTable th, #mainTable td {
+                padding: 4px;
+            }
+        }
+
+
+
+    </style>
+</head>
+
+<body>
+
+<!-- Замените div на nav для правильного отображения -->
+<nav th:replace="~{navigation :: navi(Home)}"></nav>
+
+<div class="container-fluid"> <!-- Добавьте этот контейнер -->
+<h1>Бонусы к выплате</h1>
+
+<div class="filter-container">
+    <div class="filter-group">
+        <label for="date1">Дата от</label>
+        <input type="date" id="date1" th:value="${date1}">
+    </div>
+
+    <div class="filter-group">
+        <label for="date2">Дата до</label>
+        <input type="date" id="date2" th:value="${date2}">
+    </div>
+
+    <div class="filter-group">
+        <label for="searchFio">Поиск по ФИО</label>
+        <input type="text" id="searchFio" placeholder="Введите имя..." oninput="filterTable()">
+    </div>
+
+    <div class="filter-group" th:with="departmentOptions=${departments}">
+        <label for="searchDepartment">Поиск по отделу</label>
+        <select id="searchDepartment" class="form-control" onchange="filterTable()">
+            <option value="">Все отделы</option>
+            <option th:each="department : ${departmentOptions}"
+                    th:value="${department.name}"
+                    th:text="${department.name}"
+                    th:attr="data-department-id=${department.id}"></option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <button type="button" onclick="applyDateFilter()">Применить</button>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="stats-block">
+    <div class="stat-card">
+        <div class="stat-item">
+            <span class="stat-label">Всего к оплате:</span>
+            <span class="stat-value" th:text="${allMoney}"></span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Оплачено:</span>
+            <span class="stat-value" id="paidTotal" th:text="${allPaymentMoney}"></span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-item">
+            <span class="stat-label">Осталось:</span>
+            <span class="stat-value" id="notPaidTotal" th:text="${allNotPaymentMoney}"></span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Из них:</span>
+            <span class="stat-value" th:text="${moneyByDate}"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка экспорта -->
+<div class="export-container">
+    <button onclick="exportToExcel()" class="btn-export">
+        <i class="fas fa-file-excel"></i> Выгрузить в Excel
+    </button>
+</div>
+
+
+<table id="mainTable">
+    <thead>
+    <tr>
+        <th style="width: 8%;">ФИО</th>
+        <th style="width: 8%;">Отдел</th>
+        <th style="width: 10%;">Всего Бонус</th>
+        <th style="width: 74%;">Акты</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="employer : ${employerList}" class="employer-row"
+        th:attr="data-fio=${employer.manFIO}, data-department=${employer.userDepartment}">
+        <td th:text="${employer.manFIO}"></td>
+        <td th:text="${employer.userDepartment}"></td>
+        <td th:text="${#numbers.formatDecimal(employer.allBonus, 1, 2, 'COMMA')}"
+            th:attr="data-value=${employer.allBonus}"></td>
+        <td>
+            <table class="act-table">
+                <thead>
+                <tr>
+                    <th>Кандидат</th>
+                    <th>Компания</th>
+                    <th>Номер акта</th>
+                    <th>Дата акта</th>
+                    <th>Бонус</th>
+                    <th>Процент</th>
+                    <th>Дата выплаты бонуса</th>
+                    <th>Дата оплаты клиентом</th>
+                    <th>Дата оплаты компанией</th>
+                    <th>Оплативший сотрудник</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="act,actIter : ${employer.actList}">
+                    <td th:text="${act.candidate}"></td>
+                    <td th:text="${act.companies}"></td>
+                    <td th:text="${act.num}"></td>
+                    <td th:text="${act.date}"></td>
+                    <td>
+                        <div class="bonus-container">
+                            <input type="checkbox" class="bonus-checkbox"
+                                   th:checked="${act.paid}"
+                                   th:data-act-id="${act.id}"
+                                   th:data-employer-id="${employer.manId}"
+                                   th:data-candidate="${act.candidate}"
+                                   th:data-projects="${act.projects}"
+                                   th:data-bonus="${act.bonus}"
+                                   th:data-paid="${act.paid}"
+                                   th:data-date-payment="${act.datePayment}"
+                                   th:data-payment-buh-id="${act.paymentBuhId}"
+                                   onchange="updatePaymentStatus(this)">
+                            <span th:text="${#numbers.formatDecimal(act.bonus, 1, 2, 'COMMA')}"
+                                  th:attr="data-value=${act.bonus}"></span>
+                        </div>
+                    </td>
+                    <td th:with="percentValue=${employer.percent != null and actIter.index < #lists.size(employer.percent) ? employer.percent[actIter.index] : null}"
+                        th:text="${percentValue != null} ? ${percentValue} : ''"></td>
+                    <td th:text="${act.dateForPay}"></td>
+                    <td th:text="${act.datePayment}"></td>
+                    <td th:text="${act.paymentRealDate}"></td>
+                    <td th:text="${act.employerPaid}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    // Глобальные функции - должны быть доступны из HTML
+    function applyDateFilter() {
+        const date1 = document.getElementById('date1').value;
+        const date2 = document.getElementById('date2').value;
+
+        if (!date1 || !date2) {
+            alert('Please select both date ranges');
+            return;
+        }
+
+        window.location.href = `/amount/allpayment3?date1=${date1}&date2=${date2}`;
+    }
+
+    function filterTable() {
+        const nameInput = document.getElementById('searchFio');
+        const departmentSelect = document.getElementById('searchDepartment');
+        const nameFilter = (nameInput ? nameInput.value : '').toLowerCase();
+        const deptFilter = (departmentSelect ? departmentSelect.value : '').toLowerCase();
+
+        document.querySelectorAll('.employer-row').forEach(row => {
+            const fio = (row.getAttribute('data-fio') || '').toLowerCase();
+            const department = (row.getAttribute('data-department') || '').toLowerCase();
+
+            const nameMatch = fio.includes(nameFilter);
+            const deptMatch = department.includes(deptFilter);
+
+            if (nameMatch && deptMatch) {
+                row.classList.remove('hidden-row');
+            } else {
+                row.classList.add('hidden-row');
+            }
+        });
+    }
+
+    // Остальной код оставьте как есть...
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchFio = urlParams.get('searchFio');
+        const searchDepartment = urlParams.get('searchDepartment');
+
+        if (searchFio) {
+            document.getElementById('searchFio').value = searchFio;
+        }
+
+        if (searchDepartment) {
+            const departmentSelect = document.getElementById('searchDepartment');
+            if (departmentSelect) {
+                departmentSelect.value = searchDepartment;
+            }
+        }
+
+        if (searchFio || searchDepartment) {
+            filterTable();
+        }
+    });
+
+
+    function updatePaymentStatus(checkbox) {
+    try {
+        const isChecked = checkbox.checked;
+        const bonus = parseFloat(checkbox.getAttribute('data-bonus') || 0);
+        const actId = parseInt(checkbox.getAttribute('data-act-id') || 0);
+        const employerId = parseInt(checkbox.getAttribute('data-employer-id') || 0);
+        const candidate = checkbox.getAttribute('data-candidate') || '';
+        const datePaymentValue = checkbox.getAttribute('data-date-payment') || '';
+        const paymentBuhIdValue = checkbox.getAttribute('data-payment-buh-id');
+        const paymentBuhId = paymentBuhIdValue && paymentBuhIdValue !== 'null' ? paymentBuhIdValue : null;
+
+        // Валидация данных
+        if (!employerId || !candidate || !bonus || bonus <= 0) {
+            throw new Error("Неверные данные: employerId=" + employerId +
+                          ", candidate=" + candidate + ", bonus=" + bonus);
+        }
+
+        // ФОРМИРУЕМ ДАТУ ПРАВИЛЬНО
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const currentDate = `${year}-${month}-${day}`;
+
+        const data = {
+            actId: actId,
+            employerId: employerId,
+            candidate: candidate,
+            bonus: bonus,
+            paid: isChecked,
+            datePayment: datePaymentValue,
+            paymentRealDate: isChecked ? currentDate : null,
+            paymentBuhId: paymentBuhId
+        };
+
+        console.log("Sending payment data:", JSON.stringify(data, null, 2));
+
+        // Сохраняем исходное состояние для отката
+        const originalChecked = !isChecked;
+        const originalPaidTotal = document.getElementById('paidTotal').textContent;
+        const originalNotPaidTotal = document.getElementById('notPaidTotal').textContent;
+
+        const row = checkbox.closest('tr');
+
+        // ДЕБАГ: посмотрим структуру строки
+        console.log("=== ROW STRUCTURE DEBUG ===");
+        const cells = row.querySelectorAll('td');
+        cells.forEach((cell, index) => {
+            console.log(`Cell ${index + 1}:`, cell.textContent?.substring(0, 30));
+        });
+        console.log("=== END DEBUG ===");
+
+        // ВРЕМЕННОЕ ОБНОВЛЕНИЕ UI
+        if (isChecked) {
+            // Обновляем общие суммы
+            updateTotalSums(bonus, true);
+
+            // Временно обновляем поля в таблице
+            if (row) {
+                // ПРАВИЛЬНЫЕ ИНДЕКСЫ для вложенной таблицы актов:
+                const paymentDateCell = row.querySelector('td:nth-child(9)');  // Дата оплаты компанией (8-я колонка)
+                const employerPaidCell = row.querySelector('td:nth-child(10)');  // Оплативший сотрудник (9-я колонка)
+
+                console.log("Temporary UI update - cells found:", {
+                    paymentDateCell: !!paymentDateCell,
+                    employerPaidCell: !!employerPaidCell
+                });
+
+                if (paymentDateCell) {
+                    // Форматируем дату для отображения
+                    const displayDate = `${day}.${month}.${year}`;
+                    paymentDateCell.textContent = displayDate;
+                    console.log("Set paymentDateCell to:", displayDate);
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = "Обновление...";
+                    console.log("Set employerPaidCell to: Обновление...");
+                }
+            }
+        } else {
+            updateTotalSums(bonus, false);
+
+            // Очищаем поля при снятии галочки
+            if (row) {
+                const paymentDateCell = row.querySelector('td:nth-child(9)');
+                const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                if (paymentDateCell) {
+                    paymentDateCell.textContent = "";
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = "";
+                }
+            }
+        }
+
+        // ОТПРАВКА НА СЕРВЕР
+        fetch('/amount/updatePaymentStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            console.log("Response status:", response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error("Server error response:", text);
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(responseData => {
+            console.log("Server response:", responseData);
+
+            if (responseData.status === "success") {
+                // ОБНОВЛЯЕМ UI С ДАННЫМИ ОТ СЕРВЕРА
+                if (responseData.allPaymentMoney) {
+                    document.getElementById('paidTotal').textContent = responseData.allPaymentMoney;
+                }
+                if (responseData.allNotPaymentMoney) {
+                    document.getElementById('notPaidTotal').textContent = responseData.allNotPaymentMoney;
+                }
+
+                // ОБНОВЛЯЕМ ДАТУ И СОТРУДНИКА ИЗ ОТВЕТА СЕРВЕРА
+                if (row) {
+                    const paymentDateCell = row.querySelector('td:nth-child(9)');  // Дата оплаты компанией
+                    const employerPaidCell = row.querySelector('td:nth-child(10)');  // Оплативший сотрудник
+
+                    console.log("Final UI update - cells found:", {
+                        paymentDateCell: !!paymentDateCell,
+                        employerPaidCell: !!employerPaidCell
+                    });
+
+                    if (paymentDateCell && responseData.paymentRealDate) {
+                        paymentDateCell.textContent = responseData.paymentRealDate;
+                        console.log("Set paymentDateCell to:", responseData.paymentRealDate);
+                    }
+                    if (employerPaidCell && responseData.employerPaid) {
+                        employerPaidCell.textContent = responseData.employerPaid;
+                        console.log("Set employerPaidCell to:", responseData.employerPaid);
+                    }
+                }
+
+                console.log("Payment status updated successfully");
+            } else {
+                throw new Error(responseData.message || "Unknown server error");
+            }
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            // ОТКАТЫВАЕМ ИЗМЕНЕНИЯ ПРИ ОШИБКЕ
+            checkbox.checked = originalChecked;
+            document.getElementById('paidTotal').textContent = originalPaidTotal;
+            document.getElementById('notPaidTotal').textContent = originalNotPaidTotal;
+
+            if (row) {
+                const paymentDateCell = row.querySelector('td:nth-child(9)');
+                const employerPaidCell = row.querySelector('td:nth-child(10)');
+
+                if (paymentDateCell) {
+                    paymentDateCell.textContent = "";
+                }
+                if (employerPaidCell) {
+                    employerPaidCell.textContent = "";
+                }
+            }
+
+            alert('Ошибка при обновлении: ' + error.message);
+        });
+
+    } catch (error) {
+        console.error("Validation error:", error);
+        checkbox.checked = !checkbox.checked;
+        alert('Ошибка валидации: ' + error.message);
+    }
+}
+
+
+
+    // Вспомогательная функция для обновления сумм
+    function updateTotalSums(bonus, isAdding) {
+        const paidSpan = document.getElementById('paidTotal');
+        const notPaidSpan = document.getElementById('notPaidTotal');
+
+        if (paidSpan && notPaidSpan) {
+            const paidText = paidSpan.textContent || "0";
+            const notPaidText = notPaidSpan.textContent || "0";
+
+            let paidTotal = parseFloat(paidText.replace(/\s+/g, '')) || 0;
+            let notPaidTotal = parseFloat(notPaidText.replace(/\s+/g, '')) || 0;
+
+            if (isAdding) {
+                paidTotal += bonus;
+                notPaidTotal = Math.max(0, notPaidTotal - bonus);
+            } else {
+                paidTotal = Math.max(0, paidTotal - bonus);
+                notPaidTotal += bonus;
+            }
+
+            paidSpan.textContent = formatMoney(paidTotal);
+            notPaidSpan.textContent = formatMoney(notPaidTotal);
+        }
+    }
+
+    function formatMoney(amount) {
+        return amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ');
+    }
+
+
+    function exportToExcel() {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = function() {
+            // Создаем новую книгу Excel
+            const wb = XLSX.utils.book_new();
+
+            // Подготавливаем данные в плоском формате
+            const excelData = prepareExcelData();
+            // Преобразуем данные перед созданием листа
+
+            const formattedData = excelData.map(item => {
+                return {
+                    ...item,
+                    "Общий бонус": convertToExcelNumber(item["Общий бонус"]),
+                    "Бонус": convertToExcelNumber(item["Бонус"])
+                };
+            });
+
+            // Создаем рабочий лист
+            const ws = XLSX.utils.json_to_sheet(excelData, {
+                header: ["ФИО", "Отдел", "Общий бонус", "Акт №", "Кандидат", "Компания",
+                        "Дата акта", "Бонус", "Процент", "Дата выплаты бонуса",
+                    "Дата оплаты клиентом",
+                    "Дата оплаты компанией",
+                    "Оплативший сотрудник"],
+                skipHeader: false
+            });
+
+            // Устанавливаем форматы для денежных колонок
+            const moneyColumns = ["Общий бонус", "Бонус"];
+            const range = XLSX.utils.decode_range(ws['!ref']);
+
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const header = XLSX.utils.encode_col(C) + "1";
+                if (ws[header] && moneyColumns.includes(ws[header].v)) {
+                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                        const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
+                        if (ws[cell_ref]) {
+                            ws[cell_ref].z = '#,##0.00';
+                            if (ws[cell_ref].t !== 'n') {
+                                ws[cell_ref].v = parseFloat(ws[cell_ref].v.replace(/[^\d.,]/g, '').replace(',', '.'));
+                                ws[cell_ref].t = 'n';
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Добавляем лист в книгу
+            XLSX.utils.book_append_sheet(wb, ws, "Платежи");
+
+            // Скачиваем файл
+            XLSX.writeFile(wb, 'bonus_report.xlsx');
+        };
+        document.head.appendChild(script);
+    }
+
+    function prepareExcelData() {
+        const excelData = [];
+        const rows = document.querySelectorAll('#mainTable tbody tr.employer-row');
+
+        rows.forEach(row => {
+            const employerName = row.querySelector('td:nth-child(1)').textContent.trim();
+            const department = row.querySelector('td:nth-child(2)').textContent.trim();
+            const totalBonus = parseFloat(row.querySelector('td:nth-child(3)').getAttribute('data-value')) || 0;
+
+            const actTables = row.querySelectorAll('.act-table tbody tr');
+
+            if (actTables.length > 0) {
+                actTables.forEach(actRow => {
+                    const bonusContainer = actRow.querySelector('td:nth-child(5) .bonus-container');
+                    const bonusValue = bonusContainer ? bonusContainer.querySelector('span').getAttribute('data-value') : '0';
+
+                    const actData = {
+                        "ФИО": employerName,
+                        "Отдел": department,
+                        "Общий бонус": totalBonus,
+                        "Акт №": actRow.querySelector('td:nth-child(3)').textContent.trim(),
+                        "Кандидат": actRow.querySelector('td:nth-child(1)').textContent.trim(),
+                        "Компания": actRow.querySelector('td:nth-child(2)').textContent.trim(),
+                        "Дата акта": actRow.querySelector('td:nth-child(4)').textContent.trim(),
+                        "Бонус": parseFloat(bonusValue) || 0,
+                        "Процент": actRow.querySelector('td:nth-child(6)').textContent.trim(),
+                        "Дата выплаты бонуса": actRow.querySelector('td:nth-child(7)').textContent.trim(),
+                        "Дата оплаты клиентом": actRow.querySelector('td:nth-child(8)').textContent.trim(),
+                        "Дата оплаты компанией": actRow.querySelector('td:nth-child(9)').textContent.trim(),
+                        "Оплативший сотрудник": actRow.querySelector('td:nth-child(10)').textContent.trim()
+                    };
+                    excelData.push(actData);
+                });
+            } else {
+                excelData.push({
+                    "ФИО": employerName,
+                    "Отдел": department,
+                    "Общий бонус": totalBonus,
+                    "Акт №": "Нет данных",
+                    "Кандидат": "",
+                    "Компания": "",
+                    "Дата акта": "",
+                    "Бонус": 0,
+                    "Процент": "",
+                    "Дата выплаты бонуса": "",
+                    "Дата оплаты клиентом": "",
+                    "Дата оплаты компанией": "",
+                    "Оплативший сотрудник": ""
+                });
+            }
+        });
+
+        return excelData;
+    }
+
+    function parseExcelDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('.');
+        if (parts.length === 3) {
+            return new Date(parts[2], parts[1]-1, parts[0]).toISOString();
+        }
+        return null;
+    }
+
+    function convertToExcelNumber(value) {
+        if (typeof value === 'number') return value;
+        if (!value) return 0;
+
+        // Преобразуем разные форматы чисел
+        const num = parseFloat(
+            value.toString()
+                .replace(/[^\d,.-]/g, '')
+                .replace(',', '.')
+        );
+        return isNaN(num) ? 0 : num;
+    }
+
+    function formatExcelNumber(value) {
+        return parseFloat(value.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
+    }
+
+
+
+</script>
+</div>
+<!-- Добавьте скрипты в конец body -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</body>
+</html>

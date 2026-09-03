@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- This script got from frontendfreecode.com -->
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/css/datepicker.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+<div th:replace="~{navigation :: navi(Cart)}"/>
+
+<div class="container mt-5">
+    <h1>Маржинальная прибыль</h1>
+
+</div>
+<form th:action="@{/salary/getSalaryAll}" method="get">
+
+    <div class="input-group mb-3">
+
+        <input required th:value="${date1 != null} ? ${date1}" th:name="date1" type="date" placeholder="Дата от ">
+        <input required th:value="${date2 != null} ? ${date2}" th:name="date2" type="date"  placeholder="Дата до">
+
+
+<!--       <div class="dropdown">-->
+<!--            <button class="btn btn-default dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">-->
+<!--                Dropdown-->
+<!--            </button>-->
+<!--            <ul class="dropdown-menu">-->
+<!--                <li><button class="dropdown-item" type="button">Action</button></li>-->
+<!--                <li><button class="dropdown-item" type="button">Another action</button></li>-->
+<!--                <li><button class="dropdown-item" type="button">Something else here</button></li>-->
+<!--            </ul>-->
+<!--        </div> -->
+        <input type="text" id="inputName" onkeyup="myFunction()" placeholder="Поиск по месяцу.." title="Find in a name">
+        <input type="text" id="inputDepartment" onkeyup="searchDep()" placeholder="Поиск по отделу.." title="Find in a department">
+        <button type="submit" class="btn btn-primary">Фильтровать</button>
+
+    </div>
+
+
+</form>
+<section id="tabs" class="project-tab">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <nav>
+                    <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+<!--                        <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home"-->
+<!--                           role="tab" aria-controls="nav-home" aria-selected="true">Выплаты</a>-->
+<!--                        <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile"-->
+<!--                           role="tab" aria-controls="nav-profile" aria-selected="false">Реализация</a>-->
+<!--                        <a class="nav-item nav-link" id="nav-contact-tab" data-toggle="tab" href="#nav-contact"-->
+<!--                           role="tab" aria-controls="nav-contact" aria-selected="false">Маржа квартал</a>-->
+                        <a class="nav-item nav-link" id="nav-margin-tab" data-toggle="tab" href="#nav-margin"
+                           role="tab" aria-controls="nav-margin" aria-selected="false">Маржа помесячно</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+<!--                    <div class="tab-pane show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">-->
+<!--                        <table id="myTable" class="table table-bordered">-->
+<!--                            <thead>-->
+<!--                            <tr>-->
+<!--                                <th scope="col">ФИО</th>-->
+<!--                                <th scope="col">Прозиция</th>-->
+<!--                                <th scope="col">Отдел</th>-->
+<!--                                <th scope="col">Бонус</th>-->
+<!--                                <th scope="col">Бонус KPI</th>-->
+<!--                                <th scope="col">Зарплата</th>-->
+<!--                                <th scope="col">Вся сумма</th>-->
+<!--                                <th scope="col">Месяц</th>-->
+<!--                            </tr>-->
+<!--                            </thead>-->
+<!--                            <tbody>-->
+<!--                            <tr th:each="userSalary, iterStat : ${userSalaryList}" th:object="${userSalaryList}">-->
+<!--                                <td th:text="${userSalary.fio}"></td>-->
+<!--                                <td th:text="${userSalary.position}"></td>-->
+<!--                                <td th:text="${userSalary.department}"></td>-->
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="bonus : ${userSalary.userBonus}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${bonus}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="bonus : ${userSalary.userBonusKPI}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${bonus}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="bonus : ${userSalary.userSalary}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${bonus}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+<!--                                <td>-->
+
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="bonus : ${userSalary.userSalaryAll}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${bonus}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="month : ${userSalary.salaryMonthStr}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${month}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+<!--                            </tr>-->
+<!--                            </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+<!--                    <div class="tab-pane" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">-->
+<!--                        <table id="myTable2" class="table table-hover table-bordered">-->
+<!--                            <thead>-->
+<!--                            <tr>-->
+<!--                                <th>Направление</th>-->
+<!--                                <th>Сотрудник</th>-->
+<!--                                <th>Сумма</th>-->
+<!--                                <th>Дата акта</th>-->
+<!--                                <th>Компания</th>-->
+<!--                                <th>Кандидат</th>-->
+<!--                                <th>Номер акта</th>-->
+<!--                                <th>Проект</th>-->
+<!--                            </tr>-->
+<!--                            </thead>-->
+<!--                            <tbody>-->
+<!--                            <tr th:each="userSale, iterStat : ${userSaleList}" th:object="${userSaleList}">-->
+<!--                                <td th:text="${userSale.department}"></td>-->
+<!--                                <td>-->
+<!--                                    <ul class="list-group">-->
+<!--                                        <span th:each="sale : ${userSale.userSaleList}">-->
+<!--                                            <li class="list-group-item">-->
+<!--                                                <span th:text="${sale.UserName}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="sale : ${userSale.userSaleList}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${sale.summUser}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.summResponsibleUser}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.summResearcher}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.dateAct}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.companyName}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.candidate}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.actNum}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+
+<!--&lt;!&ndash;                                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <ul class="list-inline">&ndash;&gt;-->
+<!--&lt;!&ndash;                                        <span th:each="sale : ${userSale.projectName}">&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                                <span th:text="${sale}"/></span>&ndash;&gt;-->
+<!--&lt;!&ndash;                                        </li>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    </ul>&ndash;&gt;-->
+<!--&lt;!&ndash;                                </td>&ndash;&gt;-->
+
+<!--                            </tr>-->
+
+<!--                            </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+<!--                    <div class="tab-pane" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">-->
+<!--                        <table id="myTable1" class="table table-bordered">-->
+<!--                            <thead>-->
+<!--                            <tr>-->
+<!--                                <th scope="col">Направление</th>-->
+<!--                                <th scope="col">Заработано направлением</th>-->
+<!--                                <th scope="col">Выплачено направлению</th>-->
+<!--                                <th scope="col">Маржа направления</th>-->
+<!--                                <th scope="col">Бонус BDM</th>-->
+<!--                                <th scope="col">Квартал</th>-->
+<!--                                <th scope="col">Год</th>-->
+<!--                            </tr>-->
+<!--                            </thead>-->
+<!--                            <tbody>-->
+<!--                            <tr th:each="marginBonus, iterStat : ${marginBonusList}" th:object="${marginBonusList}">-->
+<!--                                <td th:text="${marginBonus.departmentName}"></td>-->
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="margin : ${marginBonus.earnedMoneyDepartment}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${margin}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="margin : ${marginBonus.paidMoney}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${margin}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="margin : ${marginBonus.marginDepartment}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${margin}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+
+
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="margin : ${marginBonus.marginBonusBDM}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${margin}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+<!--                                <td>-->
+<!--                                    <ul class="list-inline">-->
+<!--                                        <span th:each="margin : ${marginBonus.marginQuarter}">-->
+<!--                                            <li>-->
+<!--                                                <span th:text="${margin}"/></span>-->
+<!--                                        </li>-->
+<!--                                    </ul>-->
+<!--                                </td>-->
+
+<!--                                <td th:text="${marginBonus.marginYear}"></td>-->
+
+<!--                            </tr>-->
+<!--                            </tbody>-->
+<!--                        </table>-->
+<!--                    </div>-->
+
+                    <div class="tab-pane show active" id="nav-margin" role="tabpanel" aria-labelledby="nav-margin-tab">
+                        <table id="myTableMag" class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th scope="col">Направление</th>
+                                <th scope="col">Месяц</th>
+                                <th scope="col">Заработано за месяц</th>
+                                <th scope="col">Выплачено за месяц</th>
+                                <th scope="col">Маржа за месяц</th>
+                                <th scope="col">Заработано всего</th>
+                                <th scope="col">Выплачено всего</th>
+                                <th scope="col">Маржа всего</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="marginBonusByMonth, iterStat : ${marginBonusByMonth}" th:object="${marginBonusByMonth}">
+                                <td th:text="${marginBonusByMonth.depName}"></td>
+                                <td th:text="${marginBonusByMonth.salaryMonth}"></td>
+                                <td th:text="${marginBonusByMonth.amountEarnedRUB}"></td>
+                                <td th:text="${marginBonusByMonth.amountPaidRUB}"></td>
+                                <td th:text="${marginBonusByMonth.marginRUB}"></td>
+                                <td th:text="${marginBonusByMonth.amountEarnedAllPeriodRUB}"></td>
+                                <td th:text="${marginBonusByMonth.amountPaidAllPeriodRUB}"></td>
+                                <td th:text="${marginBonusByMonth.marginAllPeriodRUB}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+<script>
+    function myFunction() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputName");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTableMag");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function searchDep() {
+        var input, filter, table, tr, td, i;
+        input = document.getElementById("inputDepartment");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTableMag");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+</script>
+</html>

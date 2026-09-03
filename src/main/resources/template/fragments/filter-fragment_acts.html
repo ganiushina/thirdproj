@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="filter-form">
+    <!-- Фильтры -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Фильтры</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="filterActNum" class="form-label">Номер акта</label>
+                    <input type="text" class="form-control" id="filterActNum" placeholder="Введите номер акта"
+                           oninput="filterTable()">
+                </div>
+                <div class="col-md-3">
+                    <label for="filterCompany" class="form-label">Компания</label>
+                    <input type="text" class="form-control" id="filterCompany" placeholder="Введите название компании"
+                           oninput="filterTable()">
+                </div>
+                <div class="col-md-3">
+                    <label for="filterCandidate" class="form-label">Кандидат</label>
+                    <input type="text" class="form-control" id="filterCandidate" placeholder="Введите кандидата"
+                           oninput="filterTable()">
+                </div>
+                <div class="col-md-3" th:with="departmentOptions=${departments}">
+                    <label for="filterDepartment" class="form-label">Направление</label>
+                    <select class="form-control form-select" id="filterDepartment" onchange="filterTable()">
+                        <option value="">Все направления</option>
+                        <option th:each="department : ${departmentOptions}"
+                                th:value="${department.name}"
+                                th:text="${department.name}"
+                                th:attr="data-department-id=${department.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="filterPerson" class="form-label">Консультант / Ресечер</label>
+                    <input type="text" class="form-control" id="filterPerson"
+                           placeholder="Введите имя консультанта или ресечера"
+                           oninput="filterTable()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        Очистить фильтры
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" class="btn btn-primary w-100" onclick="exportToExcel()">
+                        Экспорт в Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
